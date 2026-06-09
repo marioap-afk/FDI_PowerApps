@@ -1,6 +1,7 @@
 ﻿[CmdletBinding()]
 param(
     [string]$SiteUrl = "https://montillacom.sharepoint.com/sites/Pruebas",
+    [string]$ClientId = "",
     [string]$RepoRoot = "",
     [string]$OutputDir = "",
     [int]$RecentDays = 90,
@@ -26,6 +27,14 @@ if ([string]::IsNullOrWhiteSpace($OutputDir)) {
 $generatedAt = (Get-Date).ToUniversalTime().ToString("o")
 $outputPath = Resolve-Path -LiteralPath $RepoRoot -ErrorAction Stop
 $RepoRoot = $outputPath.Path
+$script:AuthenticationAttempted = $false
+$script:AuthenticationSucceeded = $false
+$script:AuthenticationMethod = "DeviceLogin"
+$script:AuthenticationError = ""
+
+if (-not [string]::IsNullOrWhiteSpace($ClientId)) {
+    $script:AuthenticationMethod = "DeviceLogin+ClientId"
+}
 
 function New-Directory {
     param([string]$Path)
@@ -417,6 +426,56 @@ function New-RecommendedIndexProfiles {
     )
 }
 
+function Get-ClientIdUsageInstructions {
+    param([string]$TargetSiteUrl)
+
+    $lines = @(
+        "El tenant requiere una App Registration de Entra ID para PnP.PowerShell 3.x.",
+        "",
+        "Crea o solicita una App Registration de solo lectura para inventario, con flujo de cliente público/device code habilitado y permisos delegados de lectura aprobados por el administrador según la política del tenant.",
+        "",
+        "Ejecuta de nuevo con PowerShell 7:",
+        "",
+        '```powershell',
+        ('pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\export-sharepoint-metadata.ps1 -SiteUrl "{0}" -ClientId "<ENTRA_APP_CLIENT_ID>"' -f $TargetSiteUrl),
+        '```',
+        "",
+        "El script seguirá usando Connect-PnPOnline -DeviceLogin, solo agregando -ClientId. No usa cmdlets de escritura ni descarga registros de negocio."
+    )
+
+    return ($lines -join [Environment]::NewLine)
+}
+
+function New-EmptyMetadata {
+    return [pscustomobject]@{
+        Lists = @()
+        Columns = @()
+        Views = @()
+        Indexes = @()
+    }
+}
+
+function Connect-SharePointReadOnly {
+    $script:AuthenticationAttempted = $true
+    $script:AuthenticationSucceeded = $false
+    $script:AuthenticationError = ""
+
+    try {
+        if ([string]::IsNullOrWhiteSpace($ClientId)) {
+            Connect-PnPOnline -Url $SiteUrl -DeviceLogin
+        }
+        else {
+            Connect-PnPOnline -Url $SiteUrl -DeviceLogin -ClientId $ClientId
+        }
+
+        $script:AuthenticationSucceeded = $true
+    }
+    catch {
+        $script:AuthenticationError = $_.Exception.Message
+        throw
+    }
+}
+
 function Test-RecommendedIndexes {
     param(
         [array]$Columns,
@@ -468,7 +527,7 @@ function Read-SharePointMetadata {
     $views = New-Object System.Collections.Generic.List[object]
     $indexes = New-Object System.Collections.Generic.List[object]
 
-    Connect-PnPOnline -Url $SiteUrl -Interactive
+    Connect-SharePointReadOnly
 
     $pnpLists = Get-PnPList -Includes Id, Title, BaseTemplate, BaseType, Hidden, ItemCount, EnableAttachments, Created, LastItemModifiedDate, RootFolder, DefaultViewUrl, Fields, Views
 
@@ -725,16 +784,20 @@ function Write-AuditMarkdown {
     $lines.Add("")
     $lines.Add("## Instrucciones de ejecución")
     $lines.Add("")
-    $lines.Add("Instalar PnP.PowerShell si falta:")
+    $lines.Add("Usar PowerShell 7 y PnP.PowerShell 3.x:")
     $lines.Add("")
     $lines.Add('```powershell')
-    $lines.Add("Install-Module PnP.PowerShell -Scope CurrentUser")
+    $lines.Add("pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\export-sharepoint-metadata.ps1 -SiteUrl ""$SiteUrl""")
     $lines.Add('```')
     $lines.Add("")
-    $lines.Add("Ejecutar exportación interactiva:")
+    $lines.Add("Autenticación:")
+    $lines.Add("")
+    $lines.Add('- El script intenta primero `Connect-PnPOnline -Url $SiteUrl -DeviceLogin`.')
+    $lines.Add('- Si el tenant exige una App Registration de Entra ID, ejecuta de nuevo agregando `-ClientId`.')
+    $lines.Add("- La App Registration debe ser de lectura para inventario, con flujo de cliente público/device code habilitado y permisos delegados de lectura aprobados según la política del tenant.")
     $lines.Add("")
     $lines.Add('```powershell')
-    $lines.Add((".\scripts\export-sharepoint-metadata.ps1 -SiteUrl ""{0}""" -f $SiteUrl))
+    $lines.Add("pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\export-sharepoint-metadata.ps1 -SiteUrl ""$SiteUrl"" -ClientId ""<ENTRA_APP_CLIENT_ID>""")
     $lines.Add('```')
     $lines.Add("")
     $lines.Add('El script vuelve a generar `docs/sharepoint/sharepoint-schema.json`, CSVs, auditoría y candidatas.')
@@ -772,7 +835,8 @@ $profiles = New-RecommendedIndexProfiles
 
 $pnpModule = Get-Module -ListAvailable PnP.PowerShell | Sort-Object Version -Descending | Select-Object -First 1
 $collectionStatus = "completed"
-$collectionNote = "La metadata se obtuvo directamente desde SharePoint con PnP PowerShell usando autenticación interactiva."
+$collectionNote = "La metadata se obtuvo directamente desde SharePoint con PnP PowerShell usando Connect-PnPOnline -DeviceLogin."
+$clientIdUsageInstructions = Get-ClientIdUsageInstructions -TargetSiteUrl $SiteUrl
 $metadata = $null
 
 if ($null -eq $pnpModule) {
@@ -781,17 +845,33 @@ if ($null -eq $pnpModule) {
     }
 
     $collectionStatus = "pending-pnp-powershell-not-installed"
-    $collectionNote = "PnP.PowerShell no está instalado en este entorno, por lo que no se pudo leer metadata del sitio. Se generaron los archivos requeridos con estado pendiente y referencias locales conocidas para que el inventario quede reproducible."
-    $metadata = [pscustomobject]@{
-        Lists = @()
-        Columns = @()
-        Views = @()
-        Indexes = @()
-    }
+    $collectionNote = "PnP.PowerShell no está instalado en este entorno, por lo que no se pudo leer metadata del sitio. Se generaron los archivos requeridos con estado pendiente y referencias locales conocidas para que el inventario quede reproducible.`n`n$clientIdUsageInstructions"
+    $metadata = New-EmptyMetadata
 }
 else {
     Import-Module PnP.PowerShell -ErrorAction Stop
-    $metadata = Read-SharePointMetadata
+    try {
+        $metadata = Read-SharePointMetadata
+    }
+    catch {
+        $readError = $_.Exception.Message
+        if ($script:AuthenticationAttempted -and -not $script:AuthenticationSucceeded) {
+            if ([string]::IsNullOrWhiteSpace($ClientId)) {
+                $collectionStatus = "pending-authentication-client-id-required"
+                $collectionNote = "No se pudo completar Connect-PnPOnline -DeviceLogin. Error: $readError`n`n$clientIdUsageInstructions"
+            }
+            else {
+                $collectionStatus = "pending-authentication-failed"
+                $collectionNote = "No se pudo completar Connect-PnPOnline -DeviceLogin con el ClientId proporcionado. Error: $readError`n`nVerifica que la App Registration exista, permita flujo device code/cliente público y tenga permisos delegados de lectura aprobados."
+            }
+        }
+        else {
+            $collectionStatus = "pending-metadata-read-failed"
+            $collectionNote = "La conexión se autenticó, pero falló la lectura de metadata. Error: $readError`n`nNo se ejecutó ningún comando destructivo."
+        }
+
+        $metadata = New-EmptyMetadata
+    }
 }
 
 $recommendedIndexes = Test-RecommendedIndexes -Columns $metadata.Columns -Profiles $profiles -LocalHints $localHints
@@ -821,6 +901,14 @@ $schema = [pscustomobject]@{
     repoRoot = $RepoRoot
     collectionStatus = $collectionStatus
     collectionNote = $collectionNote
+    authentication = [pscustomobject]@{
+        attempted = $script:AuthenticationAttempted
+        succeeded = $script:AuthenticationSucceeded
+        method = $script:AuthenticationMethod
+        clientIdProvided = (-not [string]::IsNullOrWhiteSpace($ClientId))
+        error = $script:AuthenticationError
+        clientIdUsage = $clientIdUsageInstructions
+    }
     rules = [pscustomobject]@{
         sharePointModified = $false
         businessRecordsDownloaded = $false
