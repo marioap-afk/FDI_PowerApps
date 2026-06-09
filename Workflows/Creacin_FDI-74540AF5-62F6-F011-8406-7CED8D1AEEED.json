@@ -1,0 +1,619 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline": {
+        "api": {
+          "name": "shared_sharepointonline"
+        },
+        "connection": {
+          "connectionReferenceLogicalName": "mapc_sharedsharepointonline_d481e"
+        },
+        "runtimeSource": "embedded"
+      },
+      "shared_excelonlinebusiness": {
+        "api": {
+          "name": "shared_excelonlinebusiness"
+        },
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedexcelonlinebusiness_acbf1"
+        },
+        "runtimeSource": "embedded"
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        }
+      },
+      "triggers": {
+        "When_an_item_is_created_or_modified": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "parameters": {
+              "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+              "table": "53f4e788-fbb6-4deb-8fcf-965eb4db0c1e"
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+              "operationId": "GetOnUpdatedItems",
+              "connectionName": "shared_sharepointonline"
+            }
+          },
+          "recurrence": {
+            "interval": 1,
+            "frequency": "Minute"
+          },
+          "conditions": [
+            {
+              "expression": "@equals(triggerOutputs()?['body/Estado/Value'], 'Sin asignar')"
+            }
+          ],
+          "splitOn": "@triggerOutputs()?['body/value']"
+        }
+      },
+      "actions": {
+        "Condition": {
+          "type": "If",
+          "expression": {
+            "and": [
+              {
+                "equals": [
+                  "@not(coalesce(triggerBody()?['CarpetaCreada'], false))",
+                  true
+                ]
+              }
+            ]
+          },
+          "actions": {
+            "Try_Anio": {
+              "type": "Scope",
+              "actions": {
+                "Get_folder_metadata_using_path": {
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                      "path": "@concat('/Carpeta cotizaciones/', variables('varYear'))"
+                    },
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "operationId": "GetFolderMetadataByPath",
+                      "connectionName": "shared_sharepointonline"
+                    }
+                  }
+                }
+              }
+            },
+            "Catch_Anio": {
+              "type": "Scope",
+              "actions": {
+                "Create_new_folder": {
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                      "table": "dd92d2ae-9940-483d-bf7e-2ee98b44cdce",
+                      "parameters/path": "@variables('varYear')"
+                    },
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "operationId": "CreateNewFolder",
+                      "connectionName": "shared_sharepointonline"
+                    }
+                  }
+                }
+              },
+              "runAfter": {
+                "Try_Anio": [
+                  "TimedOut",
+                  "Failed"
+                ]
+              }
+            },
+            "Try_Cotización": {
+              "type": "Scope",
+              "actions": {
+                "Get_folder_metadata_using_path_1": {
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                      "path": "@concat('/Carpeta cotizaciones/', variables('varYear'))"
+                    },
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "operationId": "GetFolderMetadataByPath",
+                      "connectionName": "shared_sharepointonline"
+                    }
+                  }
+                }
+              },
+              "runAfter": {
+                "Catch_Anio": [
+                  "Succeeded",
+                  "Skipped"
+                ],
+                "Try_Anio": [
+                  "Succeeded",
+                  "Failed"
+                ]
+              }
+            },
+            "Catch_Cotización": {
+              "type": "Scope",
+              "actions": {
+                "Create_new_folder_1": {
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                      "table": "dd92d2ae-9940-483d-bf7e-2ee98b44cdce",
+                      "parameters/path": "@concat('/', variables('varYear'))"
+                    },
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "operationId": "CreateNewFolder",
+                      "connectionName": "shared_sharepointonline"
+                    }
+                  }
+                }
+              },
+              "runAfter": {
+                "Try_Cotización": [
+                  "Failed",
+                  "TimedOut"
+                ]
+              }
+            },
+            "Try_Docs": {
+              "type": "Scope",
+              "actions": {
+                "Get_folder_metadata_using_path_2": {
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                      "path": "@concat(\r\n  '/Carpeta cotizaciones/',\r\n  variables('varYear'),\r\n  '/',\r\n  outputs('NombreCarpeta'),\r\n  '/Docs'\r\n)"
+                    },
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "operationId": "GetFolderMetadataByPath",
+                      "connectionName": "shared_sharepointonline"
+                    }
+                  }
+                }
+              },
+              "runAfter": {
+                "Catch_Cotización": [
+                  "Succeeded",
+                  "Skipped"
+                ],
+                "Try_Cotización": [
+                  "Succeeded",
+                  "Failed"
+                ]
+              }
+            },
+            "Catch_Docs": {
+              "type": "Scope",
+              "actions": {
+                "Create_new_folder_2": {
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                      "table": "dd92d2ae-9940-483d-bf7e-2ee98b44cdce",
+                      "parameters/path": "@concat(\r\n  '/',\r\n  variables('varYear'),\r\n  '/',\r\n  outputs('NombreCarpeta'),\r\n  '/Docs'\r\n)"
+                    },
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "operationId": "CreateNewFolder",
+                      "connectionName": "shared_sharepointonline"
+                    }
+                  }
+                }
+              },
+              "runAfter": {
+                "Try_Docs": [
+                  "TimedOut",
+                  "Failed"
+                ]
+              }
+            },
+            "Get_folder_metadata_using_path_3_Docs": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "path": "@concat(\r\n  '/Carpeta cotizaciones/',\r\n  variables('varYear'),\r\n  '/',\r\n  outputs('NombreCarpeta'),\r\n  '/Docs'\r\n)"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "GetFolderMetadataByPath",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "runAfter": {
+                "Catch_Docs": [
+                  "Succeeded",
+                  "Skipped"
+                ],
+                "Try_Docs": [
+                  "Succeeded",
+                  "Failed"
+                ]
+              }
+            },
+            "Compose": {
+              "type": "Compose",
+              "inputs": [
+                {
+                  "Campo": "Folio",
+                  "Valor": "@triggerBody()?['Folio']"
+                },
+                {
+                  "Campo": "VendedoresLookUp",
+                  "Valor": "@triggerBody()?['VendedoresLookUp/Value']"
+                },
+                {
+                  "Campo": "EmpresaLookUp",
+                  "Valor": "@triggerBody()?['EmpresaLookUp/Value']"
+                },
+                {
+                  "Campo": "ContactoLookUp",
+                  "Valor": "@triggerBody()?['ContactoLookUp/Value']"
+                },
+                {
+                  "Campo": "Dirección de la empresa",
+                  "Valor": "@triggerBody()?['Direcci_x00f3_ndelaempresa']"
+                },
+                {
+                  "Campo": "Número de teléfono",
+                  "Valor": "@triggerBody()?['N_x00fa_merodetel_x00e9_fono']"
+                },
+                {
+                  "Campo": "Moneda de cotización",
+                  "Valor": "@triggerBody()?['Monedadecotizaci_x00f3_n/Value']"
+                },
+                {
+                  "Campo": "Flete",
+                  "Valor": "@triggerBody()?['Flete']"
+                },
+                {
+                  "Campo": "País de destino",
+                  "Valor": "@triggerBody()?['Pa_x00ed_sdedestino/Value']"
+                },
+                {
+                  "Campo": "Estado de destino",
+                  "Valor": "@triggerBody()?['Estadodedestino/Value']"
+                },
+                {
+                  "Campo": "Ciudad de destino",
+                  "Valor": "@triggerBody()?['Ciudaddedestino/Value']"
+                },
+                {
+                  "Campo": "Fianzas",
+                  "Valor": "@triggerBody()?['Fianzas']"
+                },
+                {
+                  "Campo": "Póliza de responsabilidad civil",
+                  "Valor": "@triggerBody()?['P_x00f3_lizaderesponsabilidadciv']"
+                },
+                {
+                  "Campo": "Monto de póliza",
+                  "Valor": "@triggerBody()?['Montodep_x00f3_liza']"
+                },
+                {
+                  "Campo": "Licitación",
+                  "Valor": "@triggerBody()?['Licitaci_x00f3_n']"
+                },
+                {
+                  "Campo": "Fecha de entrega",
+                  "Valor": "@triggerBody()?['Fechadeentrega']"
+                },
+                {
+                  "Campo": "Prioridad",
+                  "Valor": "@triggerBody()?['Prioridad/Value']"
+                },
+                {
+                  "Campo": "Creación",
+                  "Valor": "@triggerBody()?['Created']"
+                }
+              ],
+              "runAfter": {
+                "Get_folder_metadata_using_path_3_Docs": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Apply_to_each": {
+              "type": "Foreach",
+              "foreach": "@outputs('Compose')",
+              "actions": {
+                "Update_a_row": {
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "source": "groups/8d40587e-7320-4ac9-820d-fd0c9732e328",
+                      "drive": "b!J3QmlH6RAUG0eCDIw45xf76YXaSSToNOgLIoPEPyYWWYLpuMGk_IQYbLilU6oPh8",
+                      "file": "017FUHWKSLRNWE3JBW6BGJM6NSOP4DMQDZ",
+                      "table": "{38419C01-FF2A-4FBF-80D8-50C94BA38959}",
+                      "idColumn": "Dato",
+                      "id": "@items('Apply_to_each')?['Campo']",
+                      "item/Valor": "@items('Apply_to_each')?['Valor']"
+                    },
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness",
+                      "operationId": "PatchItem",
+                      "connectionName": "shared_excelonlinebusiness"
+                    }
+                  },
+                  "metadata": {
+                    "017FUHWKXXP67554SLOBH2AFTXFZW5F3HG": "/2026/001-26 Navil Steel GC/PRUEBA.xlsx",
+                    "017FUHWKSLRNWE3JBW6BGJM6NSOP4DMQDZ": "/FDI_Master_Puente.xlsx",
+                    "tableId": "{38419C01-FF2A-4FBF-80D8-50C94BA38959}"
+                  }
+                }
+              },
+              "runAfter": {
+                "Compose": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Delay": {
+              "type": "Wait",
+              "inputs": {
+                "interval": {
+                  "count": 30,
+                  "unit": "Second"
+                }
+              },
+              "runAfter": {
+                "Apply_to_each": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "FDI_Metadata": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "id": "%252fRecursos%252fFDI_Master_Puente.xlsx"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "GetFileMetadata",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "runAfter": {
+                "Delay": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "%252fRecursos%252fFDI_Master.xlsx": "/Recursos/FDI_Master.xlsx",
+                "%252fRecursos%252fFDI_Master_Puente.xlsx": "/Recursos/FDI_Master_Puente.xlsx"
+              }
+            },
+            "FDI_Contenido": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "id": "%252fRecursos%252fFDI_Master_Puente.xlsx",
+                  "inferContentType": true
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "GetFileContent",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "runAfter": {
+                "Cotizador_Metadata": [
+                  "SUCCEEDED"
+                ]
+              },
+              "metadata": {
+                "%252fRecursos%252fFDI_Master_Puente.xlsx": "/Recursos/FDI_Master_Puente.xlsx"
+              }
+            },
+            "FDI_Crear": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "folderPath": "@outputs('Get_folder_metadata_using_path_3_Docs')?['body/Path']",
+                  "name": "@concat('FDI ',outputs('NombreCarpeta'),'.xlsx')",
+                  "body": "@body('FDI_Contenido')"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "CreateFile",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "runAfter": {
+                "Cotizador_Contenido": [
+                  "SUCCEEDED"
+                ]
+              },
+              "runtimeConfiguration": {
+                "contentTransfer": {
+                  "transferMode": "Chunked"
+                }
+              }
+            },
+            "Update_item": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "table": "53f4e788-fbb6-4deb-8fcf-965eb4db0c1e",
+                  "id": "@triggerBody()?['ID']",
+                  "item/Carpeta": "@concat(\r\n  'https://montillacom.sharepoint.com/sites/Pruebas/Carpeta cotizaciones/',\r\n  variables('varYear'),\r\n  '/',\r\n  outputs('NombreCarpeta')\r\n)",
+                  "item/CarpetaCreada": true,
+                  "item/FolderPath": "@concat(\r\n  'Carpeta cotizaciones/',\r\n  variables('varYear'),\r\n  '/',\r\n  outputs('NombreCarpeta')\r\n)"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "PatchItem",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "runAfter": {
+                "Cotizador_propiedades": [
+                  "SUCCEEDED"
+                ]
+              }
+            },
+            "Cotizador_Metadata": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "id": "%252fRecursos%252fCotizador%2bMontilla.xlsm"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "GetFileMetadata",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "runAfter": {
+                "FDI_Metadata": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "%252fRecursos%252fCotizador%2bMontilla.xlsm": "/Recursos/Cotizador Montilla.xlsm"
+              }
+            },
+            "Cotizador_Contenido": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "id": "%252fRecursos%252fCotizador%2bMontilla.xlsm",
+                  "inferContentType": true
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "GetFileContent",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "runAfter": {
+                "FDI_Contenido": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "%252fRecursos%252fCotizador%2bMontilla.xlsm": "/Recursos/Cotizador Montilla.xlsm"
+              }
+            },
+            "Cotización_crear": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "folderPath": "@outputs('Get_folder_metadata_using_path_3_Docs')?['body/Path']",
+                  "name": "@concat('Cot ',outputs('NombreCarpeta'),'.xlsm')",
+                  "body": "@body('Cotizador_Contenido')"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "CreateFile",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "runAfter": {
+                "FDI_Crear": [
+                  "Succeeded"
+                ]
+              },
+              "runtimeConfiguration": {
+                "contentTransfer": {
+                  "transferMode": "Chunked"
+                }
+              }
+            },
+            "Cotizador_propiedades": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "table": "dd92d2ae-9940-483d-bf7e-2ee98b44cdce",
+                  "id": "@outputs('Cotización_crear')?['body/ItemId']",
+                  "item/Tipodearchivo/Value": "Cotización",
+                  "item/Versi_x00f3_n": "0",
+                  "item/Esactual_x003f_": true
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "PatchFileItem",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "runAfter": {
+                "Cotización_crear": [
+                  "SUCCEEDED"
+                ]
+              }
+            }
+          },
+          "else": {
+            "actions": {
+              "Terminate": {
+                "type": "Terminate",
+                "inputs": {
+                  "runStatus": "Succeeded"
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "NombreCarpeta": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Initialize_variable": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varYear",
+                "type": "string",
+                "value": "@formatDateTime(utcNow(),'yyyy')"
+              }
+            ]
+          },
+          "runAfter": {}
+        },
+        "NombreCarpeta": {
+          "type": "Compose",
+          "inputs": "@concat(\r\n  trim(string(triggerBody()?['Folio'])),\r\n  ' ',\r\n  trim(string(coalesce(triggerBody()?['EmpresaLookUp']?['Value'], triggerBody()?['EmpresaLookUp'])))\r\n)",
+          "runAfter": {
+            "Initialize_variable": [
+              "Succeeded"
+            ]
+          }
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}
