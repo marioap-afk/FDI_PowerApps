@@ -29,7 +29,6 @@
       <RootComponent type="29" id="{9c172a3b-3fb1-f011-bbd2-6045bd022950}" behavior="0" />
       <RootComponent type="300" schemaName="mapc_fdi_412ec" behavior="0" />
       <RootComponent type="66" schemaName="CodexControls.RichTextAttachments" behavior="0" />
-      <RootComponent type="66" schemaName="hto_OFRns.OFRTinyMCEEditor" behavior="0" />
     </RootComponents>
     <MissingDependencies />
   </SolutionManifest>
