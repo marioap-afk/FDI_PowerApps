@@ -508,35 +508,17 @@
               "type": "Foreach",
               "foreach": "@body('Get_sistemas_sel')?['value']",
               "actions": {
+                "Parse_SEL_PayloadSistemaJson": {
+                  "type": "Compose",
+                  "inputs": "@if(empty(trim(string(items('Apply_to_each_SEL')?['PayloadSistemaJson']))), json('{}'), json(items('Apply_to_each_SEL')?['PayloadSistemaJson']))"
+                },
                 "SEL_payload": {
                   "type": "Compose",
-                  "inputs": {
-                    "Tipo": "SEL",
-                    "TipoKey": "SEL",
-                    "RegistroID": "@items('Apply_to_each_SEL')?['ID']",
-                    "SistemaId": "@coalesce(items('Apply_to_each_SEL')?['SistemaID']?['Id'], items('Apply_to_each_SEL')?['SistemaID/Id'], items('Apply_to_each_SEL')?['ID'])",
-                    "NombreSistema": "@items('Apply_to_each_SEL')?['Title']",
-                    "Folio": "@items('Apply_to_each_SEL')?['Folio']",
-                    "TipoDiseño": "@items('Apply_to_each_SEL')?['Tipodedise_x00f1_o']?['Value']",
-                    "ConfiguracionNiveles": "@items('Apply_to_each_SEL')?['Configuraci_x00f3_ndeniveles']?['Value']",
-                    "PasilloMax": "@items('Apply_to_each_SEL')?['Pasillom_x00e1_ximo']",
-                    "PasilloMin": "@items('Apply_to_each_SEL')?['Pasillom_x00ed_nimo']",
-                    "AnchoDisp": "@items('Apply_to_each_SEL')?['Anchodisponible']",
-                    "LargoDisp": "@items('Apply_to_each_SEL')?['Largodisponible']",
-                    "AltCritMonta": "@items('Apply_to_each_SEL')?['Alturacr_x00ed_ticademontacargas']",
-                    "AltCritNiv": "@items('Apply_to_each_SEL')?['Alturacr_x00ed_ticadeniveles']",
-                    "DefPorCliente": "@items('Apply_to_each_SEL')?['Definidoporelcliente']",
-                    "NumPedidoCot": "@items('Apply_to_each_SEL')?['N_x00fa_merodepedidoocotizaci_x0']",
-                    "Galvanizado": "@items('Apply_to_each_SEL')?['Galvanizado']",
-                    "TipoGalv": "@items('Apply_to_each_SEL')?['Tipodegalvanizado']?['Value']",
-                    "PpkgGalv": "@items('Apply_to_each_SEL')?['Precioporkilogramogalvanizado']",
-                    "Instalacion": "@items('Apply_to_each_SEL')?['Instalaci_x00f3_n']",
-                    "MemCalc": "@items('Apply_to_each_SEL')?['Memoriadec_x00e1_lculo']",
-                    "EstProv": "@items('Apply_to_each_SEL')?['Unirseaestructuradeotroproveedor']",
-                    "ProvExternos": "@items('Apply_to_each_SEL')?['Proveedoresexternos']",
-                    "ConsEsp": "@items('Apply_to_each_SEL')?['Consideracionesespeciales']",
-                    "PiezasResumen": "@items('Apply_to_each_SEL')?['Piezasdeusuario']",
-                    "ElementosSeguridadResumen": "@items('Apply_to_each_SEL')?['Elementosdeseguridad']"
+                  "inputs": "@setProperty(setProperty(setProperty(setProperty(setProperty(setProperty(outputs('Parse_SEL_PayloadSistemaJson'), 'Tipo', 'SEL'), 'TipoKey', 'SEL'), 'RegistroID', items('Apply_to_each_SEL')?['ID']), 'SistemaId', coalesce(outputs('Parse_SEL_PayloadSistemaJson')?['SistemaId'], items('Apply_to_each_SEL')?['SistemaID']?['Id'], items('Apply_to_each_SEL')?['SistemaID/Id'], items('Apply_to_each_SEL')?['ID'])), 'NombreSistema', coalesce(outputs('Parse_SEL_PayloadSistemaJson')?['NombreSistema'], items('Apply_to_each_SEL')?['Title'])), 'Folio', items('Apply_to_each_SEL')?['Folio'])",
+                  "runAfter": {
+                    "Parse_SEL_PayloadSistemaJson": [
+                      "Succeeded"
+                    ]
                   }
                 },
                 "Append_SEL_to_varSistemas": {

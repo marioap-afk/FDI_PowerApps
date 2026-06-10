@@ -46,15 +46,13 @@ No se crearon columnas ni listas.
 
 `Sistema selectivo.Lista de piezas` está exportado en `References/DataSources.json` como `type: string`, `format: uri`, por lo que es un campo URL/hipervínculo y no puede recibir JSON.
 
-Los campos texto existentes de `Sistema selectivo` son de 255 caracteres. No hay un campo existente seguro para guardar el payload JSON completo de piezas, tarimas, colores y elementos de seguridad.
-
-Para persistir el payload completo sin pérdida se requiere crear en SharePoint una columna multilínea, por ejemplo:
+`Sistema selectivo.PayloadSistemaJson` existe en SharePoint como texto de varias líneas y es el almacenamiento oficial del payload completo de cada sistema selectivo:
 
 ```text
 PayloadSistemaJson
 ```
 
-Mientras esa columna no exista, el flujo `Creación_FDI` arma el payload SEL desde los campos existentes y usa `Piezas de usuario` / `Elementos de seguridad` como resumen.
+`scrFDI` guarda ahí el JSON compacto con `SistemaId`, piezas, tarimas, colores, elementos de seguridad y configuración del sistema. El flujo `Creación_FDI` parsea ese campo para reconstruir cada sistema `SEL` sin usar campos URL ni campos de 255 caracteres.
 
 ### scrCorreo
 
