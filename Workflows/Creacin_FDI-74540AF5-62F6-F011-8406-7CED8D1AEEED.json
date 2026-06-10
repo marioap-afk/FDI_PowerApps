@@ -275,8 +275,13 @@
                 }
               },
               "runAfter": {
-                "FDI_Master_Contenido": [
-                  "Succeeded"
+                "FDI_Existing_Metadata": [
+                  "Succeeded",
+                  "Failed"
+                ],
+                "FDI_Delete_Existing": [
+                  "Succeeded",
+                  "Skipped"
                 ]
               },
               "runtimeConfiguration": {
@@ -668,6 +673,53 @@
               },
               "metadata": {
                 "%252fRecursos%252fFDI_Master.xlsx": "/Recursos/FDI_Master.xlsx"
+              }
+            },
+            "FDI_Target_File_Path": {
+              "type": "Compose",
+              "inputs": "@concat('/Carpeta cotizaciones/', variables('varYear'), '/', outputs('NombreCarpeta'), '/Docs/FDI ', outputs('NombreCarpeta'), '.xlsx')",
+              "runAfter": {
+                "FDI_Master_Contenido": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "FDI_Existing_Metadata": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "path": "@outputs('FDI_Target_File_Path')"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "GetFileMetadataByPath",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "runAfter": {
+                "FDI_Target_File_Path": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "FDI_Delete_Existing": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "id": "@coalesce(outputs('FDI_Existing_Metadata')?['body/Id'], outputs('FDI_Existing_Metadata')?['body/Identifier'])"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "DeleteFile",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "runAfter": {
+                "FDI_Existing_Metadata": [
+                  "Succeeded"
+                ]
               }
             },
             "FDI_Crear_FileId": {
