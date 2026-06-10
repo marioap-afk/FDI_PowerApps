@@ -614,7 +614,9 @@
               "metadata": {
                 "scriptName": "fill-fdi-workbook",
                 "note": "Rebind FDI_OfficeScriptId after importing the solution if Power Automate assigns a different Office Script id.",
-                "payloadJsonManualMapping": "Power Automate may remove dynamic Office Script parameters from exported JSON. Re-select fill-fdi-workbook in the action and map payloadJson to outputs('Payload_Global_JSON') after import."
+                "payloadJsonManualMapping": "Power Automate may remove dynamic Office Script parameters from exported JSON. Re-select fill-fdi-workbook in the action and map payloadJson to outputs('Payload_Global_JSON') after import.",
+                "payloadJsonExpression": "@outputs('Payload_Global_JSON')",
+                "exportedSchemaNote": "Do not add the obsolete exported script-parameter key directly in source JSON. In Power Automate, re-select fill-fdi-workbook so the dynamic payloadJson parameter appears, then map it to outputs('Payload_Global_JSON')."
               }
             },
             "FDI_Master_Metadata": {
