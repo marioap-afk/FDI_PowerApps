@@ -195,11 +195,27 @@ Después de importar la solución, Claude/Power Automate debe vincular este valo
 scripts/office-scripts/fill-fdi-workbook.ts
 ```
 
-El conector usado es Excel Online Business `RunScriptProd`, que recibe:
+El conector usado es Excel Online Business `RunScriptProd`.
+
+El JSON exportado del workflow no debe conservar una clave obsoleta como:
 
 ```text
-ScriptParameters/payloadJson = string(outputs('Payload_Global'))
+ScriptParameters/payloadJson
 ```
+
+Si Power Automate muestra el error de operación `payloadJson is no longer present in the operation schema`, hacer este ajuste manual después de importar:
+
+1. Abrir la acción `Run_FDI_Office_Script`.
+2. Borrar cualquier parámetro obsoleto.
+3. Seleccionar de nuevo el script `fill-fdi-workbook`.
+4. Confirmar que Power Automate muestra el parámetro `payloadJson`.
+5. Asignar `payloadJson` a:
+
+```text
+outputs('Payload_Global_JSON')
+```
+
+`Payload_Global_JSON` sigue existiendo en el flujo para este mapeo.
 
 ## Pendientes
 
