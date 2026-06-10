@@ -220,7 +220,7 @@ function addOtSheet(workbook: ExcelScript.Workbook, sistema: Record<string, unkn
 }
 
 function writePayloadSheet(workbook: ExcelScript.Workbook, payloadJson: string) {
-  const existing = workbook.getWorksheet("FDI_Payload_JSON");
+  const existing = workbook.getWorksheets().find((sheet) => sheet.getName() === "FDI_Payload_JSON");
   if (existing) existing.delete();
 
   const sheet = workbook.addWorksheet("FDI_Payload_JSON");
@@ -237,8 +237,9 @@ function setCell(sheet: ExcelScript.Worksheet, address: string, value: unknown) 
   sheet.getRange(address).setValue(formatValue(value));
 }
 
-function read(obj: Record<string, unknown>, key1: string, key2?: string, key3?: string, fallback: unknown = ""): unknown {
-  const keys = [key1, key2, key3].filter((key) => key !== undefined) as string[];
+function read(obj: Record<string, unknown>, ...keysAndFallback: string[]): unknown {
+  const fallback = keysAndFallback.length > 0 ? keysAndFallback[keysAndFallback.length - 1] : "";
+  const keys = keysAndFallback.slice(0, -1);
   for (const key of keys) {
     const value = obj[key];
     if (value !== undefined && value !== null && value !== "") return value;

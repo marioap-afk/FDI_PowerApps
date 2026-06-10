@@ -256,51 +256,6 @@
                 ]
               }
             },
-            "FDI_Metadata": {
-              "type": "OpenApiConnection",
-              "inputs": {
-                "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
-                  "id": "%252fRecursos%252fFDI_Master.xlsx"
-                },
-                "host": {
-                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                  "operationId": "GetFileMetadata",
-                  "connectionName": "shared_sharepointonline"
-                }
-              },
-              "runAfter": {
-                "Payload_Global": [
-                  "Succeeded"
-                ]
-              },
-              "metadata": {
-                "%252fRecursos%252fFDI_Master.xlsx": "/Recursos/FDI_Master.xlsx"
-              }
-            },
-            "FDI_Contenido": {
-              "type": "OpenApiConnection",
-              "inputs": {
-                "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
-                  "id": "%252fRecursos%252fFDI_Master.xlsx",
-                  "inferContentType": true
-                },
-                "host": {
-                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                  "operationId": "GetFileContent",
-                  "connectionName": "shared_sharepointonline"
-                }
-              },
-              "runAfter": {
-                "FDI_Metadata": [
-                  "Succeeded"
-                ]
-              },
-              "metadata": {
-                "%252fRecursos%252fFDI_Master.xlsx": "/Recursos/FDI_Master.xlsx"
-              }
-            },
             "FDI_Crear": {
               "type": "OpenApiConnection",
               "inputs": {
@@ -308,7 +263,7 @@
                   "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
                   "folderPath": "@outputs('Get_folder_metadata_using_path_3_Docs')?['body/Path']",
                   "name": "@concat('FDI ',outputs('NombreCarpeta'),'.xlsx')",
-                  "body": "@body('FDI_Contenido')"
+                  "body": "@body('FDI_Master_Contenido')"
                 },
                 "host": {
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
@@ -317,7 +272,7 @@
                 }
               },
               "runAfter": {
-                "FDI_Contenido": [
+                "FDI_Master_Contenido": [
                   "Succeeded"
                 ]
               },
@@ -555,7 +510,7 @@
               "actions": {
                 "Parse_SEL_Lista_de_piezas_JSON": {
                   "type": "Compose",
-                  "inputs": "@if(empty(items('Apply_to_each_SEL')?['Lista_x0020_de_x0020_piezas']), json('{}'), json(items('Apply_to_each_SEL')?['Lista_x0020_de_x0020_piezas']))"
+                  "inputs": "@if(empty(trim(string(items('Apply_to_each_SEL')?['Lista_x0020_de_x0020_piezas']))), json('{}'), json(items('Apply_to_each_SEL')?['Lista_x0020_de_x0020_piezas']))"
                 },
                 "SEL_payload": {
                   "type": "Compose",
@@ -639,9 +594,9 @@
                 "parameters": {
                   "source": "groups/8d40587e-7320-4ac9-820d-fd0c9732e328",
                   "drive": "b!J3QmlH6RAUG0eCDIw45xf76YXaSSToNOgLIoPEPyYWWYLpuMGk_IQYbLilU6oPh8",
-                  "file": "@outputs('FDI_Crear')?['body/Id']",
+                  "file": "@outputs('FDI_Creado_ExcelFileId')",
                   "scriptId": "@parameters('FDI_OfficeScriptId')",
-                  "ScriptParameters/payloadJson": "@string(outputs('Payload_Global'))"
+                  "ScriptParameters/payloadJson": "@outputs('Payload_Global_JSON')"
                 },
                 "host": {
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness",
@@ -650,7 +605,7 @@
                 }
               },
               "runAfter": {
-                "FDI_Crear": [
+                "FDI_Creado_ExcelFileId": [
                   "Succeeded"
                 ]
               },
@@ -658,11 +613,102 @@
                 "scriptName": "fill-fdi-workbook",
                 "note": "Rebind FDI_OfficeScriptId after importing the solution if Power Automate assigns a different Office Script id."
               }
+            },
+            "FDI_Master_Metadata": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "id": "%252fRecursos%252fFDI_Master.xlsx"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "GetFileMetadata",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "runAfter": {
+                "Payload_Global_JSON": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "%252fRecursos%252fFDI_Master.xlsx": "/Recursos/FDI_Master.xlsx"
+              }
+            },
+            "FDI_Master_Contenido": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "id": "%252fRecursos%252fFDI_Master.xlsx",
+                  "inferContentType": true
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "GetFileContent",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "runAfter": {
+                "FDI_Master_Metadata": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "%252fRecursos%252fFDI_Master.xlsx": "/Recursos/FDI_Master.xlsx"
+              }
+            },
+            "FDI_Crear_FileId": {
+              "type": "Compose",
+              "inputs": "@coalesce(outputs('FDI_Crear')?['body/Id'], outputs('FDI_Crear')?['body/Identifier'])",
+              "runAfter": {
+                "FDI_Crear": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Payload_Global_JSON": {
+              "type": "Compose",
+              "inputs": "@string(outputs('Payload_Global'))",
+              "runAfter": {
+                "Payload_Global": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "FDI_Creado_Metadata": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "id": "@outputs('FDI_Crear_FileId')"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "GetFileMetadata",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "runAfter": {
+                "FDI_Crear_FileId": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "FDI_Creado_ExcelFileId": {
+              "type": "Compose",
+              "inputs": "@coalesce(outputs('FDI_Creado_Metadata')?['body/Id'], outputs('FDI_Creado_Metadata')?['body/Identifier'], outputs('FDI_Crear_FileId'))",
+              "runAfter": {
+                "FDI_Creado_Metadata": [
+                  "Succeeded"
+                ]
+              }
             }
           },
           "else": {
             "actions": {
-              "Terminate": {
+              "Terminate_CarpetaCreada_Preexistente": {
                 "type": "Terminate",
                 "inputs": {
                   "runStatus": "Succeeded"
