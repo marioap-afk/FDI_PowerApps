@@ -150,22 +150,41 @@ python scripts/generate-fdi-excel.py `
 
 El script no modifica la plantilla original.
 
-## Integración Power Automate Propuesta
+## Integración Power Automate
 
-Para producción, `Creación_FDI` debe evolucionar así:
+`Creación_FDI` ahora sigue este flujo:
 
 1. Trigger: item creado/modificado en `Cotizaciones 2026`.
-2. Condición: `Estado.Value = "Sin asignar"` y `CarpetaCreada != true`.
-3. Crear carpeta de cotización y subcarpeta `Docs`.
-4. Obtener sistemas puente por `CotizaciónID`.
-5. Obtener detalles de cada sistema en `Sistema selectivo` y `Sistema Otro`.
-6. Armar `payloadJson`.
-7. Copiar `FDI_Master.xlsx` a la carpeta `Docs`.
-8. Ejecutar Office Script `scripts/office-scripts/fill-fdi-workbook.ts` sobre la copia.
-9. Crear o copiar cotizador.
-10. Actualizar `Carpeta`, `FolderPath` y `CarpetaCreada`.
+2. Condición: `Estado.Value = "Sin asignar"`.
+3. Protección: continuar solo si `CarpetaCreada != true`.
+4. Crear/validar carpeta de año, carpeta de cotización y subcarpeta `Docs`.
+5. Leer `Sistemas por cotización` por `CotizaciónID`.
+6. Leer `Sistema selectivo` por `CotizaciónID`.
+7. Leer `Sistema Otro` por `CotizaciónID`.
+8. Parsear `Sistema selectivo.Lista de piezas` con `json(...)`.
+9. Armar `Payload_Global` con `{ cotizacion, sistemas }`.
+10. Copiar `/Recursos/FDI_Master.xlsx` a `Docs`.
+11. Ejecutar Office Script `scripts/office-scripts/fill-fdi-workbook.ts` sobre la copia.
+12. Copiar cotizador.
+13. Actualizar `Carpeta`, `FolderPath` y `CarpetaCreada`.
 
-El flujo actual todavía usa `FDI_Master_Puente.xlsx`, que es riesgoso para concurrencia porque es un archivo compartido mutable.
+El flujo ya no actualiza ni copia `FDI_Master_Puente.xlsx`.
+
+### Parámetro de Office Script
+
+El workflow define el parámetro `FDI_OfficeScriptId`.
+
+Después de importar la solución, Claude/Power Automate debe vincular este valor al Office Script real creado a partir de:
+
+```text
+scripts/office-scripts/fill-fdi-workbook.ts
+```
+
+El conector usado es Excel Online Business `RunScriptProd`, que recibe:
+
+```text
+ScriptParameters/payloadJson = string(outputs('Payload_Global'))
+```
 
 ## Pendientes
 
@@ -174,6 +193,32 @@ El flujo actual todavía usa `FDI_Master_Puente.xlsx`, que es riesgoso para conc
   - archivos en carpeta `Docs`;
   - parámetro nuevo del flujo de correo.
 - Implementar adjuntos requiere ampliar el contrato del flujo de correo.
-- Convertir el script local a Office Script completo si se quiere llenar también las hojas de detalle desde Power Automate.
 - Definir plantilla/formato para tipos de sistema distintos a `SEL`.
 - Validar si `Creación_FDI` debe dispararse antes o después de enviar correo. Actualmente se dispara al cerrar `scrFDI`, antes del correo.
+- Confirmar en Power Automate que el `file` dinámico de `FDI_Crear` resuelve correctamente en Excel Online Business.
+
+## Prueba Local Desde Registros SharePoint
+
+El fixture `examples/fdi-sharepoint-records.sample.json` simula:
+
+- una cotización `Cotizaciones 2026`;
+- registros en `Sistemas por cotización`;
+- dos registros `Sistema selectivo` con `Lista_x0020_de_x0020_piezas` como string JSON;
+- un registro `Sistema Otro`.
+
+Generar payload global:
+
+```powershell
+python scripts/build-fdi-payload.py `
+  --input examples/fdi-sharepoint-records.sample.json `
+  --output work/fdi_closure_20260609_02/payload-global-from-records.json
+```
+
+Generar Excel de prueba:
+
+```powershell
+python scripts/generate-fdi-excel.py `
+  --template templates/FDI_Master.xlsx `
+  --payload work/fdi_closure_20260609_02/payload-global-from-records.json `
+  --output work/fdi_closure_20260609_02/FDI_RECORDS_TEST_001-26.xlsx
+```
