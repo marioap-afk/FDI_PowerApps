@@ -599,7 +599,9 @@
                   "drive": "b!J3QmlH6RAUG0eCDIw45xf76YXaSSToNOgLIoPEPyYWWYLpuMGk_IQYbLilU6oPh8",
                   "file": "@outputs('FDI_Creado_ExcelFileId')",
                   "scriptId": "@parameters('FDI_OfficeScriptId')",
-                  "ScriptParameters/payloadJson": "@outputs('Payload_Global_JSON')"
+                  "ScriptParameters": {
+                    "payloadJson": "@outputs('Payload_Global_JSON')"
+                  }
                 },
                 "host": {
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness",
@@ -618,9 +620,9 @@
               "metadata": {
                 "scriptName": "fill-fdi-workbook",
                 "note": "Rebind FDI_OfficeScriptId after importing the solution if Power Automate assigns a different Office Script id.",
-                "payloadJsonManualMapping": "After import, re-select fill-fdi-workbook if Power Automate cannot resolve the script. Confirm payloadJson is mapped to outputs('Payload_Global_JSON').",
+                "payloadJsonManualMapping": "After import, re-select fill-fdi-workbook if Power Automate cannot resolve the script. Confirm ScriptParameters.payloadJson is mapped to outputs('Payload_Global_JSON').",
                 "payloadJsonExpression": "@outputs('Payload_Global_JSON')",
-                "exportedSchemaNote": "The exported action intentionally includes ScriptParameters/payloadJson because RunScriptProd requires the script parameter object when the script exposes payloadJson."
+                "exportedSchemaNote": "RunScriptProd validates ScriptParameters as an object. Do not keep ScriptParameters as an empty string or combine it with a flattened script-parameter path."
               }
             },
             "FDI_Master_Metadata": {

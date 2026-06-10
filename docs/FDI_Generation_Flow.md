@@ -199,16 +199,19 @@ scripts/office-scripts/fill-fdi-workbook.ts
 
 El conector usado es Excel Online Business `RunScriptProd`.
 
-El JSON exportado del workflow debe conservar el parámetro del script:
+El JSON exportado del workflow debe conservar `ScriptParameters` como objeto:
+
+```json
+"ScriptParameters": {
+  "payloadJson": "@outputs('Payload_Global_JSON')"
+}
+```
+
+No debe quedar una combinación de estas dos formas:
 
 ```text
 ScriptParameters/payloadJson
-```
-
-Este parámetro debe apuntar a:
-
-```text
-outputs('Payload_Global_JSON')
+ScriptParameters: ""
 ```
 
 Si Power Automate muestra `GetSingleScript failed` o no puede resolver la referencia del script, hacer este ajuste manual después de importar:
