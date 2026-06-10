@@ -81,7 +81,7 @@
             "parameters": {
               "emailMessage/To": "@triggerBody()['text']",
               "emailMessage/Subject": "@triggerBody()['text_1']",
-              "emailMessage/Body": "<p>@{triggerBody()['text_2']}</p>",
+              "emailMessage/Body": "@triggerBody()['text_2']",
               "emailMessage/Cc": "@triggerBody()?['text_3']"
             },
             "host": {
