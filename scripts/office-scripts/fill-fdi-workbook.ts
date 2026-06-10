@@ -106,6 +106,7 @@ function fillSistemasIndex(workbook: ExcelScript.Workbook, sistemas: Record<stri
     const index = zeroIndex + 1;
     const row = index + 3;
     const tipo = String(read(sistema, "TipoKey", "tipo", "Tipo", "SEL")).toUpperCase();
+    const detalle = read(sistema, "ConsEsp", "HTMLCol", "");
 
     sheet.getRange(`A${row}:I${row}`).setValues([[
       `${tipo}-${String(index).padStart(4, "0")}`,
@@ -116,7 +117,7 @@ function fillSistemasIndex(workbook: ExcelScript.Workbook, sistemas: Record<stri
       read(sistema, "NombreSistema", "TipoNombre", "Title", `Sistema ${index}`),
       read(sistema, "NumPedidoCot", "PedidoBase", ""),
       read(sistema, "DiseñoRef", "DisenoRef", ""),
-      read(sistema, "ConsEsp", "HTMLCol", "")
+      htmlToText(detalle)
     ]]);
   });
 
@@ -228,10 +229,11 @@ function addOtSheet(workbook: ExcelScript.Workbook, sistema: Record<string, unkn
     ["SistemaID", read(sistema, "SistemaId", "SistemaID", "RegistroID", "")],
     ["Descripción", read(sistema, "NombreSistema", "Title", "")],
     ["", ""],
-    ["Detalle HTML", read(sistema, "HTMLCol", "HTML", "")]
+    ["Detalle", htmlToText(read(sistema, "HTMLCol", "HTML", ""))]
   ]);
   sheet.getRange("A:A").getFormat().setColumnWidth(160);
   sheet.getRange("B:B").getFormat().setColumnWidth(520);
+  sheet.getRange("B7").getFormat().setWrapText(true);
 }
 
 function writePayloadSheet(workbook: ExcelScript.Workbook, payloadJson: string) {
@@ -271,6 +273,27 @@ function formatValue(value: unknown): string | number | boolean {
   if (value === undefined || value === null) return "";
   if (typeof value === "number" || typeof value === "boolean") return value;
   return String(value);
+}
+
+function htmlToText(value: unknown): string {
+  const html = String(value || "");
+  if (!html) return "";
+
+  return html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p\s*>/gi, "\n")
+    .replace(/<\/div\s*>/gi, "\n")
+    .replace(/<\/li\s*>/gi, "\n")
+    .replace(/<li[^>]*>/gi, "- ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, "\"")
+    .replace(/&#39;/g, "'")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 function normalizeMethod(system: Record<string, unknown>): string {
