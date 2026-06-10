@@ -20,7 +20,7 @@ def choice_value(value: Any) -> Any:
 
 
 def parse_sel_payload(record: dict[str, Any]) -> dict[str, Any]:
-    raw = pick(record, "Lista_x0020_de_x0020_piezas", "Lista de piezas", default="{}")
+    raw = pick(record, "PayloadSistemaJson", default="{}")
     parsed = json.loads(raw or "{}")
     if not isinstance(parsed, dict):
         parsed = {}
