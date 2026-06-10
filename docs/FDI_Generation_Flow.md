@@ -35,12 +35,26 @@ También el correo recibía HTML, pero el flujo lo envolvía en `<p>...</p>`, lo
 - `CotizaciónForm.OnSuccess`:
   - crea registros puente en `Sistemas por cotización`;
   - guarda sistemas `SEL` y `OT`;
-  - persiste tablas repetibles de `SEL` como JSON en el campo existente `Sistema selectivo.Lista de piezas`;
+  - guarda los datos principales de `SEL` en campos existentes de `Sistema selectivo`;
   - deja resumen corto en `Piezas de usuario` y `Elementos de seguridad`;
   - actualiza `Cotizaciones 2026.Estado` a `Sin asignar`;
   - limpia colecciones de captura al terminar.
 
 No se crearon columnas ni listas.
+
+### Nota de Persistencia SEL
+
+`Sistema selectivo.Lista de piezas` está exportado en `References/DataSources.json` como `type: string`, `format: uri`, por lo que es un campo URL/hipervínculo y no puede recibir JSON.
+
+Los campos texto existentes de `Sistema selectivo` son de 255 caracteres. No hay un campo existente seguro para guardar el payload JSON completo de piezas, tarimas, colores y elementos de seguridad.
+
+Para persistir el payload completo sin pérdida se requiere crear en SharePoint una columna multilínea, por ejemplo:
+
+```text
+PayloadSistemaJson
+```
+
+Mientras esa columna no exista, el flujo `Creación_FDI` arma el payload SEL desde los campos existentes y usa `Piezas de usuario` / `Elementos de seguridad` como resumen.
 
 ### scrCorreo
 
@@ -161,12 +175,13 @@ El script no modifica la plantilla original.
 5. Leer `Sistemas por cotización` por `CotizaciónID`.
 6. Leer `Sistema selectivo` por `CotizaciónID`.
 7. Leer `Sistema Otro` por `CotizaciónID`.
-8. Parsear `Sistema selectivo.Lista de piezas` con `json(...)`.
-9. Armar `Payload_Global` con `{ cotizacion, sistemas }`.
-10. Copiar `/Recursos/FDI_Master.xlsx` a `Docs`.
-11. Ejecutar Office Script `scripts/office-scripts/fill-fdi-workbook.ts` sobre la copia.
-12. Copiar cotizador.
-13. Actualizar `Carpeta`, `FolderPath` y `CarpetaCreada`.
+8. Armar sistemas `SEL` desde campos existentes de `Sistema selectivo`.
+9. Armar sistemas `OT` desde `Sistema Otro.HTML`.
+10. Armar `Payload_Global` con `{ cotizacion, sistemas }`.
+11. Copiar `/Recursos/FDI_Master.xlsx` a `Docs`.
+12. Ejecutar Office Script `scripts/office-scripts/fill-fdi-workbook.ts` sobre la copia.
+13. Copiar cotizador.
+14. Actualizar `Carpeta`, `FolderPath` y `CarpetaCreada`.
 
 El flujo ya no actualiza ni copia `FDI_Master_Puente.xlsx`.
 

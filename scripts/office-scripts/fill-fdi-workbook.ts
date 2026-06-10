@@ -127,7 +127,10 @@ function fillSelForm(sheet: ExcelScript.Worksheet, sistema: Record<string, unkno
   setCell(sheet, "B9", read(sistema, "NumPedidoCot", "PedidoBase", ""));
   setCell(sheet, "B10", read(sistema, "ConsEsp", ""));
 
-  const piezas = asArray(read(sistema, "piezas", "Piezas", []));
+  const piezas = rowsFromSummary(
+    asArray(read(sistema, "piezas", "Piezas", [])),
+    read(sistema, "PiezasResumen", "")
+  );
   piezas.slice(0, 10).forEach((piezaRaw, offset) => {
     const pieza = asRecord(piezaRaw);
     const row = 15 + offset;
@@ -184,9 +187,15 @@ function addDetailSheet(workbook: ExcelScript.Workbook, sistema: Record<string, 
   sheet.getRange("A2").setValue(read(sistema, "NombreSistema", "Title", sheetName));
 
   let row = 4;
-  row = writeSection(sheet, row, "Piezas", ["Pieza", "Comentarios", "Cantidad", "Unidad", "Notas"], asArray(read(sistema, "piezas", "Piezas", [])));
+  row = writeSection(sheet, row, "Piezas", ["Pieza", "Comentarios", "Cantidad", "Unidad", "Notas"], rowsFromSummary(
+    asArray(read(sistema, "piezas", "Piezas", [])),
+    read(sistema, "PiezasResumen", "")
+  ));
   row = writeSection(sheet, row, "Tarimas", ["Tipo", "Alto", "Frente", "Fondo", "ExcedenteFrente", "ExcedenteFondo"], asArray(read(sistema, "tarimas", "Tarimas", [])));
-  row = writeSection(sheet, row, "Elementos de seguridad", ["Pieza", "Comentario"], asArray(read(sistema, "elementosSeguridad", "ElementosSeguridad", [])));
+  row = writeSection(sheet, row, "Elementos de seguridad", ["Pieza", "Comentario"], rowsFromSummary(
+    asArray(read(sistema, "elementosSeguridad", "ElementosSeguridad", [])),
+    read(sistema, "ElementosSeguridadResumen", "")
+  ));
   writeSection(sheet, row, "Colores", ["Pieza", "Color"], asArray(read(sistema, "colores", "Colores", [])));
 
   sheet.getRange("A:H").getFormat().setColumnWidth(140);
@@ -271,6 +280,22 @@ function asRecord(value: unknown): Record<string, unknown> {
 
 function asArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
+}
+
+function rowsFromSummary(rows: unknown[], summary: unknown): unknown[] {
+  if (rows.length > 0) return rows;
+
+  const text = String(summary || "").trim();
+  if (!text) return [];
+
+  return text.split(/\r?\n/).filter((line) => line.trim() !== "").map((line) => {
+    const parts = line.split(" - ");
+    return {
+      Pieza: parts[0] || "",
+      Comentarios: parts.slice(1).join(" - "),
+      Comentario: parts.slice(1).join(" - ")
+    };
+  });
 }
 
 function safeSheetName(name: string): string {
