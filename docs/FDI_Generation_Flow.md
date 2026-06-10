@@ -73,6 +73,10 @@ El parámetro `CuerpoHTML` ahora se pasa al correo como HTML crudo:
 
 Esto permite tablas, vínculos e imágenes embebidas si el control de Power Apps las produce como HTML.
 
+Después de enviar el correo, el mismo flujo publica la notificación Teams. Para conservar el contrato de 4 parámetros desde Power Apps, el flujo obtiene el folio desde el asunto automático, busca `Cotizaciones 2026` con `$filter` por `Folio` y `$top = 1`, publica Teams y marca `Notificado = true` cuando encuentra el registro.
+
+`Notificación_correo_teams` queda como flujo legado/redundante por ahora. No se elimina, pero el cierre de solicitud ya no depende de su trigger SharePoint.
+
 ## Mapa Excel
 
 ### Encabezado

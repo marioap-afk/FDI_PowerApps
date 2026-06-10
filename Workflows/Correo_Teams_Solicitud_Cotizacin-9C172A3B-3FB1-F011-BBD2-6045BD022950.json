@@ -9,6 +9,24 @@
           "connectionReferenceLogicalName": "mapc_sharedoffice365_2fca3"
         },
         "runtimeSource": "invoker"
+      },
+      "shared_sharepointonline": {
+        "api": {
+          "name": "shared_sharepointonline"
+        },
+        "connection": {
+          "connectionReferenceLogicalName": "mapc_sharedsharepointonline_d481e"
+        },
+        "runtimeSource": "embedded"
+      },
+      "shared_teams": {
+        "api": {
+          "name": "shared_teams"
+        },
+        "connection": {
+          "connectionReferenceLogicalName": "mapc_sharedteams_8d13f"
+        },
+        "runtimeSource": "embedded"
       }
     },
     "definition": {
@@ -93,6 +111,146 @@
           "runAfter": {},
           "metadata": {
             "operationMetadataId": "fc1d277c-bc6b-45a2-b641-97307e84a0fe"
+          }
+        },
+        "FolioDesdeAsunto": {
+          "type": "Compose",
+          "inputs": "@trim(last(split(triggerBody()?['text_1'], ' ')))",
+          "runAfter": {
+            "Send_an_email_(V2)": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Get_Cotizacion_Notificacion": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "parameters": {
+              "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+              "table": "53f4e788-fbb6-4deb-8fcf-965eb4db0c1e",
+              "$filter": "@concat('Folio eq ''', outputs('FolioDesdeAsunto'), '''')",
+              "$orderby": "ID desc",
+              "$top": 1
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+              "operationId": "GetItems",
+              "connectionName": "shared_sharepointonline"
+            }
+          },
+          "runAfter": {
+            "FolioDesdeAsunto": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Convert_time_zone_Correo": {
+          "type": "Expression",
+          "kind": "ConvertTimeZone",
+          "inputs": {
+            "baseTime": "@utcNow()",
+            "sourceTimeZone": "UTC",
+            "destinationTimeZone": "Central Standard Time (Mexico)",
+            "formatString": "F"
+          },
+          "runAfter": {
+            "FolioDesdeAsunto": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Tiene_Cotizacion_Notificacion": {
+          "type": "If",
+          "expression": {
+            "and": [
+              {
+                "greater": [
+                  "@length(body('Get_Cotizacion_Notificacion')?['value'])",
+                  0
+                ]
+              }
+            ]
+          },
+          "actions": {
+            "Post_Teams_Solicitud_FDI": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "poster": "Flow bot",
+                  "location": "Chat with Flow bot",
+                  "body/recipient": "ingenieria3@montilla.com",
+                  "body/messageBody": "@concat('<p class=\"editor-paragraph\">Se ha enviado una solicitud de cotización.</p><br><p class=\"editor-paragraph\">Folio: ', outputs('FolioDesdeAsunto'), '</p><p class=\"editor-paragraph\">Cliente: ', coalesce(first(body('Get_Cotizacion_Notificacion')?['value'])?['EmpresaLookUp/Value'], ''), '<br>Solicitante: ', coalesce(first(body('Get_Cotizacion_Notificacion')?['value'])?['Author/DisplayName'], ''), '<br>Fecha: ', body('Convert_time_zone_Correo'), '</p>')"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams",
+                  "operationId": "PostMessageToConversation",
+                  "connectionName": "shared_teams"
+                }
+              },
+              "runAfter": {}
+            },
+            "Update_Cotizacion_Notificado": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "table": "53f4e788-fbb6-4deb-8fcf-965eb4db0c1e",
+                  "id": "@first(body('Get_Cotizacion_Notificacion')?['value'])?['ID']",
+                  "item/Notificado": true
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "PatchItem",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "runAfter": {
+                "Post_Teams_Solicitud_FDI": [
+                  "Succeeded"
+                ]
+              }
+            }
+          },
+          "else": {
+            "actions": {
+              "Post_Teams_Solicitud_FDI_Sin_Cotizacion": {
+                "type": "OpenApiConnection",
+                "inputs": {
+                  "parameters": {
+                    "poster": "Flow bot",
+                    "location": "Chat with Flow bot",
+                    "body/recipient": "ingenieria3@montilla.com",
+                    "body/messageBody": "@concat('<p class=\"editor-paragraph\">Se ha enviado una solicitud de cotización.</p><br><p class=\"editor-paragraph\">Folio detectado: ', outputs('FolioDesdeAsunto'), '<br>Asunto: ', triggerBody()?['text_1'], '<br>Destinatario: ', triggerBody()?['text'], '<br>Fecha: ', body('Convert_time_zone_Correo'), '</p>')"
+                  },
+                  "host": {
+                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams",
+                    "operationId": "PostMessageToConversation",
+                    "connectionName": "shared_teams"
+                  }
+                },
+                "runAfter": {}
+              }
+            }
+          },
+          "runAfter": {
+            "Get_Cotizacion_Notificacion": [
+              "Succeeded"
+            ],
+            "Convert_time_zone_Correo": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Notificacion_Teams_Completada": {
+          "type": "Compose",
+          "inputs": "Teams notification attempted after email send.",
+          "runAfter": {
+            "Tiene_Cotizacion_Notificacion": [
+              "Succeeded",
+              "Failed",
+              "Skipped",
+              "TimedOut"
+            ]
           }
         }
       }
