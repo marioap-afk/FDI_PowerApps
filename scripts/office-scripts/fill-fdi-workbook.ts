@@ -130,6 +130,9 @@ function fillSistemasIndex(workbook: ExcelScript.Workbook, sistemas: Record<stri
 }
 
 function fillSelForm(sheet: ExcelScript.Worksheet, sistema: Record<string, unknown>, systemNo: number) {
+  const method = normalizeMethod(sistema);
+  applySelMethodVisibility(sheet, method);
+
   setCell(sheet, "B3", systemNo);
   setCell(sheet, "B9", read(sistema, "NumPedidoCot", "PedidoBase", ""));
   setCell(sheet, "B10", read(sistema, "ConsEsp", ""));
@@ -301,6 +304,16 @@ function normalizeMethod(system: Record<string, unknown>): string {
   if (raw.includes("pieza")) return "ListaPiezas";
   if (raw.includes("pedido")) return "PedidoAnterior";
   return "Diseño";
+}
+
+function applySelMethodVisibility(sheet: ExcelScript.Worksheet, method: string) {
+  setRowsHidden(sheet, "8:10", method !== "PedidoAnterior");
+  setRowsHidden(sheet, "12:25", method !== "ListaPiezas");
+  setRowsHidden(sheet, "26:61", method !== "Diseño");
+}
+
+function setRowsHidden(sheet: ExcelScript.Worksheet, rowsAddress: string, hidden: boolean) {
+  sheet.getRange(rowsAddress).setRowHidden(hidden);
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
