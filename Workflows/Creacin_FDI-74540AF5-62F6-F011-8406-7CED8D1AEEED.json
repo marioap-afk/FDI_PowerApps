@@ -598,7 +598,8 @@
                   "source": "groups/8d40587e-7320-4ac9-820d-fd0c9732e328",
                   "drive": "b!J3QmlH6RAUG0eCDIw45xf76YXaSSToNOgLIoPEPyYWWYLpuMGk_IQYbLilU6oPh8",
                   "file": "@outputs('FDI_Creado_ExcelFileId')",
-                  "scriptId": "@parameters('FDI_OfficeScriptId')"
+                  "scriptId": "@parameters('FDI_OfficeScriptId')",
+                  "ScriptParameters/payloadJson": "@outputs('Payload_Global_JSON')"
                 },
                 "host": {
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness",
@@ -609,14 +610,17 @@
               "runAfter": {
                 "FDI_Creado_ExcelFileId": [
                   "Succeeded"
+                ],
+                "Payload_Global_JSON": [
+                  "Succeeded"
                 ]
               },
               "metadata": {
                 "scriptName": "fill-fdi-workbook",
                 "note": "Rebind FDI_OfficeScriptId after importing the solution if Power Automate assigns a different Office Script id.",
-                "payloadJsonManualMapping": "Power Automate may remove dynamic Office Script parameters from exported JSON. Re-select fill-fdi-workbook in the action and map payloadJson to outputs('Payload_Global_JSON') after import.",
+                "payloadJsonManualMapping": "After import, re-select fill-fdi-workbook if Power Automate cannot resolve the script. Confirm payloadJson is mapped to outputs('Payload_Global_JSON').",
                 "payloadJsonExpression": "@outputs('Payload_Global_JSON')",
-                "exportedSchemaNote": "Do not add the obsolete exported script-parameter key directly in source JSON. In Power Automate, re-select fill-fdi-workbook so the dynamic payloadJson parameter appears, then map it to outputs('Payload_Global_JSON')."
+                "exportedSchemaNote": "The exported action intentionally includes ScriptParameters/payloadJson because RunScriptProd requires the script parameter object when the script exposes payloadJson."
               }
             },
             "FDI_Master_Metadata": {

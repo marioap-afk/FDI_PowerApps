@@ -195,19 +195,24 @@ scripts/office-scripts/fill-fdi-workbook.ts
 
 El conector usado es Excel Online Business `RunScriptProd`.
 
-El JSON exportado del workflow no debe conservar una clave obsoleta como:
+El JSON exportado del workflow debe conservar el parámetro del script:
 
 ```text
 ScriptParameters/payloadJson
 ```
 
-Si Power Automate muestra el error de operación `payloadJson is no longer present in the operation schema`, hacer este ajuste manual después de importar:
+Este parámetro debe apuntar a:
+
+```text
+outputs('Payload_Global_JSON')
+```
+
+Si Power Automate muestra `GetSingleScript failed` o no puede resolver la referencia del script, hacer este ajuste manual después de importar:
 
 1. Abrir la acción `Run_FDI_Office_Script`.
-2. Borrar cualquier parámetro obsoleto.
-3. Seleccionar de nuevo el script `fill-fdi-workbook`.
-4. Confirmar que Power Automate muestra el parámetro `payloadJson`.
-5. Asignar `payloadJson` a:
+2. Seleccionar de nuevo el script `fill-fdi-workbook`.
+3. Confirmar que Power Automate muestra el parámetro `payloadJson`.
+4. Asignar `payloadJson` a:
 
 ```text
 outputs('Payload_Global_JSON')
