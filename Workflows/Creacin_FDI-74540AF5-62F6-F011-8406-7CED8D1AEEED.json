@@ -38,32 +38,29 @@
         }
       },
       "triggers": {
-        "When_an_item_is_created_or_modified": {
-          "type": "OpenApiConnection",
+        "manual": {
+          "type": "Request",
+          "kind": "Button",
           "inputs": {
-            "parameters": {
-              "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
-              "table": "53f4e788-fbb6-4deb-8fcf-965eb4db0c1e"
-            },
-            "host": {
-              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-              "operationId": "GetOnUpdatedItems",
-              "connectionName": "shared_sharepointonline"
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "title": "CotizacionId",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "ID del item de Cotizaciones 2026 a procesar",
+                  "x-ms-content-hint": "TEXT"
+                }
+              },
+              "required": [
+                "text"
+              ]
             }
           },
-          "recurrence": {
-            "interval": 1,
-            "frequency": "Minute"
-          },
-          "conditions": [
-            {
-              "expression": "@equals(triggerOutputs()?['body/Estado/Value'], 'Sin asignar')"
-            },
-            {
-              "expression": "@not(coalesce(triggerOutputs()?['body/CarpetaCreada'], false))"
-            }
-          ],
-          "splitOn": "@triggerOutputs()?['body/value']"
+          "metadata": {
+            "operationMetadataId": "b07df8a7-0b20-4d18-bec4-4f4cfef7b4b3"
+          }
         }
       },
       "actions": {
@@ -73,7 +70,7 @@
             "and": [
               {
                 "equals": [
-                  "@not(coalesce(triggerBody()?['CarpetaCreada'], false))",
+                  "@not(coalesce(outputs('CotizacionActual')?['CarpetaCreada'], false))",
                   true
                 ]
               }
@@ -276,12 +273,7 @@
               },
               "runAfter": {
                 "FDI_Existing_Metadata": [
-                  "Succeeded",
                   "Failed"
-                ],
-                "FDI_Delete_Existing": [
-                  "Succeeded",
-                  "Skipped"
                 ]
               },
               "runtimeConfiguration": {
@@ -296,7 +288,7 @@
                 "parameters": {
                   "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
                   "table": "53f4e788-fbb6-4deb-8fcf-965eb4db0c1e",
-                  "id": "@triggerBody()?['ID']",
+                  "id": "@outputs('CotizacionActual')?['ID']",
                   "item/Carpeta": "@concat(\r\n  'https://montillacom.sharepoint.com/sites/Pruebas/Carpeta cotizaciones/',\r\n  variables('varYear'),\r\n  '/',\r\n  outputs('NombreCarpeta')\r\n)",
                   "item/CarpetaCreada": true,
                   "item/FolderPath": "@concat(\r\n  'Carpeta cotizaciones/',\r\n  variables('varYear'),\r\n  '/',\r\n  outputs('NombreCarpeta')\r\n)"
@@ -413,7 +405,7 @@
                 "parameters": {
                   "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
                   "table": "b1ee600e-adc7-481e-99ab-aeda6eddd7a1",
-                  "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(triggerBody()?['ID']))",
+                  "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "SistemaId asc",
                   "$top": 500
                 },
@@ -435,7 +427,7 @@
                 "parameters": {
                   "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
                   "table": "e3e8a735-179b-4919-9994-9f30890abfcb",
-                  "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(triggerBody()?['ID']))",
+                  "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "ID asc",
                   "$top": 500
                 },
@@ -457,7 +449,7 @@
                 "parameters": {
                   "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
                   "table": "80069fdc-2de1-4c95-a88b-02770ca25959",
-                  "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(triggerBody()?['ID']))",
+                  "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "ID asc",
                   "$top": 500
                 },
@@ -476,35 +468,35 @@
             "Payload_Cotizacion": {
               "type": "Compose",
               "inputs": {
-                "Creación": "@triggerBody()?['Created']",
-                "ID": "@triggerBody()?['ID']",
+                "Creación": "@outputs('CotizacionActual')?['Created']",
+                "ID": "@outputs('CotizacionActual')?['ID']",
                 "Carpeta": "@outputs('NombreCarpeta')",
-                "Folio": "@triggerBody()?['Folio']",
-                "VendedoresLookUp": "@triggerBody()?['VendedoresLookUp']?['Value']",
-                "EmpresaLookUp": "@triggerBody()?['EmpresaLookUp']?['Value']",
-                "Dirección de la empresa": "@triggerBody()?['Direcci_x00f3_ndelaempresa']",
-                "ContactoLookUp": "@triggerBody()?['ContactoLookUp']?['Value']",
-                "Correo empresarial": "@triggerBody()?['Correoempresarial']",
-                "Número de teléfono": "@triggerBody()?['N_x00fa_merodetel_x00e9_fono']",
-                "Moneda de cotización": "@triggerBody()?['Monedadecotizaci_x00f3_n']?['Value']",
-                "Flete": "@triggerBody()?['Flete']",
-                "País de destino": "@coalesce(triggerBody()?['Pa_x00ed_sdedestino']?['Value'], triggerBody()?['Pa_x00ed_sdedestino/Value'], triggerBody()?['Pa_x00ed_sdedestino']?['Title'], triggerBody()?['Pa_x00ed_sdedestino'])",
-                "Estado de destino": "@coalesce(triggerBody()?['Estadodedestino']?['Value'], triggerBody()?['Estadodedestino/Value'], triggerBody()?['Estadodedestino']?['Title'], triggerBody()?['Estadodedestino'])",
-                "Ciudad de destino": "@coalesce(triggerBody()?['Ciudaddedestino']?['Value'], triggerBody()?['Ciudaddedestino/Value'], triggerBody()?['Ciudaddedestino']?['Title'], triggerBody()?['Ciudaddedestino'])",
-                "Fianzas": "@triggerBody()?['Fianzas']",
-                "Póliza de responsabilidad civil": "@triggerBody()?['P_x00f3_lizaderesponsabilidadciv']",
-                "Monto de póliza": "@triggerBody()?['Montodep_x00f3_liza']",
-                "Licitación": "@triggerBody()?['Licitaci_x00f3_n']",
-                "Fecha de entrega": "@triggerBody()?['Fechadeentrega']",
-                "Prioridad": "@triggerBody()?['Prioridad']?['Value']",
-                "Estado": "@triggerBody()?['Estado']?['Value']",
-                "Created By": "@triggerBody()?['Author']?['DisplayName']",
-                "Notificado": "@triggerBody()?['Notificado']",
-                "Title": "@triggerBody()?['Title']",
-                "Nombre de contacto": "@triggerBody()?['Nombredecontacto']",
-                "Solicitud o generación": "@triggerBody()?['Solicitudogeneraci_x00f3_n']?['Value']",
-                "Item Type": "@triggerBody()?['{ContentType}']?['Name']",
-                "Path": "@triggerBody()?['{Path}']"
+                "Folio": "@outputs('CotizacionActual')?['Folio']",
+                "VendedoresLookUp": "@outputs('CotizacionActual')?['VendedoresLookUp']?['Value']",
+                "EmpresaLookUp": "@outputs('CotizacionActual')?['EmpresaLookUp']?['Value']",
+                "Dirección de la empresa": "@outputs('CotizacionActual')?['Direcci_x00f3_ndelaempresa']",
+                "ContactoLookUp": "@outputs('CotizacionActual')?['ContactoLookUp']?['Value']",
+                "Correo empresarial": "@outputs('CotizacionActual')?['Correoempresarial']",
+                "Número de teléfono": "@outputs('CotizacionActual')?['N_x00fa_merodetel_x00e9_fono']",
+                "Moneda de cotización": "@outputs('CotizacionActual')?['Monedadecotizaci_x00f3_n']?['Value']",
+                "Flete": "@outputs('CotizacionActual')?['Flete']",
+                "País de destino": "@coalesce(outputs('CotizacionActual')?['Pa_x00ed_sdedestino']?['Value'], outputs('CotizacionActual')?['Pa_x00ed_sdedestino/Value'], outputs('CotizacionActual')?['Pa_x00ed_sdedestino']?['Title'], outputs('CotizacionActual')?['Pa_x00ed_sdedestino'])",
+                "Estado de destino": "@coalesce(outputs('CotizacionActual')?['Estadodedestino']?['Value'], outputs('CotizacionActual')?['Estadodedestino/Value'], outputs('CotizacionActual')?['Estadodedestino']?['Title'], outputs('CotizacionActual')?['Estadodedestino'])",
+                "Ciudad de destino": "@coalesce(outputs('CotizacionActual')?['Ciudaddedestino']?['Value'], outputs('CotizacionActual')?['Ciudaddedestino/Value'], outputs('CotizacionActual')?['Ciudaddedestino']?['Title'], outputs('CotizacionActual')?['Ciudaddedestino'])",
+                "Fianzas": "@outputs('CotizacionActual')?['Fianzas']",
+                "Póliza de responsabilidad civil": "@outputs('CotizacionActual')?['P_x00f3_lizaderesponsabilidadciv']",
+                "Monto de póliza": "@outputs('CotizacionActual')?['Montodep_x00f3_liza']",
+                "Licitación": "@outputs('CotizacionActual')?['Licitaci_x00f3_n']",
+                "Fecha de entrega": "@outputs('CotizacionActual')?['Fechadeentrega']",
+                "Prioridad": "@outputs('CotizacionActual')?['Prioridad']?['Value']",
+                "Estado": "@outputs('CotizacionActual')?['Estado']?['Value']",
+                "Created By": "@outputs('CotizacionActual')?['Author']?['DisplayName']",
+                "Notificado": "@outputs('CotizacionActual')?['Notificado']",
+                "Title": "@outputs('CotizacionActual')?['Title']",
+                "Nombre de contacto": "@outputs('CotizacionActual')?['Nombredecontacto']",
+                "Solicitud o generación": "@outputs('CotizacionActual')?['Solicitudogeneraci_x00f3_n']?['Value']",
+                "Item Type": "@outputs('CotizacionActual')?['{ContentType}']?['Name']",
+                "Path": "@outputs('CotizacionActual')?['{Path}']"
               },
               "runAfter": {
                 "Get_sistemas_ot": [
@@ -703,31 +695,17 @@
                 ]
               }
             },
-            "FDI_Delete_Existing": {
-              "type": "OpenApiConnection",
-              "inputs": {
-                "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
-                  "id": "@coalesce(outputs('FDI_Existing_Metadata')?['body/Id'], outputs('FDI_Existing_Metadata')?['body/Identifier'])"
-                },
-                "host": {
-                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                  "operationId": "DeleteFile",
-                  "connectionName": "shared_sharepointonline"
-                }
-              },
-              "runAfter": {
-                "FDI_Existing_Metadata": [
-                  "Succeeded"
-                ]
-              }
-            },
             "FDI_Crear_FileId": {
               "type": "Compose",
-              "inputs": "@coalesce(outputs('FDI_Crear')?['body/Id'], outputs('FDI_Crear')?['body/Identifier'])",
+              "inputs": "@coalesce(outputs('FDI_Existing_Metadata')?['body/Id'], outputs('FDI_Existing_Metadata')?['body/Identifier'], outputs('FDI_Crear')?['body/Id'], outputs('FDI_Crear')?['body/Identifier'])",
               "runAfter": {
+                "FDI_Existing_Metadata": [
+                  "Succeeded",
+                  "Failed"
+                ],
                 "FDI_Crear": [
-                  "Succeeded"
+                  "Succeeded",
+                  "Skipped"
                 ]
               }
             },
@@ -771,11 +749,9 @@
           },
           "else": {
             "actions": {
-              "Terminate_CarpetaCreada_Preexistente": {
-                "type": "Terminate",
-                "inputs": {
-                  "runStatus": "Succeeded"
-                }
+              "Skip_CarpetaCreada_Preexistente": {
+                "type": "Compose",
+                "inputs": "Cotización ya tenía CarpetaCreada = true; no se regeneró FDI."
               }
             }
           },
@@ -783,6 +759,43 @@
             "NombreCarpeta": [
               "Succeeded"
             ]
+          }
+        },
+        "Respond_to_a_PowerApp_or_flow": {
+          "type": "Response",
+          "kind": "PowerApp",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "title": "Result",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "cotizacionId": {
+                  "title": "CotizacionId",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                }
+              },
+              "additionalProperties": {}
+            },
+            "statusCode": 200,
+            "body": {
+              "result": "@if(coalesce(outputs('CotizacionActual')?['CarpetaCreada'], false), 'SkippedCarpetaCreada', 'FDICreated')",
+              "cotizacionId": "@string(outputs('CotizacionActual')?['ID'])"
+            }
+          },
+          "runAfter": {
+            "Condition": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "a37d0201-04c7-4d7c-8e52-dc0e6b8efef1"
           }
         },
         "Initialize_variable": {
@@ -800,9 +813,9 @@
         },
         "NombreCarpeta": {
           "type": "Compose",
-          "inputs": "@concat(\r\n  trim(string(triggerBody()?['Folio'])),\r\n  ' ',\r\n  trim(string(coalesce(triggerBody()?['EmpresaLookUp']?['Value'], triggerBody()?['EmpresaLookUp'])))\r\n)",
+          "inputs": "@concat(\r\n  trim(string(outputs('CotizacionActual')?['Folio'])),\r\n  ' ',\r\n  trim(string(coalesce(outputs('CotizacionActual')?['EmpresaLookUp']?['Value'], outputs('CotizacionActual')?['EmpresaLookUp/Value'], outputs('CotizacionActual')?['EmpresaLookUp'])))\r\n)",
           "runAfter": {
-            "Initialize_varSistemas": [
+            "CotizacionActual": [
               "Succeeded"
             ]
           }
@@ -820,6 +833,35 @@
           },
           "runAfter": {
             "Initialize_variable": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Get_Cotizacion_FDI": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "parameters": {
+              "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+              "table": "53f4e788-fbb6-4deb-8fcf-965eb4db0c1e",
+              "id": "@triggerBody()?['text']"
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+              "operationId": "GetItem",
+              "connectionName": "shared_sharepointonline"
+            }
+          },
+          "runAfter": {
+            "Initialize_varSistemas": [
+              "Succeeded"
+            ]
+          }
+        },
+        "CotizacionActual": {
+          "type": "Compose",
+          "inputs": "@body('Get_Cotizacion_FDI')",
+          "runAfter": {
+            "Get_Cotizacion_FDI": [
               "Succeeded"
             ]
           }
