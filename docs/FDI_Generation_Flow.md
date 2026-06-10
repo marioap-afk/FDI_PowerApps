@@ -167,19 +167,19 @@ El script no modifica la plantilla original.
 `Creación_FDI` ahora sigue este flujo:
 
 1. Trigger: item creado/modificado en `Cotizaciones 2026`.
-2. Condición: `Estado.Value = "Sin asignar"`.
-3. Protección: continuar solo si `CarpetaCreada != true`.
+2. Condiciones de trigger: `Estado.Value = "Sin asignar"` y `CarpetaCreada != true`.
+3. Protección interna: continuar solo si `CarpetaCreada != true`.
 4. Crear/validar carpeta de año, carpeta de cotización y subcarpeta `Docs`.
 5. Leer `Sistemas por cotización` por `CotizaciónID`.
 6. Leer `Sistema selectivo` por `CotizaciónID`.
 7. Leer `Sistema Otro` por `CotizaciónID`.
-8. Armar sistemas `SEL` desde campos existentes de `Sistema selectivo`.
+8. Armar sistemas `SEL` parseando `Sistema selectivo.PayloadSistemaJson`.
 9. Armar sistemas `OT` desde `Sistema Otro.HTML`.
 10. Armar `Payload_Global` con `{ cotizacion, sistemas }`.
 11. Copiar `/Recursos/FDI_Master.xlsx` a `Docs`.
 12. Ejecutar Office Script `scripts/office-scripts/fill-fdi-workbook.ts` sobre la copia.
 13. Copiar cotizador.
-14. Actualizar `Carpeta`, `FolderPath` y `CarpetaCreada`.
+14. Actualizar `Carpeta`, `FolderPath` y `CarpetaCreada` únicamente después de terminar la generación.
 
 El flujo ya no actualiza ni copia `FDI_Master_Puente.xlsx`.
 

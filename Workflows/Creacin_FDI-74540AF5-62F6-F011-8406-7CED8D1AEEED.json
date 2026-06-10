@@ -58,6 +58,9 @@
           "conditions": [
             {
               "expression": "@equals(triggerOutputs()?['body/Estado/Value'], 'Sin asignar')"
+            },
+            {
+              "expression": "@not(coalesce(triggerOutputs()?['body/CarpetaCreada'], false))"
             }
           ],
           "splitOn": "@triggerOutputs()?['body/value']"
@@ -130,7 +133,7 @@
                   "inputs": {
                     "parameters": {
                       "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
-                      "path": "@concat('/Carpeta cotizaciones/', variables('varYear'))"
+                      "path": "@concat('/Carpeta cotizaciones/', variables('varYear'), '/', outputs('NombreCarpeta'))"
                     },
                     "host": {
                       "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
@@ -160,7 +163,7 @@
                     "parameters": {
                       "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
                       "table": "dd92d2ae-9940-483d-bf7e-2ee98b44cdce",
-                      "parameters/path": "@concat('/', variables('varYear'))"
+                      "parameters/path": "@concat('/', variables('varYear'), '/', outputs('NombreCarpeta'))"
                     },
                     "host": {
                       "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
