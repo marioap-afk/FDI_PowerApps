@@ -60,10 +60,10 @@ function fillHeader(workbook: ExcelScript.Workbook, cotizacion: Record<string, u
 function prepareSystemSheets(workbook: ExcelScript.Workbook, sistemas: Record<string, unknown>[]): Record<string, string> {
   const sheetNames: Record<string, string> = {};
   const selTemplate = workbook.getWorksheet("SEL_S01_Form");
-  const selSheets: { sistema: Record<string, unknown>; index: number; name: string }[] = [];
   let selCount = 0;
 
-  sistemas.forEach((sistema, zeroIndex) => {
+  for (let zeroIndex = 0; zeroIndex < sistemas.length; zeroIndex += 1) {
+    const sistema = sistemas[zeroIndex];
     const index = zeroIndex + 1;
     const tipo = String(read(sistema, "TipoKey", "tipo", "Tipo", "SEL")).toUpperCase();
 
@@ -76,19 +76,24 @@ function prepareSystemSheets(workbook: ExcelScript.Workbook, sistemas: Record<st
         selTemplate.copy(ExcelScript.WorksheetPositionType.after, selTemplate).setName(sheetName);
       }
       sheetNames[String(index)] = sheetName;
-      selSheets.push({ sistema, index, name: sheetName });
-      return;
+    } else {
+      const sheetName = safeSheetName(`${tipo}_S${String(index).padStart(2, "0")}_Form`);
+      sheetNames[String(index)] = sheetName;
+      addOtSheet(workbook, sistema, sheetName, index);
     }
+  }
 
-    const sheetName = safeSheetName(`${tipo}_S${String(index).padStart(2, "0")}_Form`);
-    sheetNames[String(index)] = sheetName;
-    addOtSheet(workbook, sistema, sheetName, index);
-  });
+  for (let zeroIndex = 0; zeroIndex < sistemas.length; zeroIndex += 1) {
+    const sistema = sistemas[zeroIndex];
+    const index = zeroIndex + 1;
+    const tipo = String(read(sistema, "TipoKey", "tipo", "Tipo", "SEL")).toUpperCase();
 
-  selSheets.forEach((entry) => {
-    fillSelForm(workbook.getWorksheet(entry.name), entry.sistema, entry.index);
-    addDetailSheet(workbook, entry.sistema, entry.name.replace("_Form", "_Datos"));
-  });
+    if (tipo === "SEL") {
+      const sheetName = sheetNames[String(index)];
+      fillSelForm(workbook.getWorksheet(sheetName), sistema, index);
+      addDetailSheet(workbook, sistema, sheetName.replace("_Form", "_Datos"));
+    }
+  }
 
   return sheetNames;
 }
