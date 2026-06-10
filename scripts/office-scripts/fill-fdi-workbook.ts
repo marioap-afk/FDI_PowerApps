@@ -60,7 +60,7 @@ function fillHeader(workbook: ExcelScript.Workbook, cotizacion: Record<string, u
 function prepareSystemSheets(workbook: ExcelScript.Workbook, sistemas: Record<string, unknown>[]): Record<string, string> {
   const sheetNames: Record<string, string> = {};
   const selTemplate = workbook.getWorksheet("SEL_S01_Form");
-  const selSheets: { sheet: ExcelScript.Worksheet; sistema: Record<string, unknown>; index: number; name: string }[] = [];
+  const selSheets: { sistema: Record<string, unknown>; index: number; name: string }[] = [];
   let selCount = 0;
 
   sistemas.forEach((sistema, zeroIndex) => {
@@ -70,12 +70,13 @@ function prepareSystemSheets(workbook: ExcelScript.Workbook, sistemas: Record<st
     if (tipo === "SEL") {
       selCount += 1;
       const sheetName = safeSheetName(`SEL_S${String(index).padStart(2, "0")}_Form`);
-      const sheet = selCount === 1
-        ? selTemplate
-        : selTemplate.copy(ExcelScript.WorksheetPositionType.after, selTemplate);
-      sheet.setName(sheetName);
+      if (selCount === 1) {
+        selTemplate.setName(sheetName);
+      } else {
+        selTemplate.copy(ExcelScript.WorksheetPositionType.after, selTemplate).setName(sheetName);
+      }
       sheetNames[String(index)] = sheetName;
-      selSheets.push({ sheet, sistema, index, name: sheetName });
+      selSheets.push({ sistema, index, name: sheetName });
       return;
     }
 
@@ -85,7 +86,7 @@ function prepareSystemSheets(workbook: ExcelScript.Workbook, sistemas: Record<st
   });
 
   selSheets.forEach((entry) => {
-    fillSelForm(entry.sheet, entry.sistema, entry.index);
+    fillSelForm(workbook.getWorksheet(entry.name), entry.sistema, entry.index);
     addDetailSheet(workbook, entry.sistema, entry.name.replace("_Form", "_Datos"));
   });
 
@@ -229,8 +230,11 @@ function addOtSheet(workbook: ExcelScript.Workbook, sistema: Record<string, unkn
 }
 
 function writePayloadSheet(workbook: ExcelScript.Workbook, payloadJson: string) {
-  const existing = workbook.getWorksheets().find((sheet) => sheet.getName() === "FDI_Payload_JSON");
-  if (existing) existing.delete();
+  try {
+    workbook.getWorksheet("FDI_Payload_JSON").delete();
+  } catch {
+    // La hoja no existe en una copia limpia de la plantilla.
+  }
 
   const sheet = workbook.addWorksheet("FDI_Payload_JSON");
   sheet.setVisibility(ExcelScript.SheetVisibility.hidden);
