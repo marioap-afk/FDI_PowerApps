@@ -3,10 +3,10 @@ const path = require("path");
 
 const root = path.resolve(__dirname, "..");
 const required = [
-  "ControlManifest.Input.xml",
+  "FDIHtmlEditor/ControlManifest.Input.xml",
   "FDIHtmlEditor.pcfproj",
-  "index.ts",
-  "css/FDIHtmlEditor.css",
+  "FDIHtmlEditor/index.ts",
+  "FDIHtmlEditor/css/FDIHtmlEditor.css",
   "package.json",
   "pcfconfig.json",
   "tsconfig.json"
@@ -19,7 +19,7 @@ for (const file of required) {
   }
 }
 
-const manifest = fs.readFileSync(path.join(root, "ControlManifest.Input.xml"), "utf8");
+const manifest = fs.readFileSync(path.join(root, "FDIHtmlEditor/ControlManifest.Input.xml"), "utf8");
 for (const needle of ["DefaultHtml", "HtmlText", "usage=\"output\"", "index.ts", "FDIHtmlEditor.css"]) {
   if (!manifest.includes(needle)) {
     throw new Error(`Manifest does not contain ${needle}`);
@@ -38,7 +38,7 @@ if (!packageJson.devDependencies || !packageJson.devDependencies["@types/powerap
   throw new Error("package.json does not contain @types/powerapps-component-framework");
 }
 
-const source = fs.readFileSync(path.join(root, "index.ts"), "utf8");
+const source = fs.readFileSync(path.join(root, "FDIHtmlEditor/index.ts"), "utf8");
 for (const needle of [
   "getOutputs()",
   "HtmlText: this.html",
