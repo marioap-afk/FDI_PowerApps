@@ -256,6 +256,28 @@
                 ]
               }
             },
+            "Update_Cotizacion_FolderPath": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "table": "53f4e788-fbb6-4deb-8fcf-965eb4db0c1e",
+                  "id": "@outputs('CotizacionActual')?['ID']",
+                  "item/Carpeta": "@concat(\r\n  'https://montillacom.sharepoint.com/sites/Pruebas/Carpeta cotizaciones/',\r\n  variables('varYear'),\r\n  '/',\r\n  outputs('NombreCarpeta')\r\n)",
+                  "item/FolderPath": "@concat(\r\n  'Carpeta cotizaciones/',\r\n  variables('varYear'),\r\n  '/',\r\n  outputs('NombreCarpeta')\r\n)"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "PatchItem",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "runAfter": {
+                "Get_folder_metadata_using_path_3_Docs": [
+                  "Succeeded"
+                ]
+              }
+            },
             "FDI_Crear": {
               "type": "OpenApiConnection",
               "inputs": {
@@ -638,6 +660,9 @@
               "runAfter": {
                 "Payload_Global_JSON": [
                   "Succeeded"
+                ],
+                "Update_Cotizacion_FolderPath": [
+                  "Succeeded"
                 ]
               },
               "metadata": {
@@ -749,9 +774,32 @@
           },
           "else": {
             "actions": {
+              "Update_Cotizacion_FolderPath_Preexistente": {
+                "type": "OpenApiConnection",
+                "inputs": {
+                  "parameters": {
+                    "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                    "table": "53f4e788-fbb6-4deb-8fcf-965eb4db0c1e",
+                    "id": "@outputs('CotizacionActual')?['ID']",
+                    "item/Carpeta": "@concat(\r\n  'https://montillacom.sharepoint.com/sites/Pruebas/Carpeta cotizaciones/',\r\n  variables('varYear'),\r\n  '/',\r\n  outputs('NombreCarpeta')\r\n)",
+                    "item/FolderPath": "@concat(\r\n  'Carpeta cotizaciones/',\r\n  variables('varYear'),\r\n  '/',\r\n  outputs('NombreCarpeta')\r\n)"
+                  },
+                  "host": {
+                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                    "operationId": "PatchItem",
+                    "connectionName": "shared_sharepointonline"
+                  }
+                },
+                "runAfter": {}
+              },
               "Skip_CarpetaCreada_Preexistente": {
                 "type": "Compose",
-                "inputs": "Cotización ya tenía CarpetaCreada = true; no se regeneró FDI."
+                "inputs": "Cotización ya tenía CarpetaCreada = true; no se regeneró FDI.",
+                "runAfter": {
+                  "Update_Cotizacion_FolderPath_Preexistente": [
+                    "Succeeded"
+                  ]
+                }
               }
             }
           },
