@@ -266,6 +266,54 @@
               "Skipped"
             ]
           }
+        },
+        "Respond_to_a_PowerApp_or_flow": {
+          "type": "Response",
+          "kind": "PowerApp",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "title": "Ok",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "message": {
+                  "title": "Message",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "cotizacionId": {
+                  "title": "CotizacionId",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "fdiStatus": {
+                  "title": "FdiStatus",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                }
+              },
+              "additionalProperties": {}
+            },
+            "statusCode": 200,
+            "body": {
+              "ok": "@if(greater(length(body('Get_Cotizacion_Notificacion')?['value']), 0), 'true', 'false')",
+              "message": "@if(greater(length(body('Get_Cotizacion_Notificacion')?['value']), 0), 'Solicitud enviada y flujo FDI ejecutado.', 'Solicitud enviada, pero no se encontró la cotización para generar FDI.')",
+              "cotizacionId": "@if(greater(length(body('Get_Cotizacion_Notificacion')?['value']), 0), string(first(body('Get_Cotizacion_Notificacion')?['value'])?['ID']), '')",
+              "fdiStatus": "@if(greater(length(body('Get_Cotizacion_Notificacion')?['value']), 0), 'FDI child flow completed', 'CotizacionNotFound')"
+            }
+          },
+          "runAfter": {
+            "Notificacion_Teams_Completada": [
+              "Succeeded"
+            ]
+          }
         }
       }
     },
