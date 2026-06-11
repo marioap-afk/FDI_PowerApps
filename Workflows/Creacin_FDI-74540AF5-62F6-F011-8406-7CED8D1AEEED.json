@@ -278,6 +278,93 @@
                 ]
               }
             },
+            "Get_Cotizacion_Attachments": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "table": "53f4e788-fbb6-4deb-8fcf-965eb4db0c1e",
+                  "itemId": "@outputs('CotizacionActual')?['ID']"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "connectionName": "shared_sharepointonline",
+                  "operationId": "GetItemAttachments"
+                }
+              },
+              "runAfter": {
+                "Get_folder_metadata_using_path_3_Docs": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Apply_to_each_Cotizacion_Attachment": {
+              "type": "Foreach",
+              "foreach": "@body('Get_Cotizacion_Attachments')",
+              "actions": {
+                "Nombre_Adjunto_Seguro": {
+                  "type": "Compose",
+                  "inputs": "@concat('Adjunto ', string(outputs('CotizacionActual')?['ID']), ' - ', guid(), ' - ', replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(coalesce(items('Apply_to_each_Cotizacion_Attachment')?['DisplayName'], items('Apply_to_each_Cotizacion_Attachment')?['Name'], items('Apply_to_each_Cotizacion_Attachment')?['Id'], 'archivo-adjunto'), '/', '-'), decodeUriComponent('%5C'), '-'), ':', '-'), '*', '-'), '?', '-'), '\"', '-'), '<', '('), '>', ')'), '|', '-'), '#', '-'), '%', 'pct'))"
+                },
+                "Get_Cotizacion_Attachment_Content": {
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                      "table": "53f4e788-fbb6-4deb-8fcf-965eb4db0c1e",
+                      "itemId": "@outputs('CotizacionActual')?['ID']",
+                      "attachmentId": "@items('Apply_to_each_Cotizacion_Attachment')?['Id']"
+                    },
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "connectionName": "shared_sharepointonline",
+                      "operationId": "GetAttachmentContent"
+                    }
+                  },
+                  "runAfter": {
+                    "Nombre_Adjunto_Seguro": [
+                      "Succeeded"
+                    ]
+                  }
+                },
+                "Crear_Adjunto_en_Docs": {
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                      "folderPath": "@outputs('Get_folder_metadata_using_path_3_Docs')?['body/Path']",
+                      "name": "@outputs('Nombre_Adjunto_Seguro')",
+                      "body": "@body('Get_Cotizacion_Attachment_Content')"
+                    },
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "connectionName": "shared_sharepointonline",
+                      "operationId": "CreateFile"
+                    }
+                  },
+                  "runAfter": {
+                    "Get_Cotizacion_Attachment_Content": [
+                      "Succeeded"
+                    ]
+                  },
+                  "runtimeConfiguration": {
+                    "contentTransfer": {
+                      "transferMode": "Chunked"
+                    }
+                  }
+                }
+              },
+              "runAfter": {
+                "Get_Cotizacion_Attachments": [
+                  "Succeeded"
+                ]
+              },
+              "runtimeConfiguration": {
+                "concurrency": {
+                  "repetitions": 1
+                }
+              }
+            },
             "FDI_Crear": {
               "type": "OpenApiConnection",
               "inputs": {
@@ -662,6 +749,9 @@
                   "Succeeded"
                 ],
                 "Update_Cotizacion_FolderPath": [
+                  "Succeeded"
+                ],
+                "Apply_to_each_Cotizacion_Attachment": [
                   "Succeeded"
                 ]
               },
