@@ -61,6 +61,7 @@ export class HtmlEditor implements ComponentFramework.StandardControl<IInputs, I
     state: ComponentFramework.Dictionary,
     container: HTMLDivElement
   ): void {
+    void state;
     this.notifyOutputChanged = notifyOutputChanged;
     this.defaultHtml = context.parameters.DefaultHtml.raw ?? "";
     this.html = this.sanitizeHtml(this.defaultHtml);

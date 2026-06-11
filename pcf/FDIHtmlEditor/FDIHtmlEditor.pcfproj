@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net462</TargetFramework>
+    <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <Name>FDIHtmlEditor</Name>
     <ProjectGuid>{8E5CE39D-07D4-4B65-A2BA-9EA6F9E2E8C4}</ProjectGuid>
     <OutputPath>$(MSBuildThisFileDirectory)out\controls</OutputPath>

@@ -26,6 +26,18 @@ for (const needle of ["DefaultHtml", "HtmlText", "usage=\"output\"", "index.ts",
   }
 }
 
+const project = fs.readFileSync(path.join(root, "FDIHtmlEditor.pcfproj"), "utf8");
+for (const needle of ["Microsoft.PowerApps.MSBuild.Pcf", "GeneratePkgDefFile", "out\\controls"]) {
+  if (!project.includes(needle)) {
+    throw new Error(`FDIHtmlEditor.pcfproj does not contain ${needle}`);
+  }
+}
+
+const packageJson = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
+if (!packageJson.devDependencies || !packageJson.devDependencies["@types/powerapps-component-framework"]) {
+  throw new Error("package.json does not contain @types/powerapps-component-framework");
+}
+
 const source = fs.readFileSync(path.join(root, "index.ts"), "utf8");
 for (const needle of [
   "getOutputs()",
