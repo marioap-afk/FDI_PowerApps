@@ -9,7 +9,13 @@
   <EntityRelationships />
   <OrganizationSettings />
   <optionsets />
-  <CustomControls />
+  <CustomControls>
+    <CustomControl>
+      <Name>fdi_FDI.HtmlEditor</Name>
+      <FileName>/Controls/fdi_FDI.HtmlEditor/ControlManifest.xml</FileName>
+      <IntroducedVersion>1.0</IntroducedVersion>
+    </CustomControl>
+  </CustomControls>
   <EntityDataProviders />
   <CanvasApps />
   <connectionreferences>
