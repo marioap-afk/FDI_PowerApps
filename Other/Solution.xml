@@ -1,5 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<ImportExportXml version="9.2.26051.157" SolutionPackageVersion="9.2" languagecode="3082" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26051.157" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.26051.00157">
+<ImportExportXml version="9.2.26052.154" SolutionPackageVersion="9.2" languagecode="3082" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26052.154" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.26052.00154">
   <SolutionManifest>
     <UniqueName>FDI</UniqueName>
     <LocalizedNames>
@@ -27,6 +26,11 @@
       <RootComponent type="29" id="{9c172a3b-3fb1-f011-bbd2-6045bd022950}" behavior="0" />
       <RootComponent type="300" schemaName="mapc_fdi_412ec" behavior="0" />
     </RootComponents>
-    <MissingDependencies />
+    <MissingDependencies>
+      <MissingDependency>
+        <Required type="66" schemaName="fdi_FDI.HtmlEditor" displayName="fdi_FDI.HtmlEditor" solution="Active" />
+        <Dependent type="300" schemaName="mapc_fdi_412ec" displayName="FDI" />
+      </MissingDependency>
+    </MissingDependencies>
   </SolutionManifest>
 </ImportExportXml>
