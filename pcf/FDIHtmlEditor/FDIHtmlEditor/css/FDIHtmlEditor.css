@@ -1,164 +1,344 @@
-.fdi-html-editor {
-  --fdi-border: #d0d7de;
-  --fdi-surface: #ffffff;
-  --fdi-muted: #f6f8fa;
-  --fdi-text: #24292f;
-  --fdi-primary: #0f6cbd;
-  --fdi-primary-soft: #e7f1fb;
-  --fdi-danger: #b42318;
+/* ─── Root container ─────────────────────────────────────────────────────── */
+.fdi-editor {
+  --fe-border:   #d0d7de;
+  --fe-surface:  #ffffff;
+  --fe-muted:    #f6f8fa;
+  --fe-text:     #24292f;
+  --fe-primary:  #0f6cbd;
+  --fe-soft:     #e7f1fb;
+  --fe-danger:   #b42318;
+  --fe-radius:   6px;
+
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   width: 100%;
-  min-width: 280px;
-  min-height: 260px;
+  min-width: 320px;
+  min-height: 300px;
   height: 100%;
-  border: 1px solid var(--fdi-border);
+  border: 1px solid var(--fe-border);
   border-radius: 8px;
-  background: var(--fdi-surface);
-  color: var(--fdi-text);
-  font: 14px/1.45 "Segoe UI", Arial, sans-serif;
+  background: var(--fe-surface);
+  color: var(--fe-text);
+  font: 14px/1.5 "Segoe UI", Arial, sans-serif;
   overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,.07);
 }
 
-.fdi-html-editor *,
-.fdi-html-editor *::before,
-.fdi-html-editor *::after {
+.fdi-editor *,
+.fdi-editor *::before,
+.fdi-editor *::after {
   box-sizing: border-box;
 }
 
-.fdi-html-editor__toolbar {
+/* ─── Toolbar ────────────────────────────────────────────────────────────── */
+.fdi-editor__toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px;
-  padding: 8px;
-  background: var(--fdi-muted);
-  border-bottom: 1px solid var(--fdi-border);
+  gap: 3px;
+  padding: 6px 8px;
+  background: var(--fe-muted);
+  border-bottom: 1px solid var(--fe-border);
+  user-select: none;
 }
 
-.fdi-html-editor__group {
+.fdi-editor__group {
   display: inline-flex;
-  gap: 2px;
+  align-items: center;
+  gap: 1px;
   padding-right: 6px;
   margin-right: 4px;
-  border-right: 1px solid var(--fdi-border);
+  border-right: 1px solid var(--fe-border);
 }
 
-.fdi-html-editor__group:last-child {
-  border-right: 0;
+.fdi-editor__group:last-child {
+  border-right: none;
+  padding-right: 0;
+  margin-right: 0;
 }
 
-.fdi-html-editor__button {
-  min-width: 32px;
-  height: 32px;
-  padding: 0 8px;
+/* ─── Base button ─────────────────────────────────────────────────────────── */
+.fdi-editor__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 6px;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: var(--fe-radius);
   background: transparent;
-  color: var(--fdi-text);
+  color: var(--fe-text);
   font: inherit;
+  font-size: 13px;
   font-weight: 600;
+  line-height: 1;
   cursor: pointer;
+  transition: background .12s, border-color .12s, color .12s;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.fdi-html-editor__button:hover,
-.fdi-html-editor__button:focus {
-  border-color: var(--fdi-border);
-  background: #ffffff;
+.fdi-editor__btn:hover {
+  background: #eaeef2;
+  border-color: var(--fe-border);
+}
+
+.fdi-editor__btn:focus-visible {
+  outline: 2px solid var(--fe-primary);
+  outline-offset: 1px;
+}
+
+.fdi-editor__btn:active {
+  background: var(--fe-soft);
+  border-color: var(--fe-primary);
+}
+
+.fdi-editor__btn--wide {
+  min-width: 44px;
+  gap: 3px;
+}
+
+/* Split button style for table (icon + chevron) */
+.fdi-editor__btn--split {
+  gap: 1px;
+  padding-right: 4px;
+}
+
+/* Styled text buttons for B / I / U / S */
+.fdi-editor__btn--bold       { font-family: Georgia, "Times New Roman", serif; font-weight: 900; font-size: 15px; }
+.fdi-editor__btn--italic     { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 15px; }
+.fdi-editor__btn--underline  { text-decoration: underline; }
+.fdi-editor__btn--strike     { text-decoration: line-through; }
+
+/* ─── Format block selector ──────────────────────────────────────────────── */
+.fdi-editor__format-sel {
+  height: 30px;
+  padding: 0 6px;
+  border: 1px solid var(--fe-border);
+  border-radius: var(--fe-radius);
+  background: var(--fe-surface);
+  color: var(--fe-text);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
   outline: none;
+  appearance: auto;
 }
 
-.fdi-html-editor__button:active {
-  background: var(--fdi-primary-soft);
-  border-color: var(--fdi-primary);
+.fdi-editor__format-sel:focus {
+  border-color: var(--fe-primary);
+  box-shadow: 0 0 0 2px var(--fe-soft);
 }
 
-.fdi-html-editor__button--wide {
-  min-width: 64px;
-  font-weight: 500;
+/* ─── Color picker ────────────────────────────────────────────────────────── */
+.fdi-editor__color-wrap {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
 }
 
-.fdi-html-editor__body {
+.fdi-editor__btn--color {
+  flex-direction: column;
+  gap: 0;
+  min-width: 30px;
+  height: 30px;
+  padding: 3px 6px 2px;
+}
+
+.fdi-editor__color-letter {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.fdi-editor__color-swatch {
+  display: block;
+  width: 18px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.fdi-editor__color-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* ─── Table dropdown ─────────────────────────────────────────────────────── */
+.fdi-editor__dropdown-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.fdi-editor__dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 100;
+  min-width: 220px;
+  padding: 4px 0;
+  border: 1px solid var(--fe-border);
+  border-radius: 8px;
+  background: var(--fe-surface);
+  box-shadow: 0 6px 20px rgba(0,0,0,.12);
+}
+
+.fdi-editor__dropdown--hidden {
+  display: none;
+}
+
+.fdi-editor__menu-section {
+  padding: 6px 12px 3px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: #6e7781;
+  user-select: none;
+}
+
+.fdi-editor__menu-section:not(:first-child) {
+  margin-top: 4px;
+  border-top: 1px solid var(--fe-border);
+  padding-top: 8px;
+}
+
+.fdi-editor__menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  color: var(--fe-text);
+  font: inherit;
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+  transition: background .1s;
+}
+
+.fdi-editor__menu-item:hover:not(:disabled) {
+  background: var(--fe-muted);
+}
+
+.fdi-editor__menu-item:disabled {
+  color: #c1c7cf;
+  cursor: default;
+}
+
+.fdi-editor__menu-item svg {
+  flex-shrink: 0;
+  color: #57606a;
+}
+
+/* ─── Editor body ────────────────────────────────────────────────────────── */
+.fdi-editor__body {
   position: relative;
   display: flex;
   flex: 1 1 auto;
-  min-height: 180px;
+  min-height: 200px;
 }
 
-.fdi-html-editor__editable {
+.fdi-editor__editable {
   flex: 1 1 auto;
   width: 100%;
-  min-height: 180px;
-  padding: 18px 20px;
+  min-height: 200px;
+  padding: 18px 22px;
   overflow: auto;
   outline: none;
   background: #ffffff;
-  color: var(--fdi-text);
+  color: var(--fe-text);
+  font: 14px/1.6 "Segoe UI", Arial, sans-serif;
 }
 
-.fdi-html-editor__editable:empty::before {
-  content: "Escribe el cuerpo del correo...";
-  color: #6b7280;
+.fdi-editor__editable:empty::before {
+  content: attr(placeholder);
+  color: #9ca3af;
+  pointer-events: none;
 }
 
-.fdi-html-editor__editable a {
-  color: var(--fdi-primary);
+.fdi-editor__editable a {
+  color: var(--fe-primary);
 }
 
-.fdi-html-editor__editable table {
+.fdi-editor__editable h1 { font-size: 1.8em; margin: .5em 0; font-weight: 700; }
+.fdi-editor__editable h2 { font-size: 1.4em; margin: .5em 0; font-weight: 700; }
+.fdi-editor__editable h3 { font-size: 1.15em; margin: .5em 0; font-weight: 600; }
+.fdi-editor__editable p  { margin: .4em 0; }
+
+.fdi-editor__editable blockquote {
+  margin: 8px 0 8px 16px;
+  padding-left: 12px;
+  border-left: 4px solid var(--fe-border);
+  color: #57606a;
+}
+
+/* Tables */
+.fdi-editor__editable table {
   width: 100%;
   border-collapse: collapse;
   margin: 12px 0;
 }
 
-.fdi-html-editor__editable td,
-.fdi-html-editor__editable th {
+.fdi-editor__editable td,
+.fdi-editor__editable th {
   min-width: 80px;
-  padding: 8px;
+  padding: 8px 10px;
   border: 1px solid #c9d1d9;
   vertical-align: top;
+  text-align: left;
 }
 
-.fdi-html-editor__editable th {
+.fdi-editor__editable th {
   background: #f6f8fa;
   font-weight: 600;
 }
 
-.fdi-html-editor__editable img {
+/* Images */
+.fdi-editor__editable img {
   max-width: 100%;
   height: auto;
   cursor: nwse-resize;
+  border-radius: 3px;
 }
 
-.fdi-html-editor__editable img.fdi-html-editor__image-selected {
-  outline: 2px solid var(--fdi-primary);
+.fdi-editor__img--selected {
+  outline: 2px solid var(--fe-primary);
   outline-offset: 2px;
 }
 
-.fdi-html-editor__resize-handle {
+/* ─── Resize handle ──────────────────────────────────────────────────────── */
+.fdi-editor__resize-handle {
   position: fixed;
   z-index: 9999;
   width: 12px;
   height: 12px;
   border: 2px solid #ffffff;
   border-radius: 50%;
-  background: var(--fdi-primary);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  background: var(--fe-primary);
+  box-shadow: 0 1px 4px rgba(0,0,0,.25);
   cursor: nwse-resize;
 }
 
-.fdi-html-editor__footer {
+/* ─── Footer ─────────────────────────────────────────────────────────────── */
+.fdi-editor__footer {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 12px;
-  padding: 6px 10px;
-  border-top: 1px solid var(--fdi-border);
-  background: #ffffff;
-  color: #5f6b7a;
-  font-size: 12px;
+  padding: 5px 10px;
+  border-top: 1px solid var(--fe-border);
+  background: var(--fe-muted);
+  color: #6e7781;
+  font-size: 11.5px;
 }
 
-.fdi-html-editor__status--warning {
-  color: var(--fdi-danger);
+.fdi-editor__status--warn {
+  color: var(--fe-danger);
 }
