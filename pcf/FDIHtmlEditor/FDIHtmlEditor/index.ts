@@ -668,29 +668,7 @@ export class HtmlEditor implements ComponentFramework.StandardControl<IInputs, I
 
   private insertLink(): void {
     this.saveSelection();
-    const sel = window.getSelection()?.toString() ?? "";
-    // window.prompt is blocked in sandboxed iframes; fall back to a simple inline input
-    let url: string | null;
-    try {
-      url = window.prompt("URL del vínculo", "https://");
-    } catch {
-      url = null;
-    }
-    if (url === null) {
-      this.showLinkDialog();
-      return;
-    }
-    if (!url) return;
-    this.restoreSelection();
-
-    const safe = this.normalizeUrl(url);
-    if (!safe) { this.setWarning("El vínculo no es válido."); return; }
-
-    if (!sel) {
-      this.insertHtml(`<a href="${this.escapeAttr(safe)}">${this.escapeHtml(safe)}</a>`);
-      return;
-    }
-    this.cmd("createLink", safe);
+    this.showLinkDialog();
   }
 
   private showLinkDialog(): void {

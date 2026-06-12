@@ -24,6 +24,12 @@ No cambia el contrato del flujo ni la lógica de envío.
 
 Nota: no se recomienda reemplazar un control Canvas por PCF editando directamente el `.msapp`; Power Apps debe registrar primero el code component en la solución. Mantener el nombre `RichTextEditorCorreo` evita tocar la fórmula del botón de envío.
 
+## Publisher y nombre del control
+
+El PCF se publica como `fdi_FDI.HtmlEditor`. La solución principal FDI usa el publisher `map`, pero este control debe conservar el publisher `fdi` porque cambiarlo generaría otro identificador de componente y rompería las referencias ya instaladas en Canvas App.
+
+La solución fuente del PCF usa `FDIHtmlEditor` como `UniqueName` para evitar colisiones con scaffolds que conservan el nombre genérico `Solution`.
+
 ## Build local
 
 ```powershell
