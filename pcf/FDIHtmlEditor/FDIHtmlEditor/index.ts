@@ -98,27 +98,34 @@ export class HtmlEditor implements ComponentFramework.StandardControl<IInputs, I
     container: HTMLDivElement
   ): void {
     void state;
-    this.notifyOutputChanged = notifyOutputChanged;
-    this.defaultHtml = context.parameters.DefaultHtml.raw ?? "";
-    this.html = this.sanitizeHtml(this.defaultHtml);
+    try {
+      this.notifyOutputChanged = notifyOutputChanged;
+      this.defaultHtml = context.parameters.DefaultHtml.raw ?? "";
+      this.html = this.sanitizeHtml(this.defaultHtml);
 
-    this.root = document.createElement("div");
-    this.root.className = "fdi-editor";
+      this.root = document.createElement("div");
+      this.root.className = "fdi-editor";
 
-    this.fileInput = document.createElement("input");
-    this.fileInput.type = "file";
-    this.fileInput.accept = "image/*";
-    this.fileInput.hidden = true;
-    this.fileInput.addEventListener("change", this.handleFileSelected);
+      this.fileInput = document.createElement("input");
+      this.fileInput.type = "file";
+      this.fileInput.accept = "image/*";
+      this.fileInput.hidden = true;
+      this.fileInput.addEventListener("change", this.handleFileSelected);
 
-    this.root.appendChild(this.buildToolbar());
-    this.root.appendChild(this.buildBody());
-    this.root.appendChild(this.buildFooter());
-    this.root.appendChild(this.fileInput);
-    container.appendChild(this.root);
+      this.root.appendChild(this.buildToolbar());
+      this.root.appendChild(this.buildBody());
+      this.root.appendChild(this.buildFooter());
+      this.root.appendChild(this.fileInput);
+      container.appendChild(this.root);
 
-    this.editor.innerHTML = this.html;
-    this.updateCounters();
+      this.editor.innerHTML = this.html;
+      this.updateCounters();
+    } catch (err) {
+      const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+      container.innerHTML = `<div style="padding:16px;color:#b42318;font:13px monospace;border:1px solid #b42318;border-radius:6px;background:#fff5f5">
+        <strong>FDI HTML Editor — Error al inicializar (v1.2.0)</strong><br><br>${msg}
+      </div>`;
+    }
   }
 
   public updateView(context: ComponentFramework.Context<IInputs>): void {
@@ -585,8 +592,13 @@ export class HtmlEditor implements ComponentFramework.StandardControl<IInputs, I
     this.status = document.createElement("span");
     this.status.textContent = "HTML listo para correo";
 
+    const ver = document.createElement("span");
+    ver.className = "fdi-editor__version";
+    ver.textContent = "v1.2.0";
+
     footer.appendChild(this.counter);
     footer.appendChild(this.status);
+    footer.appendChild(ver);
     return footer;
   }
 
@@ -657,7 +669,17 @@ export class HtmlEditor implements ComponentFramework.StandardControl<IInputs, I
   private insertLink(): void {
     this.saveSelection();
     const sel = window.getSelection()?.toString() ?? "";
-    const url = window.prompt("URL del vínculo", "https://");
+    // window.prompt is blocked in sandboxed iframes; fall back to a simple inline input
+    let url: string | null;
+    try {
+      url = window.prompt("URL del vínculo", "https://");
+    } catch {
+      url = null;
+    }
+    if (url === null) {
+      this.showLinkDialog();
+      return;
+    }
     if (!url) return;
     this.restoreSelection();
 
@@ -669,6 +691,48 @@ export class HtmlEditor implements ComponentFramework.StandardControl<IInputs, I
       return;
     }
     this.cmd("createLink", safe);
+  }
+
+  private showLinkDialog(): void {
+    const overlay = document.createElement("div");
+    overlay.className = "fdi-editor__dialog-overlay";
+    overlay.innerHTML = `
+      <div class="fdi-editor__dialog">
+        <label class="fdi-editor__dialog-label">URL del vínculo</label>
+        <input class="fdi-editor__dialog-input" type="url" placeholder="https://" value="https://">
+        <div class="fdi-editor__dialog-actions">
+          <button class="fdi-editor__dialog-btn fdi-editor__dialog-btn--ok">Insertar</button>
+          <button class="fdi-editor__dialog-btn fdi-editor__dialog-btn--cancel">Cancelar</button>
+        </div>
+      </div>`;
+    this.root.appendChild(overlay);
+
+    const input = overlay.querySelector<HTMLInputElement>(".fdi-editor__dialog-input")!;
+    input.focus();
+    input.select();
+
+    const close = () => overlay.remove();
+    const confirm = () => {
+      const url = input.value.trim();
+      close();
+      if (!url) return;
+      const safe = this.normalizeUrl(url);
+      if (!safe) { this.setWarning("El vínculo no es válido."); return; }
+      this.restoreSelection();
+      const sel = window.getSelection()?.toString() ?? "";
+      if (!sel) {
+        this.insertHtml(`<a href="${this.escapeAttr(safe)}">${this.escapeHtml(safe)}</a>`);
+      } else {
+        this.cmd("createLink", safe);
+      }
+    };
+
+    overlay.querySelector(".fdi-editor__dialog-btn--ok")!.addEventListener("click", confirm);
+    overlay.querySelector(".fdi-editor__dialog-btn--cancel")!.addEventListener("click", close);
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") confirm();
+      if (e.key === "Escape") close();
+    });
   }
 
   private clearFormatting(): void {

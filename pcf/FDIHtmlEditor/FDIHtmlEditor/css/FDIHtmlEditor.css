@@ -389,3 +389,88 @@
   color: var(--fe-danger);
   font-weight: 600;
 }
+
+.fdi-editor__version {
+  opacity: .45;
+  font-size: 10px;
+  letter-spacing: .02em;
+  flex-shrink: 0;
+}
+
+/* ─── Inline link dialog (replaces window.prompt in sandboxed iframes) ────── */
+.fdi-editor__dialog-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,.35);
+  border-radius: 8px;
+}
+
+.fdi-editor__dialog {
+  background: var(--fe-surface);
+  border: 1px solid var(--fe-border);
+  border-radius: 8px;
+  padding: 20px;
+  width: 320px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.2);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fdi-editor__dialog-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fe-text);
+}
+
+.fdi-editor__dialog-input {
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--fe-border);
+  border-radius: var(--fe-radius);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+  width: 100%;
+}
+
+.fdi-editor__dialog-input:focus {
+  border-color: var(--fe-primary);
+  box-shadow: 0 0 0 2px var(--fe-soft);
+}
+
+.fdi-editor__dialog-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.fdi-editor__dialog-btn {
+  height: 32px;
+  padding: 0 16px;
+  border-radius: var(--fe-radius);
+  border: 1px solid var(--fe-border);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  background: var(--fe-surface);
+  color: var(--fe-text);
+}
+
+.fdi-editor__dialog-btn--ok {
+  background: var(--fe-primary);
+  border-color: var(--fe-primary);
+  color: #fff;
+}
+
+.fdi-editor__dialog-btn--ok:hover {
+  background: #0856a5;
+}
+
+.fdi-editor__dialog-btn--cancel:hover {
+  background: var(--fe-muted);
+}
