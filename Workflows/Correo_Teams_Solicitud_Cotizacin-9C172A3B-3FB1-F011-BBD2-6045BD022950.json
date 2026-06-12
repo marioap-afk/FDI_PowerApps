@@ -9,6 +9,24 @@
           "connectionReferenceLogicalName": "mapc_sharedoffice365_2fca3"
         },
         "runtimeSource": "invoker"
+      },
+      "shared_sharepointonline": {
+        "api": {
+          "name": "shared_sharepointonline"
+        },
+        "connection": {
+          "connectionReferenceLogicalName": "mapc_sharedsharepointonline_d481e"
+        },
+        "runtimeSource": "embedded"
+      },
+      "shared_teams": {
+        "api": {
+          "name": "shared_teams"
+        },
+        "connection": {
+          "connectionReferenceLogicalName": "mapc_sharedteams_8d13f"
+        },
+        "runtimeSource": "embedded"
       }
     },
     "definition": {
@@ -81,7 +99,7 @@
             "parameters": {
               "emailMessage/To": "@triggerBody()['text']",
               "emailMessage/Subject": "@triggerBody()['text_1']",
-              "emailMessage/Body": "<p>@{triggerBody()['text_2']}</p>",
+              "emailMessage/Body": "@triggerBody()['text_2']",
               "emailMessage/Cc": "@triggerBody()?['text_3']"
             },
             "host": {
@@ -93,6 +111,208 @@
           "runAfter": {},
           "metadata": {
             "operationMetadataId": "fc1d277c-bc6b-45a2-b641-97307e84a0fe"
+          }
+        },
+        "FolioDesdeAsunto": {
+          "type": "Compose",
+          "inputs": "@trim(last(split(triggerBody()?['text_1'], ' ')))",
+          "runAfter": {
+            "Send_an_email_(V2)": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Get_Cotizacion_Notificacion": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "parameters": {
+              "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+              "table": "53f4e788-fbb6-4deb-8fcf-965eb4db0c1e",
+              "$filter": "@concat('Folio eq ''', outputs('FolioDesdeAsunto'), '''')",
+              "$orderby": "ID desc",
+              "$top": 1
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+              "operationId": "GetItems",
+              "connectionName": "shared_sharepointonline"
+            }
+          },
+          "runAfter": {
+            "FolioDesdeAsunto": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Convert_time_zone_Correo": {
+          "type": "Expression",
+          "kind": "ConvertTimeZone",
+          "inputs": {
+            "baseTime": "@utcNow()",
+            "sourceTimeZone": "UTC",
+            "destinationTimeZone": "Central Standard Time (Mexico)",
+            "formatString": "F"
+          },
+          "runAfter": {
+            "FolioDesdeAsunto": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Tiene_Cotizacion_Notificacion": {
+          "type": "If",
+          "expression": {
+            "and": [
+              {
+                "greater": [
+                  "@length(body('Get_Cotizacion_Notificacion')?['value'])",
+                  0
+                ]
+              }
+            ]
+          },
+          "actions": {
+            "Run_Creacion_FDI": {
+              "type": "Workflow",
+              "inputs": {
+                "host": {
+                  "workflowReferenceName": "74540af5-62f6-f011-8406-7ced8d1aeeed"
+                },
+                "body": {
+                  "text": "@string(first(body('Get_Cotizacion_Notificacion')?['value'])?['ID'])"
+                }
+              },
+              "runAfter": {}
+            },
+            "Post_Teams_Solicitud_FDI": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "poster": "Flow bot",
+                  "location": "Chat with Flow bot",
+                  "body/recipient": "ingenieria3@montilla.com",
+                  "body/messageBody": "@concat('<p class=\"editor-paragraph\">Se ha enviado una solicitud de cotización.</p><br><p class=\"editor-paragraph\">Folio: ', outputs('FolioDesdeAsunto'), '</p><p class=\"editor-paragraph\">Cliente: ', coalesce(first(body('Get_Cotizacion_Notificacion')?['value'])?['EmpresaLookUp/Value'], ''), '<br>Solicitante: ', coalesce(first(body('Get_Cotizacion_Notificacion')?['value'])?['Author/DisplayName'], ''), '<br>Fecha: ', body('Convert_time_zone_Correo'), '</p>')"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams",
+                  "operationId": "PostMessageToConversation",
+                  "connectionName": "shared_teams"
+                }
+              },
+              "runAfter": {
+                "Run_Creacion_FDI": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Update_Cotizacion_Notificado": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "table": "53f4e788-fbb6-4deb-8fcf-965eb4db0c1e",
+                  "id": "@first(body('Get_Cotizacion_Notificacion')?['value'])?['ID']",
+                  "item/Notificado": true
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "PatchItem",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "runAfter": {
+                "Post_Teams_Solicitud_FDI": [
+                  "Succeeded"
+                ]
+              }
+            }
+          },
+          "else": {
+            "actions": {
+              "Post_Teams_Solicitud_FDI_Sin_Cotizacion": {
+                "type": "OpenApiConnection",
+                "inputs": {
+                  "parameters": {
+                    "poster": "Flow bot",
+                    "location": "Chat with Flow bot",
+                    "body/recipient": "ingenieria3@montilla.com",
+                    "body/messageBody": "@concat('<p class=\"editor-paragraph\">Se ha enviado una solicitud de cotización.</p><br><p class=\"editor-paragraph\">Folio detectado: ', outputs('FolioDesdeAsunto'), '<br>Asunto: ', triggerBody()?['text_1'], '<br>Destinatario: ', triggerBody()?['text'], '<br>Fecha: ', body('Convert_time_zone_Correo'), '</p>')"
+                  },
+                  "host": {
+                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams",
+                    "operationId": "PostMessageToConversation",
+                    "connectionName": "shared_teams"
+                  }
+                },
+                "runAfter": {}
+              }
+            }
+          },
+          "runAfter": {
+            "Get_Cotizacion_Notificacion": [
+              "Succeeded"
+            ],
+            "Convert_time_zone_Correo": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Notificacion_Teams_Completada": {
+          "type": "Compose",
+          "inputs": "Teams notification attempted after email send.",
+          "runAfter": {
+            "Tiene_Cotizacion_Notificacion": [
+              "Succeeded",
+              "Skipped"
+            ]
+          }
+        },
+        "Respond_to_a_PowerApp_or_flow": {
+          "type": "Response",
+          "kind": "PowerApp",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "title": "Ok",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "message": {
+                  "title": "Message",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "cotizacionId": {
+                  "title": "CotizacionId",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "fdiStatus": {
+                  "title": "FdiStatus",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                }
+              },
+              "additionalProperties": {}
+            },
+            "statusCode": 200,
+            "body": {
+              "ok": "@if(greater(length(body('Get_Cotizacion_Notificacion')?['value']), 0), 'true', 'false')",
+              "message": "@if(greater(length(body('Get_Cotizacion_Notificacion')?['value']), 0), 'Solicitud enviada y flujo FDI ejecutado.', 'Solicitud enviada, pero no se encontró la cotización para generar FDI.')",
+              "cotizacionId": "@if(greater(length(body('Get_Cotizacion_Notificacion')?['value']), 0), string(first(body('Get_Cotizacion_Notificacion')?['value'])?['ID']), '')",
+              "fdiStatus": "@if(greater(length(body('Get_Cotizacion_Notificacion')?['value']), 0), 'FDI child flow completed', 'CotizacionNotFound')"
+            }
+          },
+          "runAfter": {
+            "Notificacion_Teams_Completada": [
+              "Succeeded"
+            ]
           }
         }
       }

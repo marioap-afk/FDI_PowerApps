@@ -1,0 +1,204 @@
+﻿{
+    "generatedAtUtc":  "2026-06-09T16:17:01.2178318Z",
+    "siteUrl":  "https://montillacom.sharepoint.com/sites/Pruebas",
+    "repoRoot":  "D:\\Documentos\\Codex\\FDI PowerApp",
+    "collectionStatus":  "pending-pnp-powershell-not-installed",
+    "collectionNote":  "PnP.PowerShell no está instalado en este entorno, por lo que no se pudo leer metadata del sitio. Se generaron los archivos requeridos con estado pendiente y referencias locales conocidas para que el inventario quede reproducible.",
+    "rules":  {
+                  "sharePointModified":  false,
+                  "businessRecordsDownloaded":  false,
+                  "metadataOnly":  true
+              },
+    "localRepositoryReferences":  [
+                                      {
+                                          "Title":  "Archivos temporales",
+                                          "Id":  "4317d03a-bbcb-4499-a38b-f9de52fad4f8",
+                                          "EvidencePath":  "CanvasApps\\mapc_fdi_412ec.meta.xml"
+                                      },
+                                      {
+                                          "Title":  "Bitácora cotizaciones",
+                                          "Id":  "17b0c42e-7e8e-4ec1-a4ff-5af81bfaffef",
+                                          "EvidencePath":  "CanvasApps\\mapc_fdi_412ec.meta.xml"
+                                      },
+                                      {
+                                          "Title":  "Carpeta cotizaciones",
+                                          "Id":  "dd92d2ae-9940-483d-bf7e-2ee98b44cdce",
+                                          "EvidencePath":  "CanvasApps\\mapc_fdi_412ec.meta.xml"
+                                      },
+                                      {
+                                          "Title":  "Ciudades_List",
+                                          "Id":  "35eddcdf-8e27-40b6-9bb9-b48778aa58f9",
+                                          "EvidencePath":  "CanvasApps\\mapc_fdi_412ec.meta.xml"
+                                      },
+                                      {
+                                          "Title":  "Clientes",
+                                          "Id":  "f809a810-7437-4954-a05f-b54caf36b513",
+                                          "EvidencePath":  "CanvasApps\\mapc_fdi_412ec.meta.xml"
+                                      },
+                                      {
+                                          "Title":  "Contactos",
+                                          "Id":  "329f8d14-4e21-4dcc-8290-43dea25d3d79",
+                                          "EvidencePath":  "CanvasApps\\mapc_fdi_412ec.meta.xml"
+                                      },
+                                      {
+                                          "Title":  "Cotizaciones 2026",
+                                          "Id":  "53f4e788-fbb6-4deb-8fcf-965eb4db0c1e",
+                                          "EvidencePath":  "CanvasApps\\mapc_fdi_412ec.meta.xml"
+                                      },
+                                      {
+                                          "Title":  "Cotizadores",
+                                          "Id":  "837625fc-7d49-43a7-9770-93b53d52d315",
+                                          "EvidencePath":  "CanvasApps\\mapc_fdi_412ec.meta.xml"
+                                      },
+                                      {
+                                          "Title":  "Estados_List",
+                                          "Id":  "375d2f90-272e-4d0a-9651-18bb6fe91d60",
+                                          "EvidencePath":  "CanvasApps\\mapc_fdi_412ec.meta.xml"
+                                      },
+                                      {
+                                          "Title":  "Folios cotizaciones",
+                                          "Id":  "ca971715-be3b-4473-acb7-6f3510659512",
+                                          "EvidencePath":  "CanvasApps\\mapc_fdi_412ec.meta.xml"
+                                      },
+                                      {
+                                          "Title":  "Países_List",
+                                          "Id":  "8fc728a7-a822-4ad1-a7d5-fb4d576a112b",
+                                          "EvidencePath":  "CanvasApps\\mapc_fdi_412ec.meta.xml"
+                                      },
+                                      {
+                                          "Title":  "Países_List_1",
+                                          "Id":  "8fc728a7-a822-4ad1-a7d5-fb4d576a112b",
+                                          "EvidencePath":  "CanvasApps\\mapc_fdi_412ec.meta.xml"
+                                      },
+                                      {
+                                          "Title":  "Sistema Otro",
+                                          "Id":  "80069fdc-2de1-4c95-a88b-02770ca25959",
+                                          "EvidencePath":  "CanvasApps\\mapc_fdi_412ec.meta.xml"
+                                      },
+                                      {
+                                          "Title":  "Sistema selectivo",
+                                          "Id":  "e3e8a735-179b-4919-9994-9f30890abfcb",
+                                          "EvidencePath":  "CanvasApps\\mapc_fdi_412ec.meta.xml"
+                                      },
+                                      {
+                                          "Title":  "Sistemas por cotización",
+                                          "Id":  "b1ee600e-adc7-481e-99ab-aeda6eddd7a1",
+                                          "EvidencePath":  "CanvasApps\\mapc_fdi_412ec.meta.xml"
+                                      },
+                                      {
+                                          "Title":  "Solicitudes en cotizaciones",
+                                          "Id":  "8296726a-6803-4a44-b972-9ae5b75d94fe",
+                                          "EvidencePath":  "CanvasApps\\mapc_fdi_412ec.meta.xml"
+                                      },
+                                      {
+                                          "Title":  "Vendedores",
+                                          "Id":  "abb99ba0-3753-499b-b9b0-342ef7c361ba",
+                                          "EvidencePath":  "CanvasApps\\mapc_fdi_412ec.meta.xml"
+                                      }
+                                  ],
+    "lists":  [
+
+              ],
+    "columns":  [
+
+                ],
+    "views":  [
+
+              ],
+    "indexes":  [
+
+                ],
+    "recommendedIndexes":  [
+                               {
+                                   "ListTitle":  "Cotizaciones 2026",
+                                   "Column":  "Created",
+                                   "Priority":  "P0",
+                                   "Status":  "Columna no confirmada",
+                                   "Reason":  "Filtro base delegable actual para evitar list view threshold."
+                               },
+                               {
+                                   "ListTitle":  "Cotizaciones 2026",
+                                   "Column":  "Estado",
+                                   "Priority":  "P0",
+                                   "Status":  "Columna no confirmada",
+                                   "Reason":  "Filtro funcional frecuente por estado de cotización."
+                               },
+                               {
+                                   "ListTitle":  "Cotizaciones 2026",
+                                   "Column":  "VendedoresLookUp",
+                                   "Priority":  "P1",
+                                   "Status":  "Columna no confirmada",
+                                   "Reason":  "Filtro de Mis Cotizaciones por vendedor."
+                               },
+                               {
+                                   "ListTitle":  "Cotizaciones 2026",
+                                   "Column":  "Folio",
+                                   "Priority":  "P1",
+                                   "Status":  "Columna no confirmada",
+                                   "Reason":  "Búsqueda y navegación por folio."
+                               },
+                               {
+                                   "ListTitle":  "Cotizaciones 2026",
+                                   "Column":  "Modified",
+                                   "Priority":  "P2",
+                                   "Status":  "Columna no confirmada",
+                                   "Reason":  "Filtro alterno para ventana móvil de 18 meses o auditoría reciente."
+                               },
+                               {
+                                   "ListTitle":  "Solicitudes en cotizaciones",
+                                   "Column":  "FolioLookUp",
+                                   "Priority":  "P1",
+                                   "Status":  "Columna no confirmada",
+                                   "Reason":  "Galerías filtradas por folio seleccionado."
+                               },
+                               {
+                                   "ListTitle":  "Solicitudes en cotizaciones",
+                                   "Column":  "Estado",
+                                   "Priority":  "P2",
+                                   "Status":  "Columna no confirmada",
+                                   "Reason":  "Seguimiento y vistas por estado de solicitud."
+                               },
+                               {
+                                   "ListTitle":  "Bitácora cotizaciones",
+                                   "Column":  "FolioLookUp",
+                                   "Priority":  "P1",
+                                   "Status":  "Columna no confirmada",
+                                   "Reason":  "Lectura de bitácora por cotización seleccionada."
+                               },
+                               {
+                                   "ListTitle":  "Carpeta cotizaciones",
+                                   "Column":  "Modified",
+                                   "Priority":  "P2",
+                                   "Status":  "Columna no confirmada",
+                                   "Reason":  "Biblioteca consultada por documentos recientes; validar columnas indexables reales."
+                               },
+                               {
+                                   "ListTitle":  "Clientes",
+                                   "Column":  "Title",
+                                   "Priority":  "P2",
+                                   "Status":  "Columna no confirmada",
+                                   "Reason":  "Búsqueda/ordenamiento de directorio."
+                               },
+                               {
+                                   "ListTitle":  "Clientes",
+                                   "Column":  "Activo",
+                                   "Priority":  "P2",
+                                   "Status":  "Columna no confirmada",
+                                   "Reason":  "Filtro de clientes activos."
+                               },
+                               {
+                                   "ListTitle":  "Contactos",
+                                   "Column":  "Title",
+                                   "Priority":  "P2",
+                                   "Status":  "Columna no confirmada",
+                                   "Reason":  "Búsqueda de directorio."
+                               },
+                               {
+                                   "ListTitle":  "Contactos",
+                                   "Column":  "ClienteLookUp",
+                                   "Priority":  "P2",
+                                   "Status":  "Columna no confirmada",
+                                   "Reason":  "Relación frecuente contacto-cliente."
+                               }
+                           ]
+}

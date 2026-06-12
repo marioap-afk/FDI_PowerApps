@@ -1,0 +1,321 @@
+.fdi-html-editor {
+  --fdi-border: #d0d7de;
+  --fdi-surface: #ffffff;
+  --fdi-muted: #f6f8fa;
+  --fdi-text: #24292f;
+  --fdi-primary: #0f6cbd;
+  --fdi-primary-soft: #e7f1fb;
+  --fdi-danger: #b42318;
+  --fdi-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 280px;
+  min-height: 300px;
+  height: 100%;
+  border: 1px solid var(--fdi-border);
+  border-radius: 8px;
+  background: var(--fdi-surface);
+  color: var(--fdi-text);
+  font: 14px/1.45 "Segoe UI", Arial, sans-serif;
+  overflow: hidden;
+}
+
+.fdi-html-editor *,
+.fdi-html-editor *::before,
+.fdi-html-editor *::after {
+  box-sizing: border-box;
+}
+
+.fdi-html-editor__toolbar,
+.fdi-html-editor__tablebar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  background: var(--fdi-muted);
+  border-bottom: 1px solid var(--fdi-border);
+}
+
+.fdi-html-editor__tablebar {
+  padding: 6px 8px;
+  background: #ffffff;
+}
+
+.fdi-html-editor__tablebar[hidden] {
+  display: none;
+}
+
+.fdi-html-editor__tablebar-label {
+  margin-right: 4px;
+  color: #5f6b7a;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.fdi-html-editor__group {
+  position: relative;
+  display: inline-flex;
+  gap: 2px;
+  padding-right: 6px;
+  margin-right: 4px;
+  border-right: 1px solid var(--fdi-border);
+}
+
+.fdi-html-editor__group:last-child {
+  border-right: 0;
+}
+
+.fdi-html-editor__group--popup {
+  overflow: visible;
+}
+
+.fdi-html-editor__button,
+.fdi-html-editor__small-button {
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--fdi-text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.fdi-html-editor__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 7px;
+}
+
+.fdi-html-editor__button--label {
+  gap: 6px;
+  min-width: 64px;
+  font-weight: 500;
+}
+
+.fdi-html-editor__small-button {
+  min-height: 30px;
+  padding: 0 10px;
+  border-color: var(--fdi-border);
+  background: #ffffff;
+}
+
+.fdi-html-editor__button:hover,
+.fdi-html-editor__button:focus,
+.fdi-html-editor__small-button:hover,
+.fdi-html-editor__small-button:focus {
+  border-color: var(--fdi-border);
+  background: #ffffff;
+  outline: none;
+}
+
+.fdi-html-editor__button:active,
+.fdi-html-editor__small-button:active {
+  background: var(--fdi-primary-soft);
+  border-color: var(--fdi-primary);
+}
+
+.fdi-html-editor__icon {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.fdi-html-editor__select,
+.fdi-html-editor__input {
+  min-height: 32px;
+  border: 1px solid var(--fdi-border);
+  border-radius: 6px;
+  background: #ffffff;
+  color: var(--fdi-text);
+  font: inherit;
+}
+
+.fdi-html-editor__select {
+  min-width: 128px;
+  padding: 0 8px;
+}
+
+.fdi-html-editor__input {
+  width: 100%;
+  padding: 0 10px;
+}
+
+.fdi-html-editor__popover {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 8px);
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 260px;
+  padding: 10px;
+  border: 1px solid var(--fdi-border);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: var(--fdi-shadow);
+}
+
+.fdi-html-editor__popover[hidden] {
+  display: none;
+}
+
+.fdi-html-editor__popover-title {
+  color: #3b4450;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.fdi-html-editor__popover-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.fdi-html-editor__table-picker {
+  width: 250px;
+}
+
+.fdi-html-editor__table-picker-label {
+  color: #5f6b7a;
+  font-size: 12px;
+}
+
+.fdi-html-editor__table-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 3px;
+}
+
+.fdi-html-editor__table-grid-cell {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--fdi-border);
+  border-radius: 3px;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.fdi-html-editor__table-grid-cell:hover,
+.fdi-html-editor__table-grid-cell:focus,
+.fdi-html-editor__table-grid-cell--active {
+  border-color: var(--fdi-primary);
+  background: var(--fdi-primary-soft);
+  outline: none;
+}
+
+.fdi-html-editor__body {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 180px;
+}
+
+.fdi-html-editor__editable {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 180px;
+  padding: 18px 20px;
+  overflow: auto;
+  outline: none;
+  background: #ffffff;
+  color: var(--fdi-text);
+}
+
+.fdi-html-editor__editable:empty::before {
+  content: "Escribe el cuerpo del correo...";
+  color: #6b7280;
+}
+
+.fdi-html-editor__editable a {
+  color: var(--fdi-primary);
+}
+
+.fdi-html-editor__editable blockquote {
+  margin: 10px 0;
+  padding: 8px 12px;
+  border-left: 4px solid var(--fdi-border);
+  color: #4b5563;
+}
+
+.fdi-html-editor__editable hr {
+  border: 0;
+  border-top: 1px solid var(--fdi-border);
+  margin: 16px 0;
+}
+
+.fdi-html-editor__editable table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+}
+
+.fdi-html-editor__editable td,
+.fdi-html-editor__editable th {
+  min-width: 80px;
+  padding: 8px;
+  border: 1px solid #c9d1d9;
+  vertical-align: top;
+}
+
+.fdi-html-editor__editable th {
+  background: #f6f8fa;
+  font-weight: 600;
+}
+
+.fdi-html-editor__editable td.fdi-html-editor__cell-selected,
+.fdi-html-editor__editable th.fdi-html-editor__cell-selected {
+  outline: 2px solid var(--fdi-primary);
+  outline-offset: -2px;
+  background: var(--fdi-primary-soft);
+}
+
+.fdi-html-editor__editable img {
+  max-width: 100%;
+  height: auto;
+  cursor: nwse-resize;
+}
+
+.fdi-html-editor__editable img.fdi-html-editor__image-selected {
+  outline: 2px solid var(--fdi-primary);
+  outline-offset: 2px;
+}
+
+.fdi-html-editor__resize-handle {
+  position: fixed;
+  z-index: 9999;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  background: var(--fdi-primary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  cursor: nwse-resize;
+}
+
+.fdi-html-editor__footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 10px;
+  border-top: 1px solid var(--fdi-border);
+  background: #ffffff;
+  color: #5f6b7a;
+  font-size: 12px;
+}
+
+.fdi-html-editor__status--warning {
+  color: var(--fdi-danger);
+}
