@@ -11,8 +11,8 @@
   <optionsets />
   <CustomControls>
     <CustomControl>
-      <Name>fdi_FDI.HtmlEditor</Name>
-      <FileName>/Controls/fdi_FDI.HtmlEditor/ControlManifest.xml</FileName>
+      <Name>map_FDI.HtmlEditor</Name>
+      <FileName>/Controls/map_FDI.HtmlEditor/ControlManifest.xml</FileName>
       <IntroducedVersion>1.0</IntroducedVersion>
     </CustomControl>
   </CustomControls>

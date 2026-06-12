@@ -25,7 +25,7 @@
     <RootComponents>
       <RootComponent type="29" id="{74540af5-62f6-f011-8406-7ced8d1aeeed}" behavior="0" />
       <RootComponent type="29" id="{9c172a3b-3fb1-f011-bbd2-6045bd022950}" behavior="0" />
-      <RootComponent type="66" schemaName="fdi_FDI.HtmlEditor" behavior="0" />
+      <RootComponent type="66" schemaName="map_FDI.HtmlEditor" behavior="0" />
       <RootComponent type="300" schemaName="mapc_fdi_412ec" behavior="0" />
     </RootComponents>
     <MissingDependencies />
