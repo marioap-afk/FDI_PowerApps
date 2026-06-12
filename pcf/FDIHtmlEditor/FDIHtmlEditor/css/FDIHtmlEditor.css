@@ -6,12 +6,14 @@
   --fe-text:     #24292f;
   --fe-primary:  #0f6cbd;
   --fe-soft:     #e7f1fb;
+  --fe-active:   #dbeafe;
   --fe-danger:   #b42318;
   --fe-radius:   6px;
 
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  position: relative;
   width: 100%;
   min-width: 320px;
   min-height: 300px;
@@ -37,7 +39,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 3px;
-  padding: 6px 8px;
+  padding: 5px 8px;
   background: var(--fe-muted);
   border-bottom: 1px solid var(--fe-border);
   user-select: none;
@@ -48,7 +50,7 @@
   align-items: center;
   gap: 1px;
   padding-right: 6px;
-  margin-right: 4px;
+  margin-right: 3px;
   border-right: 1px solid var(--fe-border);
 }
 
@@ -95,12 +97,22 @@
   border-color: var(--fe-primary);
 }
 
+/* Active/pressed state (bold, italic, etc.) */
+.fdi-editor__btn--active {
+  background: var(--fe-active);
+  border-color: #bfdbfe;
+  color: var(--fe-primary);
+}
+
+.fdi-editor__btn--active:hover {
+  background: #bfdbfe;
+}
+
 .fdi-editor__btn--wide {
   min-width: 44px;
   gap: 3px;
 }
 
-/* Split button style for table (icon + chevron) */
 .fdi-editor__btn--split {
   gap: 1px;
   padding-right: 4px;
@@ -112,8 +124,9 @@
 .fdi-editor__btn--underline  { text-decoration: underline; }
 .fdi-editor__btn--strike     { text-decoration: line-through; }
 
-/* ─── Format block selector ──────────────────────────────────────────────── */
-.fdi-editor__format-sel {
+/* ─── Selects (format block + font size) ─────────────────────────────────── */
+.fdi-editor__format-sel,
+.fdi-editor__font-size-sel {
   height: 30px;
   padding: 0 6px;
   border: 1px solid var(--fe-border);
@@ -127,7 +140,11 @@
   appearance: auto;
 }
 
-.fdi-editor__format-sel:focus {
+.fdi-editor__format-sel    { min-width: 80px; }
+.fdi-editor__font-size-sel { min-width: 82px; }
+
+.fdi-editor__format-sel:focus,
+.fdi-editor__font-size-sel:focus {
   border-color: var(--fe-primary);
   box-shadow: 0 0 0 2px var(--fe-soft);
 }
@@ -179,7 +196,7 @@
   top: calc(100% + 4px);
   left: 0;
   z-index: 100;
-  min-width: 220px;
+  min-width: 230px;
   padding: 4px 0;
   border: 1px solid var(--fe-border);
   border-radius: 8px;
@@ -265,6 +282,7 @@
 
 .fdi-editor__editable a {
   color: var(--fe-primary);
+  text-decoration: underline;
 }
 
 .fdi-editor__editable h1 { font-size: 1.8em; margin: .5em 0; font-weight: 700; }
@@ -272,11 +290,23 @@
 .fdi-editor__editable h3 { font-size: 1.15em; margin: .5em 0; font-weight: 600; }
 .fdi-editor__editable p  { margin: .4em 0; }
 
+.fdi-editor__editable hr {
+  border: none;
+  border-top: 2px solid var(--fe-border);
+  margin: 12px 0;
+}
+
 .fdi-editor__editable blockquote {
   margin: 8px 0 8px 16px;
   padding-left: 12px;
   border-left: 4px solid var(--fe-border);
   color: #57606a;
+}
+
+.fdi-editor__editable ul,
+.fdi-editor__editable ol {
+  margin: .4em 0;
+  padding-left: 1.8em;
 }
 
 /* Tables */
@@ -313,10 +343,25 @@
   outline-offset: 2px;
 }
 
+/* ─── Source mode textarea ───────────────────────────────────────────────── */
+.fdi-editor__source {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 200px;
+  padding: 16px;
+  border: none;
+  outline: none;
+  resize: none;
+  font: 13px/1.6 "Cascadia Code", "Consolas", "Courier New", monospace;
+  color: #24292f;
+  background: #f8f9fb;
+  tab-size: 2;
+}
+
 /* ─── Resize handle ──────────────────────────────────────────────────────── */
 .fdi-editor__resize-handle {
-  position: fixed;
-  z-index: 9999;
+  position: absolute;
+  z-index: 10;
   width: 12px;
   height: 12px;
   border: 2px solid #ffffff;
@@ -324,6 +369,7 @@
   background: var(--fe-primary);
   box-shadow: 0 1px 4px rgba(0,0,0,.25);
   cursor: nwse-resize;
+  pointer-events: all;
 }
 
 /* ─── Footer ─────────────────────────────────────────────────────────────── */
@@ -332,13 +378,14 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  padding: 5px 10px;
+  padding: 4px 10px;
   border-top: 1px solid var(--fe-border);
   background: var(--fe-muted);
   color: #6e7781;
-  font-size: 11.5px;
+  font-size: 11px;
 }
 
 .fdi-editor__status--warn {
   color: var(--fe-danger);
+  font-weight: 600;
 }
