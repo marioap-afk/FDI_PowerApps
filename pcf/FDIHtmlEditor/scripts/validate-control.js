@@ -45,11 +45,21 @@ for (const needle of [
   "sanitizeHtml",
   "handlePaste",
   "insertTable",
+  "insertTableRow",
+  "insertTableColumn",
+  "deleteTableColumn",
+  "toggleHeaderRow",
+  "buildTablePicker",
+  "buildLinkPanel",
   "startImageResize"
 ]) {
   if (!source.includes(needle)) {
     throw new Error(`index.ts does not contain ${needle}`);
   }
+}
+
+if (source.includes("window.prompt")) {
+  throw new Error("index.ts must not use browser prompt dialogs");
 }
 
 console.log("FDIHtmlEditor source validation passed.");

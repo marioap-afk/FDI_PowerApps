@@ -43,10 +43,22 @@ El proyecto PCF está en `FDIHtmlEditor.pcfproj`.
 ## Capacidades
 
 - Negritas, cursiva y subrayado.
-- Alineación izquierda, centro y derecha.
+- Tachado.
+- Deshacer y rehacer.
+- Formatos de parrafo, titulos y cita.
+- Alineación izquierda, centro, derecha y justificada.
 - Listas ordenadas y no ordenadas.
-- Links.
-- Inserción de tablas.
+- Sangria y disminuir sangria.
+- Links con panel propio, sin `prompt()` del navegador.
+- Inserción de tablas con selector visual.
+- Edición contextual de tablas:
+  - insertar fila arriba o abajo;
+  - insertar columna izquierda o derecha;
+  - eliminar fila;
+  - eliminar columna;
+  - alternar fila de encabezado;
+  - eliminar tabla.
+- Linea horizontal.
 - Pegado de imágenes con `Ctrl+V`.
 - Inserción de imágenes desde archivo.
 - Redimensionado de imágenes por arrastre.
