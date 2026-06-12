@@ -594,7 +594,7 @@ export class HtmlEditor implements ComponentFramework.StandardControl<IInputs, I
 
     const ver = document.createElement("span");
     ver.className = "fdi-editor__version";
-    ver.textContent = "v1.4.0";
+    ver.textContent = "v1.5.0";
 
     footer.appendChild(this.counter);
     footer.appendChild(this.status);
