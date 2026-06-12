@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest>
-  <control namespace="FDI" constructor="HtmlEditor" version="1.0.0" display-name-key="FDI HTML Editor" description-key="HTML editor for FDI email bodies" control-type="standard">
+  <control namespace="FDI" constructor="HtmlEditor" version="1.1.0" display-name-key="FDI HTML Editor" description-key="HTML editor for FDI email bodies" control-type="standard">
     <property name="DefaultHtml" display-name-key="Default HTML" description-key="Initial HTML loaded into the editor" of-type="Multiple" usage="input" required="false" />
     <property name="HtmlText" display-name-key="HTML Text" description-key="Current sanitized HTML output" of-type="Multiple" usage="output" required="false" />
     <resources>
