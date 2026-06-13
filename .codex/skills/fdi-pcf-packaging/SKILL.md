@@ -34,11 +34,21 @@ Ese `.msapp` autorizado por Studio es el baseline. Edits posteriores: solo
 ## 0. Preparación
 
 ```bash
-git fetch origin
-git checkout <COMMIT_HASH>
-git rev-parse HEAD            # commit que se reportará
+git pull                        # sincronizar con el remoto (obligatorio antes de todo)
+git branch --show-current       # reportar rama actual
+git rev-parse HEAD              # reportar HEAD
+git log -1 --oneline            # reportar último commit
+git status --short              # el árbol debe estar limpio
+git checkout <COMMIT_HASH>      # o: omitir si ya estás en el tip que quieres empaquetar
+git branch --show-current       # confirmar rama / detached tras el checkout
+git rev-parse HEAD              # commit que se reportará
 cd pcf/FDIHtmlEditor
 ```
+
+**Reportar al inicio** (antes de cualquier build o validación):
+- Rama: `git branch --show-current`
+- HEAD: `git rev-parse HEAD`
+- Último commit: `git log -1 --oneline`
 
 Requiere `node`/`npm` (y `pac` para empaquetar la solución). Si no están en el PATH
 del entorno → reportar que el build del PCF no puede ejecutarse aquí y entregar
@@ -101,5 +111,21 @@ app la referencia como componente preinstalado (`MissingDependency` en el
 
 Reportar: nombre del ZIP PCF, **commit hash empaquetado**, versión del manifest/control,
 namespace/constructor, y recordatorio del orden de importación (PCF primero).
+
+## 7. Commit, push y hash final
+
+Después de validar y generar el ZIP PCF:
+
+```bash
+git status --short              # ver si el proceso dejó cambios tracked
+# Si hay cambios tracked (p. ej. bump de versión en manifest):
+git add <archivos relevantes>   # NO incluir solutions/*.zip (no se commitean)
+git commit -m "chore: package FDI PCF HtmlEditor v<ver>"
+git push
+git rev-parse HEAD              # hash del commit final — este es el que se reporta
+```
+
+Si no hay cambios tracked, omitir `add`/`commit`; igualmente ejecutar `git push`
+por si había commits previos sin pushear y reportar `git rev-parse HEAD`.
 
 Ver también: [[fdi-app-packaging]] para la solución canvas app.

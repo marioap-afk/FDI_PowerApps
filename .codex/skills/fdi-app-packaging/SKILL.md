@@ -18,12 +18,20 @@ funcional. No introduce cambios no solicitados.**
 ## 0. Preparación (HEAD limpio sobre el commit a empaquetar)
 
 ```bash
-git fetch origin
-git status --short          # el árbol debe estar limpio (sin tracked modificados)
-git checkout <COMMIT_HASH>  # o: git pull origin <rama> si empaquetas el tip
-git branch --show-current   # verificar rama / o detached en el commit correcto
-git rev-parse HEAD          # este es el COMMIT_HASH que se reportará
+git pull                        # sincronizar con el remoto (obligatorio antes de todo)
+git branch --show-current       # reportar rama actual
+git rev-parse HEAD              # reportar HEAD
+git log -1 --oneline            # reportar último commit
+git status --short              # el árbol debe estar limpio (sin tracked modificados)
+git checkout <COMMIT_HASH>      # o: omitir si ya estás en el tip que quieres empaquetar
+git branch --show-current       # confirmar rama / detached tras el checkout
+git rev-parse HEAD              # este es el COMMIT_HASH que se reportará
 ```
+
+**Reportar al inicio** (antes de cualquier validación):
+- Rama: `git branch --show-current`
+- HEAD: `git rev-parse HEAD`
+- Último commit: `git log -1 --oneline`
 
 - Trabajar siempre sobre el repo Codex (fuente de verdad).
 - Si `git status` muestra archivos *tracked* modificados sin commitear → **PARAR**.
@@ -118,11 +126,26 @@ Reportar: nombre del ZIP, **commit hash empaquetado**, SHA del `.msapp`, versió
 solución, AppVersion, nº de entradas, y cualquier nota de despliegue (p. ej. si hay
 `MissingDependency` de PCF, indicar que la solución PCF debe instalarse primero).
 
+## 8. Commit, push y hash final
+
+Después de validar y generar el ZIP:
+
+```bash
+git status --short              # ver si el proceso dejó cambios tracked
+# Si hay cambios tracked (p. ej. corrección de error bloqueante documentada):
+git add <archivos relevantes>   # NO incluir solutions/*.zip (no se commitean)
+git commit -m "chore: package FDI unmanaged <fecha>"
+git push
+git rev-parse HEAD              # hash del commit final — este es el que se reporta
+```
+
+Si no hay cambios tracked (caso normal), omitir `add`/`commit`; igualmente ejecutar
+`git push` por si había commits previos sin pushear y reportar `git rev-parse HEAD`.
+
 ## Reglas duras
 
 - No modificar fórmulas, controles, flujos ni metadata funcional durante el empaquetado.
 - No introducir cambios no solicitados.
-- No `git push`/merge/rebase salvo petición explícita.
 - Si una validación falla de forma bloqueante → PARAR y reportar, no "arreglar" a mano.
 
 Ver también: [[fdi-pcf-packaging]] para el componente PCF.
