@@ -14,6 +14,8 @@ type ResizeState = {
   startWidth: number;
 };
 
+const CONTROL_VERSION = "1.5.2";
+
 /* ─── Inline SVG icons (no external deps) ─────────────────────────────────── */
 function ico(body: string): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">${body}</svg>`;
@@ -123,7 +125,7 @@ export class HtmlEditor implements ComponentFramework.StandardControl<IInputs, I
     } catch (err) {
       const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
       container.innerHTML = `<div style="padding:16px;color:#b42318;font:13px monospace;border:1px solid #b42318;border-radius:6px;background:#fff5f5">
-        <strong>FDI HTML Editor — Error al inicializar (v1.2.0)</strong><br><br>${msg}
+        <strong>FDI HTML Editor — Error al inicializar (v${CONTROL_VERSION})</strong><br><br>${msg}
       </div>`;
     }
   }
@@ -594,7 +596,7 @@ export class HtmlEditor implements ComponentFramework.StandardControl<IInputs, I
 
     const ver = document.createElement("span");
     ver.className = "fdi-editor__version";
-    ver.textContent = "v1.5.0";
+    ver.textContent = `v${CONTROL_VERSION}`;
 
     footer.appendChild(this.counter);
     footer.appendChild(this.status);

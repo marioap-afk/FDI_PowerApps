@@ -2,25 +2,35 @@ const fs = require("fs");
 const path = require("path");
 
 const root = path.resolve(__dirname, "..");
-const required = [
-  "ControlManifest.Input.xml",
+const controlRoot = path.join(root, "FDIHtmlEditor");
+const requiredRoot = [
   "FDIHtmlEditor.pcfproj",
-  "index.ts",
-  "css/FDIHtmlEditor.css",
   "package.json",
   "pcfconfig.json",
   "tsconfig.json"
 ];
+const requiredControl = [
+  "ControlManifest.Input.xml",
+  "index.ts",
+  "css/FDIHtmlEditor.css"
+];
 
-for (const file of required) {
+for (const file of requiredRoot) {
   const full = path.join(root, file);
   if (!fs.existsSync(full)) {
     throw new Error(`Missing ${file}`);
   }
 }
 
-const manifest = fs.readFileSync(path.join(root, "ControlManifest.Input.xml"), "utf8");
-for (const needle of ["DefaultHtml", "HtmlText", "usage=\"output\"", "index.ts", "FDIHtmlEditor.css"]) {
+for (const file of requiredControl) {
+  const full = path.join(controlRoot, file);
+  if (!fs.existsSync(full)) {
+    throw new Error(`Missing FDIHtmlEditor/${file}`);
+  }
+}
+
+const manifest = fs.readFileSync(path.join(controlRoot, "ControlManifest.Input.xml"), "utf8");
+for (const needle of ["DefaultHtml", "HtmlText", "usage=\"bound\"", "index.ts", "FDIHtmlEditor.css"]) {
   if (!manifest.includes(needle)) {
     throw new Error(`Manifest does not contain ${needle}`);
   }
@@ -38,7 +48,7 @@ if (!packageJson.devDependencies || !packageJson.devDependencies["@types/powerap
   throw new Error("package.json does not contain @types/powerapps-component-framework");
 }
 
-const source = fs.readFileSync(path.join(root, "index.ts"), "utf8");
+const source = fs.readFileSync(path.join(controlRoot, "index.ts"), "utf8");
 for (const needle of [
   "getOutputs()",
   "HtmlText: this.html",
