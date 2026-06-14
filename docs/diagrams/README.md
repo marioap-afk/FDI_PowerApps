@@ -16,6 +16,12 @@ diseno funcional y visual de la aplicacion Power Apps FDI.
   sistema pushback. Misma estructura que el sistema dinamico (metodo de captura,
   referencia anterior, datos comunes y "Configuracion del rack"); difiere por
   ahora solo en el nombre del sistema. Destinado a una tab nueva.
+- `diseno-sistema-drive-in.mmd`: estructura propuesta para la captura de un
+  sistema drive in. Reusa metodo de captura, referencia anterior y datos comunes,
+  pero NO lleva rodamientos (la "Configuracion del rack" solo trae frentes/fondos/
+  niveles buscados) y agrega la seccion "Montacargas" (medidas: altura de cabina,
+  ancho total, ancho del mastil, o por modelo) con ayuda visual. Destinado a una
+  tab nueva.
 - `../FDI_Selectivo_Process_Map.md`: tabla de procesos,
   tipo de control y columna/almacenamiento SharePoint aplicado a `scrFDI`.
 - `../sistemas/FDI_Dinamico_Process_Map.md`: tabla de procesos, validaciones,
