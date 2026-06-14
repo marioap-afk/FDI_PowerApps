@@ -54,3 +54,26 @@ Requisitos minimos para cada cambio:
 
 Esta regla aplica a toda la aplicacion, incluyendo telefono y tablet, aunque el
 pedido original mencione solo una pantalla o un componente especifico.
+
+## Regla obligatoria: cierre con commit y push
+
+Siempre que se proponga o aplique una solucion con cambios en el repositorio,
+se debe cerrar el trabajo dejando la rama lista para que Claude pueda
+empaquetar desde GitHub.
+
+Requisitos minimos antes de entregar:
+
+- Aplicar los cambios en los archivos reales de la solucion, no solo describirlos.
+- Validar y dejar listo para empaquetar segun el tipo de cambio:
+  - canvas app: `pac canvas pack` y `pac canvas unpack` del `.msapp` final
+    cuando aplique;
+  - PCF: seguir la regla de empaquetado PCF si el cambio toca
+    `pcf/FDIHtmlEditor/`;
+  - documentacion/configuracion: revisar el diff y estado de Git.
+- Hacer commit con los archivos del alcance del cambio.
+- Hacer push de la rama al remoto correspondiente.
+- Reportar en la respuesta final el hash del commit y confirmar si el push fue
+  exitoso.
+
+No incluir archivos generados o no relacionados en el commit. Si existen
+archivos no trackeados ajenos al cambio, dejarlos fuera y reportarlos.
