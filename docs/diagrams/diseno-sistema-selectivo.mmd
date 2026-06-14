@@ -1,0 +1,71 @@
+---
+config:
+  layout: elk
+---
+flowchart TB
+
+    A["Sistema selectivo"] --> B{"Método de captura"}
+    A --> COMUNES["Datos comunes del sistema"]
+
+    B -- Diseño --> C["Captura por diseño"]
+    B -- Listado de piezas --> LP["Tabla: Listado de piezas"]
+    B -- Cotización o pedido anterior --> FOL["Referencia anterior"]
+    subgraph "Captura por diseño"
+      C --> T["Sección: Tarima"]
+      C --> AREA["Sección: Área disponible / pasillos"]
+      C --> N["Sección: Criterios para configuración de niveles"]
+      C --> SEG["Sección: Elementos de seguridad"]
+      C --> PE["Sección: Piezas especiales"]
+      T --> T1["Peso"]
+      T --> T2["Alto"]
+      T --> T3["Frente"]
+      T --> T4["Fondo"]
+      T --> T5{"¿Excedente?"}
+      T5 -->|Sí| T6["Frente excedente"]
+      T5 -->|Sí| T7["Fondo excedente"]
+      AREA --> P1["Pasillo máximo de montacargas"]
+      AREA --> P2["Pasillo mínimo de montacargas"]
+      AREA --> P3["Ancho de área disponible"]
+      AREA --> P4["Largo disponible"]
+      N --> N1{"¿Considerar altura máxima de montacargas?"}
+      N --> N2{"¿Considerar altura de nave?"}
+      N --> N3{"¿Adjuntar Imagen/Layout?"}
+      N --> N4{"¿Existe definición por parte del cliente?"}
+
+      N1 --> |Sí| N1A["Altura máxima de montacargas"]
+      N2 --> |Sí| N2A["Altura máxima de nave"]
+      N2 --> |Sí| N2B["Altura mínima de nave"]
+      N3 --> |Sí| N3B["Adjuntar archivos"]
+      N4 -->|Sí| N4A["Comentarios de configuración del cliente"]
+      SEG --> SEG1{"¿Tiene elementos de seguridad?"}
+      SEG1 --> |Sí| SEG2["Tabla: Listado de piezas de seguridad"]
+      PE --> PE1{"¿Tiene piezas especiales?"}
+      PE1 --> |Sí| PE2["Tabla: Piezas especiales"]
+    end
+    subgraph "Referencia anterior"
+      FOL --> FOL1["Folio de cotización anterior"]
+      FOL --> FOL2["Folio de pedido anterior"]
+      FOL --> FOL3["Comentarios / alcance de la referencia"]
+    end
+    subgraph "Datos comunes del sistema"
+      COMUNES --> D["Acabado"]
+      COMUNES --> E["Tabla: Colores por pieza"]
+      COMUNES --> F{"¿Requiere instalación?"}
+      COMUNES --> G{"¿Requiere memoria de cálculo?"}
+      COMUNES --> U{"¿Unirse a estructura del cliente?"}
+      COMUNES --> H{"¿Se consideran proveedores externos?"}
+      COMUNES --> I["Comentarios generales del sistema"]
+
+      D --> D1["Pintado"]
+      D --> D2["Galvanizado en frío"]
+      D --> D3["Galvanizado en caliente"]
+      D --> D4["Pregalvanizado"]
+      D2 --> P["Precio por kilogramo"]
+      D3 --> P
+
+      F--> |Sí| F1["Costo de instalación"]
+      F--> |Sí| F2["Comentarios de instalación"]
+      G--> |Sí| G1["Costo de memoria de cálculo"]
+      U -->|Sí| U1["Comentarios / requisitos"]
+      H--> |Sí| H1["Tabla: Proveedores externos"]
+    end
