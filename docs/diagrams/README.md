@@ -34,6 +34,11 @@ diseno funcional y visual de la aplicacion Power Apps FDI.
   nivel); agrega "Configuracion del entrepiso" (altura recomendada 2.4 m, cantidad
   de entrepisos, elevador, tipo de piso Rejilla Irving/MDF, carrito de pickeo,
   escaleras); la limitante de niveles es la altura de nave. Destinado a una tab nueva.
+- `diseno-sistema-carton-flow.mmd`: estructura propuesta para la captura de un
+  sistema carton flow (como el dinamico pero para pickeo manual, sin montacargas).
+  "Tarima" → "Producto" como tabla; conserva frentes/fondos/niveles buscados y
+  entrecentros, pero el rodamiento solo tiene 2 tipos (Rodillo de 3/4 y Rodajas) y
+  no lleva alto impacto; area con pasillo de pickeo. Destinado a una tab nueva.
 - `../FDI_Selectivo_Process_Map.md`: tabla de procesos,
   tipo de control y columna/almacenamiento SharePoint aplicado a `scrFDI`.
 - `../sistemas/FDI_Dinamico_Process_Map.md`: tabla de procesos, validaciones,
@@ -50,6 +55,9 @@ diseno funcional y visual de la aplicacion Power Apps FDI.
 - `../sistemas/FDI_Mezzanine_Process_Map.md`: tabla de procesos, validaciones,
   controles y columnas requeridas para el sistema mezzanine (Producto como tabla;
   Configuracion del entrepiso; sin Montacargas; pickeo manual).
+- `../sistemas/FDI_CartonFlow_Process_Map.md`: tabla de procesos, validaciones,
+  controles y columnas requeridas para el sistema carton flow (Producto como tabla;
+  rodamiento de 2 tipos + entrecentros; sin alto impacto; sin Montacargas).
 
 ## Uso
 

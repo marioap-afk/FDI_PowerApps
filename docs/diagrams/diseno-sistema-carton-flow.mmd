@@ -1,0 +1,117 @@
+---
+config:
+  layout: elk
+---
+flowchart TB
+ subgraph subGraph0["Captura por diseño"]
+    CAR["Sección: Producto"]
+    CONF["Sección: Configuración del rack (carton flow)"]
+    AREA["Sección: Área disponible / pasillos"]
+    N["Sección: Criterios para configuración de niveles"]
+    SEG["Sección: Elementos de seguridad"]
+    PE["Sección: Piezas especiales"]
+
+    CARTBL["Tabla: Productos"]
+    CAR1["Tipo de producto (texto abierto)"]
+    CAR2["Largo del producto"]
+    CAR3["Ancho del producto"]
+    CAR4["Alto del producto"]
+    CAR5["Peso por pieza"]
+    CAR6["Cantidad por nivel"]
+
+    CONF1["Frentes buscados"]
+    CONF2["Fondos buscados"]
+    CONF3["Niveles buscados"]
+    CONF4{"¿Qué tipo de rodamiento usar?"}
+    CONF4A["Rodillo de 3/4"]
+    CONF4B["Rodajas"]
+    CONF5{"Método de cálculo de entrecentros"}
+    CONF5A["Insertar número"]
+    CONF5B["Por cálculo (entrecentros)"]
+
+    P1["Ancho de área disponible"]
+    P2["Largo disponible"]
+    P3["Ancho de pasillo de pickeo"]
+
+    N2{"¿Considerar altura de nave?"}
+    N3{"¿Adjuntar Imagen/Layout?"}
+    N4{"¿Existe definición por parte del cliente?"}
+    N2A["Altura máxima de nave"]
+    N2B["Altura mínima de nave"]
+    N3B["Adjuntar archivos"]
+    N4A["Comentarios de configuración del cliente"]
+
+    SEG1{"¿Considerar elementos de seguridad?"}
+    SEG2["Tabla: Listado de piezas de seguridad"]
+    PE1{"¿Considerar piezas especiales?"}
+    PE2["Tabla: Piezas especiales"]
+ end
+ subgraph subGraph1["Referencia anterior"]
+    FOL1["Folio de cotización anterior"]
+    FOL2["Folio de pedido anterior"]
+    FOL3["Comentarios / alcance de la referencia"]
+ end
+ subgraph subGraph2["Datos comunes del sistema"]
+    D["Acabado"]
+    E["Tabla: Colores por pieza"]
+    F{"¿Requiere instalación?"}
+    G{"¿Requiere memoria de cálculo?"}
+    U{"¿Unirse a estructura del cliente?"}
+    H{"¿Se consideran proveedores externos?"}
+    I["Comentarios generales del sistema"]
+    D1["Pintado"]
+    D2["Galvanizado en frío"]
+    D3["Galvanizado en caliente"]
+    D4["Pregalvanizado"]
+    P["Precio por kilogramo"]
+    F1["Costo de instalación"]
+    F2["Comentarios de instalación"]
+    G1["Costo de memoria de cálculo"]
+    U1["Comentarios / requisitos"]
+    H1["Tabla: Proveedores externos"]
+ end
+
+ A["Sistema carton flow"] --> B{"Método de captura"} & D & E & F & G & U & H & I
+
+ %% Método de captura
+ B -- Diseño --> subGraph0
+ B -- Listado de piezas --> LP["Tabla: Listado de piezas"]
+ B -- Planos/diseño de cliente --> CLI["Adjuntar planos/diseño de cliente"]
+ B -- Cotización o pedido anterior --> subGraph1
+ CLI -- Verificar perfiles --> CAR
+
+ %% Producto (tabla: un renglón por producto; pickeo manual, no tarima)
+ CAR --> CARTBL
+ CARTBL --> CAR1 & CAR2 & CAR3 & CAR4 & CAR5 & CAR6
+
+ %% Configuración del rack (carton flow): solo 2 rodamientos + entrecentros, sin alto impacto
+ CONF --> CONF1 & CONF2 & CONF3 & CONF4 & CONF5
+ CONF4 --> CONF4A & CONF4B
+ CONF5 -- Manual --> CONF5A
+ CONF5 -- Por cálculo --> CONF5B
+
+ %% Área disponible / pasillos (sin montacargas, pasillo de pickeo)
+ AREA --> P1 & P2 & P3
+
+ %% Criterios para configuración de niveles (limita la altura de nave y el producto)
+ N --> N2 & N3 & N4
+ N2 -- Sí --> N2A & N2B
+ N3 -- Sí --> N3B
+ N4 -- Sí --> N4A
+
+ %% Elementos de seguridad
+ SEG --> SEG1
+ SEG1 -- Sí --> SEG2
+
+ %% Piezas especiales
+ PE --> PE1
+ PE1 -- Sí --> PE2
+
+ %% Datos comunes del sistema
+ D --> D1 & D2 & D3 & D4
+ D2 --> P
+ D3 --> P
+ F -- Sí --> F1 & F2
+ G -- Sí --> G1
+ U -- Sí --> U1
+ H -- Sí --> H1
