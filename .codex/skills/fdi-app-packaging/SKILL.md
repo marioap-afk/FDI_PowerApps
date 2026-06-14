@@ -79,9 +79,14 @@ El repo puede estar en uno de dos formatos. Inspeccionar `Other/Customizations.x
    - `<CanvasApp>` y los `<Workflow>` están **registrados** en customizations.xml
      (si quedan `<CanvasApps />` / `<Workflows />` vacíos, el import procesa la
      solución pero **omite silenciosamente la app y los flujos** → la app no se actualiza).
-   - `<AppVersion>` (meta/customizations) debe ser **más reciente** que la instalada,
-     o Power Platform omite la actualización de la canvas app.
-   - `Other/Solution.xml` `<Version>` ≥ la instalada (idealmente mayor, para trazabilidad).
+   - `Other/Solution.xml` `<Version>` **no debe ser menor** que la instalada: una
+     versión **menor se rechaza/omite** en la importación. **Igual o mayor procede**
+     y, al ser unmanaged, los componentes (incl. la canvas app) **se sobrescriben** —
+     una versión igual **no** bloquea la actualización. Bumpear igualmente en cada
+     cambio es recomendable **por trazabilidad** (evita dos `.msapp` distintos con la
+     misma `<Version>`/`<AppVersion>`), no por obligación técnica.
+   - Reportar `<Version>` y `<AppVersion>`; si el `.msapp` cambió pero la versión no
+     avanzó, anotarlo como **nota de trazabilidad** (no como bloqueo de despliegue).
 
 ## 4. `[Content_Types].xml`
 
