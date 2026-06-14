@@ -20,6 +20,9 @@ diseno funcional y visual de la aplicacion Power Apps FDI.
   tipo de control y columna/almacenamiento SharePoint aplicado a `scrFDI`.
 - `../sistemas/FDI_Dinamico_Process_Map.md`: tabla de procesos, validaciones,
   controles y columnas requeridas para el sistema dinamico.
+- `../sistemas/FDI_Pushback_Process_Map.md`: tabla de procesos, validaciones,
+  controles y columnas requeridas para el sistema pushback (propuesta modelada
+  sobre el mapa de dinamico).
 
 ## Uso
 
