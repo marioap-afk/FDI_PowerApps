@@ -9,9 +9,10 @@ canvas app.
 | Nodo del diagrama | Sección UI | Tipo de control esperado | Visible cuando | Campo/columna SharePoint | Colección local si aplica | Observaciones |
 | --- | --- | --- | --- | --- | --- | --- |
 | `A` Sistema selectivo | Sistema Selectivo | Contenedor de captura | Tab activo `TipoKey = "SEL"` | Lista `Sistema selectivo`; `PayloadSistemaJson` | `colSEL_Draft` | Nodo raiz del flujo. |
-| `B` Método de captura | Método de captura | Dropdown | Siempre en Selectivo | `Tipo de diseño`; `PayloadSistemaJson.MetodoCaptura` | `colSEL_Draft` | Opciones UI: `Diseño`, `Listado de piezas`, `Cotización o pedido anterior`. |
+| `B` Método de captura | Método de captura | Dropdown | Siempre en Selectivo | `Tipo de diseño`; `PayloadSistemaJson.MetodoCaptura` | `colSEL_Draft` | Opciones UI: `Diseño`, `Listado de piezas`, `Planos/diseño de cliente`, `Cotización o pedido anterior`. |
 | `C` Captura por diseño | Captura por diseño | Contenedor condicional | Método = `Diseño` | Sin columna directa | `colSEL_Draft` | Agrupa tarima, area, niveles, seguridad y piezas especiales. |
 | `LP` Tabla: Listado de piezas | Listado de piezas | Tabla editable | Método = `Listado de piezas` | `Piezas de usuario`; `PayloadSistemaJson.Piezas` | `colListadoPiezas` | La columna guarda resumen; el payload conserva detalle. |
+| `CLI` Adjuntar planos/diseño de cliente | Planos/diseño de cliente | Adjuntos existentes de cotización | Método = `Planos/diseño de cliente` | Adjuntos de `Cotizaciones 2026`; `PayloadSistemaJson` indicador | N/A | El cliente provee sus planos; se apoya en adjuntos del formulario. |
 | `FOL` Referencia anterior | Referencia anterior | Grupo de campos | Método = `Cotización o pedido anterior` | `Número de pedido o cotización`; `PayloadSistemaJson` | `colSEL_Draft` | Cotización y pedido no son excluyentes. |
 | `COMUNES` Datos comunes del sistema | Datos comunes del sistema | Grupo de campos | Siempre en Selectivo | `PayloadSistemaJson` y columnas directas disponibles | `colSEL_Draft` | Datos compartidos para cualquier método de captura. |
 | `T` Sección: Tarima | Tarimas | Tabla editable | Método = `Diseño` | `PayloadSistemaJson.Tarimas` | `colListadoTarimas` | Captura una o varias tarimas. |

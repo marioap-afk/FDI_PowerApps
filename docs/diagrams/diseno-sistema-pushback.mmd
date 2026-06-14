@@ -89,7 +89,8 @@ flowchart TB
  %% Método de captura
  B -- Diseño --> subGraph0
  B -- Listado de piezas --> LP["Tabla: Listado de piezas"]
- B -- Cotización o pedido anterior --> FOL1 & FOL2 & FOL3
+ B -- Planos/diseño de cliente --> CLI["Adjuntar planos/diseño de cliente"]
+ B -- Cotización o pedido anterior --> subGraph1
 
  %% Tarima
  T --> T1 & T2 & T3 & T4 & T5 & T6
