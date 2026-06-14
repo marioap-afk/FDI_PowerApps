@@ -29,6 +29,9 @@ diseno funcional y visual de la aplicacion Power Apps FDI.
 - `../sistemas/FDI_Pushback_Process_Map.md`: tabla de procesos, validaciones,
   controles y columnas requeridas para el sistema pushback (propuesta modelada
   sobre el mapa de dinamico).
+- `../sistemas/FDI_DriveIn_Process_Map.md`: tabla de procesos, validaciones,
+  controles y columnas requeridas para el sistema drive in (sin rodamientos; con
+  seccion Montacargas y su ayuda visual `assets/montacargas-medidas.webp`).
 
 ## Uso
 
