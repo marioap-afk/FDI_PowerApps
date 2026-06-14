@@ -10,19 +10,20 @@ canvas app.
 | --- | --- | --- | --- | --- | --- | --- |
 | `A` Sistema selectivo | Sistema Selectivo | Contenedor de captura | Tab activo `TipoKey = "SEL"` | Lista `Sistema selectivo`; `PayloadSistemaJson` | `colSEL_Draft` | Nodo raiz del flujo. |
 | `B` Método de captura | Método de captura | Dropdown | Siempre en Selectivo | `Tipo de diseño`; `PayloadSistemaJson.MetodoCaptura` | `colSEL_Draft` | Opciones UI: `Diseño`, `Listado de piezas`, `Planos/diseño de cliente`, `Cotización o pedido anterior`. |
-| `C` Captura por diseño | Captura por diseño | Contenedor condicional | Método = `Diseño` | Sin columna directa | `colSEL_Draft` | Agrupa tarima, area, niveles, seguridad y piezas especiales. |
+| `subGraph0` Captura por diseño | Captura por diseño | Contenedor condicional | Método = `Diseño` | Sin columna directa | `colSEL_Draft` | Agrupa tarima, area, niveles, seguridad y piezas especiales. |
 | `LP` Tabla: Listado de piezas | Listado de piezas | Tabla editable | Método = `Listado de piezas` | `Piezas de usuario`; `PayloadSistemaJson.Piezas` | `colListadoPiezas` | La columna guarda resumen; el payload conserva detalle. |
-| `CLI` Adjuntar planos/diseño de cliente | Planos/diseño de cliente | Adjuntos existentes de cotización | Método = `Planos/diseño de cliente` | Adjuntos de `Cotizaciones 2026`; `PayloadSistemaJson` indicador | N/A | El cliente provee sus planos; se apoya en adjuntos del formulario. |
-| `FOL` Referencia anterior | Referencia anterior | Grupo de campos | Método = `Cotización o pedido anterior` | `Número de pedido o cotización`; `PayloadSistemaJson` | `colSEL_Draft` | Cotización y pedido no son excluyentes. |
-| `COMUNES` Datos comunes del sistema | Datos comunes del sistema | Grupo de campos | Siempre en Selectivo | `PayloadSistemaJson` y columnas directas disponibles | `colSEL_Draft` | Datos compartidos para cualquier método de captura. |
-| `T` Sección: Tarima | Tarimas | Tabla editable | Método = `Diseño` | `PayloadSistemaJson.Tarimas` | `colListadoTarimas` | Captura una o varias tarimas. |
+| `CLI` Adjuntar planos/diseño de cliente | Planos/diseño de cliente | Adjuntos existentes de cotización | Método = `Planos/diseño de cliente` | Adjuntos de `Cotizaciones 2026`; `PayloadSistemaJson` indicador | N/A | El cliente provee sus planos; aun así se captura/verifica la Tarima (sección `T`) para corroborar que los perfiles fabricados cumplen. Se apoya en adjuntos del formulario. |
+| `subGraph1` Referencia anterior | Referencia anterior | Grupo de campos | Método = `Cotización o pedido anterior` | `Número de pedido o cotización`; `PayloadSistemaJson` | `colSEL_Draft` | Cotización y pedido no son excluyentes. |
+| `subGraph2` Datos comunes del sistema | Datos comunes del sistema | Grupo de campos | Siempre en Selectivo | `PayloadSistemaJson` y columnas directas disponibles | `colSEL_Draft` | Datos compartidos para cualquier método de captura. |
+| `T` Sección: Tarima | Tarimas | Tabla editable | Método = `Diseño` o `Planos/diseño de cliente` | `PayloadSistemaJson.Tarimas` | `colListadoTarimas` | Captura una o varias tarimas. Con planos del cliente se usa para verificar perfiles. |
 | `T1` Peso | Tarimas | Text input numerico | Método = `Diseño` | `PayloadSistemaJson.Tarimas.Peso` | `colListadoTarimas` | No existe columna directa separada. |
 | `T2` Alto | Tarimas | Text input numerico | Método = `Diseño` | `PayloadSistemaJson.Tarimas.Alto` | `colListadoTarimas` | No existe columna directa separada. |
 | `T3` Frente | Tarimas | Text input numerico | Método = `Diseño` | `PayloadSistemaJson.Tarimas.Frente` | `colListadoTarimas` | No existe columna directa separada. |
 | `T4` Fondo | Tarimas | Text input numerico | Método = `Diseño` | `PayloadSistemaJson.Tarimas.Fondo` | `colListadoTarimas` | No existe columna directa separada. |
 | `T5` ¿Excedente? | Tarimas | Toggle por renglon | Método = `Diseño` | `PayloadSistemaJson.Tarimas` | `colListadoTarimas` | Controla campos de excedente en la tabla. |
-| `T6` Frente excedente | Tarimas | Text input numerico | Método = `Diseño` y excedente = Sí | `PayloadSistemaJson.Tarimas.ExcedenteFrente` | `colListadoTarimas` | No existe columna directa separada. |
-| `T7` Fondo excedente | Tarimas | Text input numerico | Método = `Diseño` y excedente = Sí | `PayloadSistemaJson.Tarimas.ExcedenteFondo` | `colListadoTarimas` | No existe columna directa separada. |
+| `T6` Huella de tarima | Tarimas | Text input | Método = `Diseño` | `PayloadSistemaJson.Tarimas.HuellaTarima` | `colListadoTarimas` | Texto libre; alineado con los demás sistemas. |
+| `T5A` Frente excedente | Tarimas | Text input numerico | `T5` = Sí | `PayloadSistemaJson.Tarimas.ExcedenteFrente` | `colListadoTarimas` | No existe columna directa separada. |
+| `T5B` Fondo excedente | Tarimas | Text input numerico | `T5` = Sí | `PayloadSistemaJson.Tarimas.ExcedenteFondo` | `colListadoTarimas` | No existe columna directa separada. |
 | `AREA` Sección: Área disponible / pasillos | Área disponible / pasillos | Grupo de text inputs | Método = `Diseño` | Columnas directas de area/pasillos | `colSEL_Draft` | Se mantiene como campos planos. |
 | `P1` Pasillo máximo de montacargas | Área disponible / pasillos | Text input numerico | Método = `Diseño` | `Pasillo máximo` | `colSEL_Draft` | Valor directo en SharePoint. |
 | `P2` Pasillo mínimo de montacargas | Área disponible / pasillos | Text input numerico | Método = `Diseño` | `Pasillo mínimo` | `colSEL_Draft` | Valor directo en SharePoint. |
@@ -39,10 +40,10 @@ canvas app.
 | `N4` ¿Existe definición por parte del cliente? | Criterios para configuración de niveles | Toggle | Método = `Diseño` | `PayloadSistemaJson.ExisteDefCliente` | `colSEL_Draft` | Usa el mismo label del diagrama. |
 | `N4A` Comentarios de configuración del cliente | Criterios para configuración de niveles | Text input | `N4` = Sí | `Definido por el cliente`; `PayloadSistemaJson.ComentariosConfigCliente` | `colSEL_Draft` | Columna directa existente se conserva. |
 | `SEG` Sección: Elementos de seguridad | Elementos de seguridad | Grupo condicional | Método = `Diseño` | `Elementos de seguridad`; `PayloadSistemaJson.ElementosSeguridad` | `colElementoSeguridad` | Resumen a columna, detalle a payload. |
-| `SEG1` ¿Tiene elementos de seguridad? | Elementos de seguridad | Toggle | Método = `Diseño` | `PayloadSistemaJson.ElementosSeguridad` | `colSEL_Draft` | Usa el mismo label del diagrama. |
+| `SEG1` ¿Considerar elementos de seguridad? | Elementos de seguridad | Toggle | Método = `Diseño` | `PayloadSistemaJson.ElementosSeguridad` | `colSEL_Draft` | Usa el mismo label del diagrama. |
 | `SEG2` Tabla: Listado de piezas de seguridad | Elementos de seguridad | Tabla editable | `SEG1` = Sí | `Elementos de seguridad`; `PayloadSistemaJson.ElementosSeguridad` | `colElementoSeguridad` | Renglones de pieza y comentario. |
 | `PE` Sección: Piezas especiales | Piezas especiales | Grupo condicional | Método = `Diseño` | `PayloadSistemaJson.PiezasEspeciales` | `colPiezasEspeciales` | No existe columna directa. |
-| `PE1` ¿Tiene piezas especiales? | Piezas especiales | Toggle | Método = `Diseño` | `PayloadSistemaJson.TienePiezasEspeciales` | `colSEL_Draft` | Usa el mismo label del diagrama. |
+| `PE1` ¿Considerar piezas especiales? | Piezas especiales | Toggle | Método = `Diseño` | `PayloadSistemaJson.TienePiezasEspeciales` | `colSEL_Draft` | Usa el mismo label del diagrama. |
 | `PE2` Tabla: Piezas especiales | Piezas especiales | Tabla editable | `PE1` = Sí | `PayloadSistemaJson.PiezasEspeciales` | `colPiezasEspeciales` | Renglones de pieza y comentario. |
 | `FOL1` Folio de cotización anterior | Referencia anterior | Text input | Método = `Cotización o pedido anterior` | `Número de pedido o cotización`; `PayloadSistemaJson.FolioCotizacionAnterior` | `colSEL_Draft` | Se combina en resumen con pedido cuando ambos existen. |
 | `FOL2` Folio de pedido anterior | Referencia anterior | Text input | Método = `Cotización o pedido anterior` | `Número de pedido o cotización`; `PayloadSistemaJson.FolioPedidoAnterior` | `colSEL_Draft` | No excluye folio de cotización. |

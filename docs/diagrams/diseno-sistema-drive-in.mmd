@@ -76,6 +76,9 @@ flowchart TB
     B -- Listado de piezas --> LP["Tabla: Listado de piezas"]
     B -- Planos/diseño de cliente --> CLI["Adjuntar planos/diseño de cliente"]
     B -- Cotización o pedido anterior --> subGraph1
+
+    %% Con planos del cliente igual se verifica la tarima (corroborar perfiles fabricados)
+    CLI -- Verificar perfiles --> T
     T --> T1 & T2 & T3 & T4 & T5 & T6
     T5 -- Sí --> T5A & T5B
     CONF --> CONF1 & CONF2 & CONF3
