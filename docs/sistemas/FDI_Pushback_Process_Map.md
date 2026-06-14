@@ -6,20 +6,19 @@ Este documento es la referencia tecnica externa para la captura de Sistema
 Pushback en `scrFDI`. No debe renderizarse como tabla informativa dentro de la
 canvas app.
 
-> **Nota:** el sistema Pushback es **basicamente identico al sistema Dinamico**
-> (misma estructura de captura). Este mapa esta **modelado sobre**
-> [FDI_Dinamico_Process_Map.md](./FDI_Dinamico_Process_Map.md). Es una **propuesta**:
-> los nombres exactos de colecciones, claves del payload, `TipoKey` y columnas
-> SharePoint los **confirma Codex** al implementar. Cualquier columna/lista nueva
-> en SharePoint requiere **visto bueno previo** (regla del proyecto).
+> **Nota de implementacion:** el sistema Pushback es **basicamente identico al
+> sistema Dinamico** (misma estructura de captura). En la canvas app se implementa
+> como tab `TipoKey = "PBK"` con contenedor `cntPBK` y coleccion local
+> `colPBK_Draft`. No se agrega schema SharePoint desde este cambio.
 
 ## Estado SharePoint
 
 La app y la auditoria local no incluyen una fuente/lista SharePoint llamada
-`Sistema Pushback`. Igual que en Dinamico, la implementacion deberia dejar el
-sistema disponible, capturar datos en colecciones locales y crear el registro
-puente en `Sistemas por cotización`, sin intentar `Patch('Sistema Pushback', ...)`
-sobre una lista inexistente.
+`Sistema Pushback`. La implementacion actual deja el sistema disponible en el
+catalogo, captura datos en colecciones locales y crea el registro puente en
+`Sistemas por cotización`, sin intentar `Patch('Sistema Pushback', ...)` sobre una
+lista inexistente. Al enviar, la app notifica que falta la lista SharePoint
+`Sistema Pushback` para persistir el detalle.
 
 Columnas requeridas para activar persistencia de detalle (mismas que Dinamico):
 
