@@ -28,6 +28,12 @@ diseno funcional y visual de la aplicacion Power Apps FDI.
   "Configuracion del rack" solo captura gondola sencilla/doble (columnas, brazos,
   altura, base, voladizo e inclinacion los deriva ingenieria); sin seccion
   Montacargas. Destinado a una tab nueva.
+- `diseno-sistema-mezzanine.mmd`: estructura propuesta para la captura de un
+  sistema mezzanine (entrepiso con racks, pickeo manual sin montacargas). "Tarima"
+  → "Producto" como tabla (tipo abierto, largo/ancho/alto, peso, cantidad por
+  nivel); agrega "Configuracion del entrepiso" (altura recomendada 2.4 m, cantidad
+  de entrepisos, elevador, tipo de piso Rejilla Irving/MDF, carrito de pickeo,
+  escaleras); la limitante de niveles es la altura de nave. Destinado a una tab nueva.
 - `../FDI_Selectivo_Process_Map.md`: tabla de procesos,
   tipo de control y columna/almacenamiento SharePoint aplicado a `scrFDI`.
 - `../sistemas/FDI_Dinamico_Process_Map.md`: tabla de procesos, validaciones,
@@ -41,6 +47,9 @@ diseno funcional y visual de la aplicacion Power Apps FDI.
 - `../sistemas/FDI_Cantiliver_Process_Map.md`: tabla de procesos, validaciones,
   controles y columnas requeridas para el sistema cantiléver (Carga/producto en
   vez de Tarima; solo gondola sencilla/doble; sin Montacargas).
+- `../sistemas/FDI_Mezzanine_Process_Map.md`: tabla de procesos, validaciones,
+  controles y columnas requeridas para el sistema mezzanine (Producto como tabla;
+  Configuracion del entrepiso; sin Montacargas; pickeo manual).
 
 ## Uso
 
