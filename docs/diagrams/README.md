@@ -68,6 +68,10 @@ diseno funcional y visual de la aplicacion Power Apps FDI.
   controles y columnas requeridas para el sistema mezzanine limpio (modulado/limpio
   condicional: Producto y/o Tarima; carga por m²; configuracion de columnas).
 
+- `flujo-cotizaciones.mmd`: diagrama de flujo del ciclo de vida de una cotizacion
+  (scrFDI -> scrMisCotizaciones): estados, revisiones de documentos, solicitudes de
+  informacion y registro en Bitacora.
+
 ## Uso
 
 Estos archivos son fuente de documentacion y diseno. No forman parte del

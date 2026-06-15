@@ -1,0 +1,75 @@
+---
+config:
+  layout: elk
+---
+flowchart TB
+ subgraph SFDI["scrFDI — creación"]
+    START(["Vendedor llena la solicitud"])
+    BORR["Estado: Borrador<br/>(solo local del creador)"]
+ end
+ subgraph FLOW["Flujo Creación_FDI (Power Automate)"]
+    CARPETA["Crea carpeta SharePoint<br/>+ estructura de la cotización"]
+ end
+ subgraph SMC["scrMisCotizaciones — gestión del ciclo"]
+    SINAS["Estado: Sin asignar"]
+    ASIG["Estado: Asignada"]
+    PROC["Estado: En proceso"]
+    ESPERA["Estado: En espera de información"]
+    REV["Estado: En revisión por parte de vendedor"]
+    CORR["Estado: Corrección requerida"]
+    LISTA["Estado: Lista para enviar"]
+    ENVC["Estado: Enviada a cliente"]
+    COMP["Estado: Comprada"]
+    CANC["Estado: Cancelada<br/>(cualquier estado activo, excepto<br/>Enviada a cliente / Comprada)"]
+ end
+ subgraph SOL["Solicitudes de información (Solicitudes en cotizaciones)"]
+    SOL_P{"Estado de solicitud: Pendiente"}
+    SOL_A["Aceptada / Información subida"]
+    SOL_R["Rechazada"]
+    SOL_C["Cancelada"]
+ end
+ subgraph DOCS["Ciclo de revisión de documentos (Carpeta cotizaciones)"]
+    DOC_P{"Estado de revisión: Pendiente"}
+    DOC_A["Aprobado"]
+    DOC_R["Rechazado"]
+ end
+ BITA["BITÁCORA cotizaciones<br/>cada transición/acción registra:<br/>Evento · Estado anterior/nuevo · Usuario · Comentario · Evidencia"]
+
+ %% Creación
+ START --> BORR
+ BORR -- "Enviar solicitud" --> SINAS
+ SINAS -. "dispara (Estado = Sin asignar)" .-> CARPETA
+ SINAS -- "Asignar la cotización" --> ASIG
+ ASIG -- "Inicia el ingeniero técnico-comercial" --> PROC
+
+ %% Solicitudes de información
+ PROC -- "Crear solicitud de información" --> ESPERA
+ ESPERA --> SOL_P
+ SOL_P -- "Información subida / Aceptar" --> SOL_A
+ SOL_P -- "Rechazar" --> SOL_R
+ SOL_P -- "Cancelar" --> SOL_C
+ SOL_A -- "sin solicitudes pendientes" --> PROC
+ SOL_R --> PROC
+ SOL_C --> PROC
+
+ %% Revisión de documentos
+ PROC -- "Enviar a revisión / anexar evidencia" --> REV
+ REV --> DOC_P
+ DOC_P -- "Vendedor aprueba (Documento aprobado)" --> DOC_A
+ DOC_P -- "Vendedor rechaza" --> DOC_R
+ DOC_A -- "Vendedor aprobó todo" --> LISTA
+ DOC_R --> CORR
+ CORR -- "Actualizar evidencia → reenviar" --> REV
+
+ %% Cierre
+ LISTA -- "Enviar a cliente" --> ENVC
+ ENVC -- "Cliente compra" --> COMP
+ COMP -. "Generar pedido (scrGenerarPedido)" .-> COMP
+ PROC -. "Cancelar (disponible en cualquier estado activo)" .-> CANC
+
+ %% Bitácora (transversal)
+ SINAS -.-> BITA
+ PROC -.-> BITA
+ REV -.-> BITA
+ CORR -.-> BITA
+ ENVC -.-> BITA
