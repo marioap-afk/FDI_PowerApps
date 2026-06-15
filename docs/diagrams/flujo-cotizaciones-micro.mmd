@@ -1,0 +1,38 @@
+---
+config:
+  layout: elk
+---
+flowchart TB
+ IN(["ENTRA: En proceso<br/>(ingeniero técnico-comercial trabajando)"])
+ OUT(["SALE: Lista para enviar<br/>(el vendedor aprobó la revisión)"])
+
+ subgraph SOL["Subciclo A — Solicitudes de información (Solicitudes en cotizaciones)"]
+    S_ESP["Cotización: En espera de información"]
+    S_P{"Solicitud: Pendiente"}
+    S_R["Resuelta<br/>(Información subida / Aceptada / Rechazada)"]
+    S_C["Cancelada"]
+ end
+ subgraph DOC["Subciclo B — Revisión de documentos (Carpeta cotizaciones)"]
+    REV["Cotización: En revisión por parte de vendedor"]
+    D_P{"Documento — Estado de revisión: Pendiente"}
+    D_A["Aprobado"]
+    D_R["Rechazado"]
+    CORR["Cotización: Corrección requerida"]
+ end
+
+ %% Subciclo A
+ IN -- "Crear solicitud de información" --> S_ESP
+ S_ESP --> S_P
+ S_P -- "Información subida / Aceptar / Rechazar" --> S_R
+ S_P -- "Cancelar" --> S_C
+ S_R -- "sin solicitudes pendientes" --> IN
+ S_C --> IN
+
+ %% Subciclo B
+ IN -- "Enviar a revisión / anexar evidencia" --> REV
+ REV --> D_P
+ D_P -- "Vendedor aprueba" --> D_A
+ D_P -- "Vendedor rechaza" --> D_R
+ D_R --> CORR
+ CORR -- "Actualizar evidencia → reenviar" --> REV
+ D_A -- "todos los documentos aprobados" --> OUT

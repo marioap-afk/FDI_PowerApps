@@ -68,9 +68,14 @@ diseno funcional y visual de la aplicacion Power Apps FDI.
   controles y columnas requeridas para el sistema mezzanine limpio (modulado/limpio
   condicional: Producto y/o Tarima; carga por m²; configuracion de columnas).
 
-- `flujo-cotizaciones.mmd`: diagrama de flujo del ciclo de vida de una cotizacion
-  (scrFDI -> scrMisCotizaciones): estados, revisiones de documentos, solicitudes de
-  informacion y registro en Bitacora.
+- Flujo de cotizaciones (scrFDI -> scrMisCotizaciones), en dos capas + bitacora:
+  - `flujo-cotizaciones-macro.mmd`: ciclo de vida (estados de alto nivel; incluye
+    Declinada/Perdida y la reapertura por Solicitud de actualizacion).
+  - `flujo-cotizaciones-micro.mmd`: fases de trabajo dentro de "En proceso"
+    (subciclo de solicitudes de informacion y subciclo de revision de documentos).
+  - `flujo-cotizaciones-bitacora.mmd`: eventos que registra la Bitacora y la
+    estructura de cada renglon.
+  - Doc: `../FDI_Cotizaciones_Flow.md`.
 
 ## Uso
 
