@@ -15,7 +15,7 @@ Derivado de los **diagramas de flujo de los sistemas** ya revisados
 
 | Nivel | Lista | Propósito |
 | --- | --- | --- |
-| Padre | `Cotizaciones 2026` | Registro maestro de la cotización (**ya existe**; la usa la app). |
+| Padre | `Cotizaciones` | Registro maestro de la cotización. **Decisión:** la lista padre se llama `Cotizaciones` (sin `2026`); la app debe apuntar sus datasources/Patch a este nombre. |
 | Puente | `Sistemas por cotización` | Una fila por sistema agregado a la cotización (permite ≥2 sistemas del mismo tipo). |
 | Detalle | `Sistema <Tipo>` | Campos escalares del formulario de cada sistema. |
 | Tablas hijas | `Sistema Tarimas`, `Sistema Productos`, etc. | Una fila por renglón de una tabla repetible. **Compartidas** entre sistemas. |
@@ -44,7 +44,7 @@ Cada lista declara abajo **qué bloques** incluye + sus columnas propias.
 
 | Columna | Tipo | Req. | Indexar | Nota |
 | --- | --- | --- | --- | --- |
-| `CotizaciónID` | Lookup a `Cotizaciones 2026` | Sí | Sí | Relación con la cotización padre **existente**. |
+| `CotizaciónID` | Lookup a `Cotizaciones` | Sí | Sí | Relación con la cotización padre **existente**. |
 | `SistemaCotizaciónID` | Lookup a `Sistemas por cotización` | Sí | Sí | Instancia exacta del sistema (clave si hay ≥2 del mismo tipo). |
 | `Folio` | Texto | Sí | Sí | Copia del folio para búsqueda/soporte. |
 | `TipoKey` | Texto | Sí | Sí | `SEL,DIN,PBK,DRV,CAN,MEZ,CFL,MZL,OT`. |
@@ -108,7 +108,7 @@ Cada lista declara abajo **qué bloques** incluye + sus columnas propias.
 | Columna | Tipo | Req. | Indexar | Nota |
 | --- | --- | --- | --- | --- |
 | `Title` | Texto | No | No | Etiqueta del renglón (p. ej. `Tarima 1`). |
-| `CotizaciónID` | Lookup a `Cotizaciones 2026` | Sí | Sí | Relación con la cotización. |
+| `CotizaciónID` | Lookup a `Cotizaciones` | Sí | Sí | Relación con la cotización. |
 | `SistemaCotizaciónID` | Lookup a `Sistemas por cotización` | Sí | Sí | Instancia exacta del sistema. |
 | `Folio` | Texto | Sí | Sí | Trazabilidad. |
 | `TipoKey` | Texto | Sí | Sí | Sistema que generó el renglón. |
@@ -148,7 +148,7 @@ Cada lista declara abajo **qué bloques** incluye + sus columnas propias.
 | `NombreSistema` | Texto | Sí | Nombre del tab (p. ej. `Selectivo 1`). En la lista existente puede llamarse `Nombre`. |
 | `SistemaID` | Número | Sí | Id local que usa la app para distinguir tabs. |
 | `TipoKey` | Texto | Sí | Clave normalizada del sistema. |
-| `CotizaciónID` | Lookup a `Cotizaciones 2026` | Sí | Indexar. |
+| `CotizaciónID` | Lookup a `Cotizaciones` | Sí | Indexar. |
 | `Folio` | Texto | Sí | Indexar. |
 
 ### `Sistema selectivo` (`SEL`)
@@ -327,7 +327,7 @@ Todas incluyen el **Bloque H** + sus columnas propias.
 
 ## Patrón de persistencia (guardado final desde `scrFDI`)
 
-1. Guardar/actualizar la cotización en `Cotizaciones 2026`.
+1. Guardar/actualizar la cotización en `Cotizaciones`.
 2. Crear una fila en `Sistemas por cotización` por cada sistema capturado.
 3. Crear/actualizar la fila de detalle en `Sistema <Tipo>` con los campos escalares.
 4. Guardar cada tabla repetible con `ForAll(...)` hacia su lista hija, usando
