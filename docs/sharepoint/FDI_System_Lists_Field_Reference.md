@@ -19,7 +19,7 @@ El modelo final recomendado queda en tres niveles:
 
 | Nivel | Lista | Proposito |
 | --- | --- | --- |
-| Padre | `Cotizaciones 2026` | Registro maestro de la cotizacion. |
+| Padre | `Cotizaciones` | Registro maestro de la cotizacion. |
 | Puente | `Sistemas por cotización` | Una fila por sistema agregado a la cotizacion. Permite tener dos o mas sistemas del mismo tipo. |
 | Detalle | `Sistema <Tipo>` | Una fila por sistema con campos escalares del formulario. |
 | Tablas hijas | `Sistema Tarimas`, `Sistema Productos`, etc. | Una fila por renglon capturado en tablas repetibles. Son listas compartidas por todos los sistemas que usen esa tabla. |
@@ -50,7 +50,7 @@ como `Numero`, el Patch final debe convertir con `Value(...)` y manejar blancos.
 
 | Lista SharePoint | Tipo | Requerida | Usada por | Observaciones |
 | --- | --- | --- | --- | --- |
-| `Cotizaciones 2026` | Padre | Si | Todos | Ya existe. No se redefine aqui. |
+| `Cotizaciones` | Padre | Si | Todos | Ya existe. No se redefine aqui. |
 | `Sistemas por cotización` | Puente | Si | Todos | Ya existe. Debe ser la ancla de cada sistema por cotizacion. |
 | `Sistema selectivo` | Detalle | Si | `SEL` | Ya se referencia en la app actual. |
 | `Sistema Dinámico` | Detalle | Si | `DIN` | Requerida para persistir Dinamico fuera del draft. |
@@ -76,7 +76,7 @@ en todas las listas hijas compartidas.
 
 | Columna | Tipo SharePoint | Requerida | Indexar | Observaciones |
 | --- | --- | --- | --- | --- |
-| `CotizaciónID` | Lookup a `Cotizaciones 2026` | Si | Si | Relacion directa con la cotizacion. |
+| `CotizaciónID` | Lookup a `Cotizaciones` | Si | Si | Relacion directa con la cotizacion. |
 | `SistemaCotizaciónID` | Lookup a `Sistemas por cotización` | Si | Si | Relacion con la instancia exacta del sistema. Es clave cuando hay dos sistemas del mismo tipo. |
 | `Folio` | Texto | Si | Si | Copia del folio para busqueda y soporte. |
 | `TipoKey` | Texto | Si | Si | `SEL`, `DIN`, `PBK`, `DRV`, `CAN`, `MEZ`, `CFL`, `MZL`, `OT`. |
@@ -108,10 +108,10 @@ requiere.
 | `Número de pedido o cotización` | Texto | Referencia de pedido/cotizacion anterior. |
 | `Requiere adjuntar layout` | Booleano | Indicador de layout o imagen requerida. |
 | `Existe definición cliente` | Booleano | Toggle que habilita comentarios de definicion. |
-| `Acabado` | Opcion | Acabado seleccionado. De aqui se deriva galvanizado cuando aplique. |
-| `Galvanizado` | Booleano | Toggle/derivado de acabado. |
-| `Tipo de galvanizado` | Opcion | `Frio`, `Caliente`, `Pregalvanizado`. |
-| `Precio por kilogramo galvanizado` | Numero compatible | Solo frio/caliente si se captura precio. |
+| `Acabado` | Opcion | Campo capturado. Valores: `Pintado`, `Galvanizado en frío`, `Galvanizado en caliente`, `Pregalvanizado`. Es la unica pregunta de acabado. |
+| `Galvanizado` | Booleano | Derivado opcional para compatibilidad/reportes. No se captura en UI. `true` para cualquier acabado galvanizado y `false` para `Pintado`. |
+| `Tipo de galvanizado` | Opcion | Derivado opcional para compatibilidad/reportes. No se captura en UI. Vacio para `Pintado`; `Frio`, `Caliente` o `Pregalvanizado` segun `Acabado`. |
+| `Precio por kilogramo galvanizado` | Numero compatible | Capturable solo si `Acabado` es `Galvanizado en frío` o `Galvanizado en caliente`; no aplica a `Pintado` ni `Pregalvanizado`. |
 | `Instalación` | Booleano | Requiere instalacion. |
 | `Costo instalación` | Numero compatible | Costo o importe de instalacion si aplica. |
 | `Comentarios instalación` | Texto multilinea | Detalle de instalacion. |
@@ -122,6 +122,11 @@ requiere.
 | `Proveedores externos` | Booleano | Indica si hay proveedores externos en tabla hija. |
 | `Consideraciones especiales` | Texto multilinea | Comentarios generales. |
 | `PayloadSistemaJson` | Texto multilinea | Opcional, solo auditoria o respaldo temporal. No usar como fuente principal. |
+
+Regla de acabado: la UI debe mostrar un solo selector `Acabado`. Si una lista
+nueva no necesita los campos derivados para compatibilidad, reportes o integracion
+con Excel, puede omitir `Galvanizado` y `Tipo de galvanizado` y derivarlos al
+consultar desde el valor de `Acabado`.
 
 ## Listas de detalle por sistema
 
@@ -137,7 +142,7 @@ se guardan en las listas hijas compartidas.
 | `Nombre` | Texto | Si | Nombre de tab, por ejemplo `Selectivo 1`. |
 | `SistemaID` | Numero | Si | ID local usado por la app para distinguir tabs. |
 | `TipoKey` | Texto | Si | Clave normalizada del sistema. Recomendado aunque no exista aun. |
-| `CotizaciónID` | Lookup a `Cotizaciones 2026` | Si | Relacion con cotizacion. Indexar. |
+| `CotizaciónID` | Lookup a `Cotizaciones` | Si | Relacion con cotizacion. Indexar. |
 | `Folio` | Texto | Si | Trazabilidad. Indexar. |
 
 ### `Sistema selectivo`
@@ -283,7 +288,7 @@ propios.
 | Columna | Tipo SharePoint | Requerida | Indexar | Observaciones |
 | --- | --- | --- | --- | --- |
 | `Title` | Texto | No | No | Etiqueta de renglon, por ejemplo `Tarima 1`. |
-| `CotizaciónID` | Lookup a `Cotizaciones 2026` | Si | Si | Relacion con cotizacion. |
+| `CotizaciónID` | Lookup a `Cotizaciones` | Si | Si | Relacion con cotizacion. |
 | `SistemaCotizaciónID` | Lookup a `Sistemas por cotización` | Si | Si | Relacion con la instancia exacta del sistema. |
 | `Folio` | Texto | Si | Si | Trazabilidad. |
 | `TipoKey` | Texto | Si | Si | Sistema que genero el renglon. |
@@ -365,7 +370,7 @@ propios.
 
 Al guardar la cotizacion desde `scrFDI`, el Patch debe seguir este orden:
 
-1. Guardar o actualizar `Cotizaciones 2026`.
+1. Guardar o actualizar `Cotizaciones`.
 2. Crear una fila en `Sistemas por cotización` por cada sistema capturado.
 3. Crear o actualizar una fila en la lista de detalle `Sistema <Tipo>` con los
    campos escalares del draft local.
