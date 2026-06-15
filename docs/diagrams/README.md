@@ -39,6 +39,12 @@ diseno funcional y visual de la aplicacion Power Apps FDI.
   "Tarima" → "Producto" como tabla; conserva frentes/fondos/niveles buscados y
   entrecentros, pero el rodamiento solo tiene 2 tipos (Rodillo de 3/4 y Rodajas) y
   no lleva alto impacto; area con pasillo de pickeo. Destinado a una tab nueva.
+- `diseno-sistema-mezzanine-limpio.mmd`: estructura propuesta para la captura de un
+  sistema mezzanine limpio (estructura de puras columnas, multi-piso, mixto). Pregunta
+  primero si sera modulado (y donde) y cuantos pisos; modulado = pickeo → tabla de
+  Producto; zona no modulada con tarimas → tabla de Tarima; agrega carga por m² y
+  configuracion de columnas (separacion manual/por calculo). Conserva del mezzanine
+  elevador, escaleras, carrito y tipo de piso. Destinado a una tab nueva.
 - `../FDI_Selectivo_Process_Map.md`: tabla de procesos,
   tipo de control y columna/almacenamiento SharePoint aplicado a `scrFDI`.
 - `../sistemas/FDI_Dinamico_Process_Map.md`: tabla de procesos, validaciones,
@@ -58,6 +64,9 @@ diseno funcional y visual de la aplicacion Power Apps FDI.
 - `../sistemas/FDI_CartonFlow_Process_Map.md`: tabla de procesos, validaciones,
   controles y columnas requeridas para el sistema carton flow (Producto como tabla;
   rodamiento de 2 tipos + entrecentros; sin alto impacto; sin Montacargas).
+- `../sistemas/FDI_MezzanineLimpio_Process_Map.md`: tabla de procesos, validaciones,
+  controles y columnas requeridas para el sistema mezzanine limpio (modulado/limpio
+  condicional: Producto y/o Tarima; carga por m²; configuracion de columnas).
 
 ## Uso
 
