@@ -46,6 +46,6 @@ El script es de solo lectura. No usa `Remove-PnPList`, `Remove-PnPField`, `Set-P
 
 ## Referencias manuales
 
-- `FDI_System_Lists_Field_Reference.md`: campos, listas, componentes/colecciones
-  y tipos de dato recomendados para cargar o crear las listas SharePoint de los
-  sistemas de `scrFDI`.
+- `FDI_System_Lists_Field_Reference.md`: modelo normalizado de listas
+  SharePoint, campos por lista y tipos de dato recomendados para cargar o crear
+  la persistencia de los sistemas de `scrFDI`.

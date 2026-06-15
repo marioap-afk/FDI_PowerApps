@@ -1,294 +1,402 @@
-# FDI system lists and field reference
+# FDI SharePoint system lists and fields
 
-Referencia para crear o completar listas SharePoint usadas por la captura de
+Referencia para crear o completar las listas SharePoint usadas por la captura de
 sistemas en `scrFDI`.
 
 Estado de fuente: el inventario `docs/sharepoint/sharepoint-schema.json` esta en
-estado `pending-pnp-powershell-not-installed`, por lo que no contiene columnas
-reales exportadas desde SharePoint. Esta referencia se deriva de:
+estado `pending-pnp-powershell-not-installed`, por lo que este documento no es
+una exportacion de SharePoint. La referencia se deriva de:
 
 - `CanvasApps/mapc_fdi_412ec_DocumentUri.msapp` desempacado en los commits recientes.
 - Mapas de proceso en `docs/FDI_Selectivo_Process_Map.md` y `docs/sistemas/*.md`.
 - Patches actuales de `scrFDI`.
+- Decision de arquitectura: las tablas repetibles se guardan en listas hijas
+  normalizadas y compartidas entre sistemas, no en un payload JSON principal.
+
+## Modelo de datos
+
+El modelo final recomendado queda en tres niveles:
+
+| Nivel | Lista | Proposito |
+| --- | --- | --- |
+| Padre | `Cotizaciones 2026` | Registro maestro de la cotizacion. |
+| Puente | `Sistemas por cotización` | Una fila por sistema agregado a la cotizacion. Permite tener dos o mas sistemas del mismo tipo. |
+| Detalle | `Sistema <Tipo>` | Una fila por sistema con campos escalares del formulario. |
+| Tablas hijas | `Sistema Tarimas`, `Sistema Productos`, etc. | Una fila por renglon capturado en tablas repetibles. Son listas compartidas por todos los sistemas que usen esa tabla. |
+
+`PayloadSistemaJson` ya no debe ser el almacenamiento principal. Si se conserva,
+debe ser solo auditoria, compatibilidad temporal o diagnostico. La app debe
+guardar columnas escalares y tablas hijas en listas normalizadas al hacer el
+guardado final.
 
 ## Regla de tipos
 
-La app guarda la captura en colecciones draft locales. Los campos capturados con
-`cmpCardTxt` o `TextInput` se guardan como texto, aunque representen numeros.
-Para crear listas sin cambiar la app, usar `Texto una linea` en esos campos es
-lo mas compatible. Si se crean como `Numero`, hay que ajustar el Patch final para
-convertir con `Value(...)`.
+La app captura en colecciones draft locales. Muchos valores numericos se guardan
+como texto en el draft. Para crear listas sin cambiar inmediatamente los Patch de
+la app, usar `Texto una linea` en esos campos es lo mas compatible. Si se crean
+como `Numero`, el Patch final debe convertir con `Value(...)` y manejar blancos.
 
-| Tipo usado en este documento | Tipo SharePoint recomendado | Nota |
+| Tipo usado aqui | Tipo SharePoint recomendado | Nota |
 | --- | --- | --- |
-| Texto | Una linea de texto | Valores cortos, folios, opciones guardadas como texto. |
-| Texto multilinea | Varias lineas de texto, texto sin formato, sin append | Payload JSON, comentarios y resumenes. |
-| Booleano | Si/No | Toggles y banderas. |
+| Texto | Una linea de texto | Valores cortos, folios, nombres, opciones guardadas como texto. |
+| Texto multilinea | Varias lineas de texto, texto sin formato, sin append | Comentarios, HTML, auditoria JSON opcional. |
+| Booleano | Si/No | Toggles y decisiones del flujo. |
 | Opcion | Choice | Usar cuando el conjunto de valores esta controlado. |
 | Lookup | Lookup | Relacion a otra lista. |
-| Numero compatible | Una linea de texto | Recomendado mientras la app guarde textos. Puede migrarse a Numero con conversion en Patch. |
+| Numero | Numero | Usar solo si el Patch convierte con `Value(...)`. |
+| Numero compatible | Una linea de texto | Recomendado mientras el draft guarde texto. Puede migrarse a `Numero` despues. |
 
-## Catalogo de listas
+## Listado de listas requeridas
 
-| Sistema | TipoKey | Lista SharePoint | Estado actual en repo | Contenedor UI | Draft local | Colecciones locales repetibles |
-| --- | --- | --- | --- | --- | --- | --- |
-| Selectivo | `SEL` | `Sistema selectivo` | Referenciada y persistida | `cntSEL` | `colSEL_Draft` | `colListadoTarimas`, `colListadoPiezas`, `colElementoSeguridad`, `colPiezasEspeciales`, `colProveedoresExternos`, `colListadoColores` |
-| Dinamico | `DIN` | `Sistema Dinamico` / `Sistema Dinámico` | Requerida, no referenciada como datasource | `cntDIN` | `colDIN_Draft` | `colListadoTarimas`, compartidas comunes |
-| Pushback | `PBK` | `Sistema Pushback` | Requerida, no referenciada como datasource | `cntPBK` | `colPBK_Draft` | `colListadoTarimas`, compartidas comunes |
-| Drive In | `DRV` | `Sistema Drive In` | Requerida, no referenciada como datasource | `cntDRV` | `colDRV_Draft` | `colListadoTarimas`, compartidas comunes |
-| Cantilever | `CAN` | `Sistema Cantiléver` | Requerida, no referenciada como datasource | `cntCAN` | `colCAN_Draft` | Compartidas comunes |
-| Mezzanine | `MEZ` | `Sistema Mezzanine` | Requerida, no referenciada como datasource | `cntMEZ` | `colMEZ_Draft` | `colMEZ_Productos`, compartidas comunes |
-| Carton Flow | `CFL` | `Sistema Carton Flow` | Requerida, no referenciada como datasource | `cntCFL` | `colCFL_Draft` | `colCFL_Productos`, compartidas comunes |
-| Mezzanine Limpio | `MZL` | `Sistema Mezzanine Limpio` | Requerida, no referenciada como datasource | `cntMZL` | `colMZL_Draft` | `colMZL_Productos`, `colListadoTarimas`, compartidas comunes |
-| Otro | `OT` | `Sistema Otro` | Referenciada y persistida | `cntOT` | `colOT_Draft` | N/A |
+| Lista SharePoint | Tipo | Requerida | Usada por | Observaciones |
+| --- | --- | --- | --- | --- |
+| `Cotizaciones 2026` | Padre | Si | Todos | Ya existe. No se redefine aqui. |
+| `Sistemas por cotización` | Puente | Si | Todos | Ya existe. Debe ser la ancla de cada sistema por cotizacion. |
+| `Sistema selectivo` | Detalle | Si | `SEL` | Ya se referencia en la app actual. |
+| `Sistema Dinámico` | Detalle | Si | `DIN` | Requerida para persistir Dinamico fuera del draft. |
+| `Sistema Pushback` | Detalle | Si | `PBK` | Requerida para persistir Pushback fuera del draft. |
+| `Sistema Drive In` | Detalle | Si | `DRV` | Requerida para persistir Drive In fuera del draft. |
+| `Sistema Cantiléver` | Detalle | Si | `CAN` | Requerida para persistir Cantilever fuera del draft. |
+| `Sistema Mezzanine` | Detalle | Si | `MEZ` | Requerida para persistir Mezzanine fuera del draft. |
+| `Sistema Carton Flow` | Detalle | Si | `CFL` | Requerida para persistir Carton Flow fuera del draft. |
+| `Sistema Mezzanine Limpio` | Detalle | Si | `MZL` | Requerida para persistir Mezzanine Limpio fuera del draft. |
+| `Sistema Otro` | Detalle | Si | `OT` | Ya se referencia en la app actual. |
+| `Sistema Tarimas` | Tabla hija | Si | `SEL`, `DIN`, `PBK`, `DRV`, `MZL` | Una fila por tarima. Lista compartida. |
+| `Sistema Productos` | Tabla hija | Si | `MEZ`, `CFL`, `MZL` | Una fila por producto. Lista compartida. |
+| `Sistema Colores` | Tabla hija | Si | Todos los sistemas con colores | Una fila por pieza/color. Lista compartida. |
+| `Sistema Elementos Seguridad` | Tabla hija | Si | Sistemas con elementos de seguridad | Una fila por elemento. Lista compartida. |
+| `Sistema Piezas Especiales` | Tabla hija | Si | Sistemas con piezas especiales | Una fila por pieza especial. Lista compartida. |
+| `Sistema Proveedores Externos` | Tabla hija | Si | Sistemas con proveedores externos | Una fila por proveedor/alcance. Lista compartida. |
+| `Sistema Listado Piezas` | Tabla hija | Si | Sistemas con listado de piezas | Una fila por pieza solicitada. Lista compartida. |
 
-## Listas base
+## Columnas de relacion obligatorias
+
+Estas columnas deben existir en todas las listas de detalle `Sistema <Tipo>` y
+en todas las listas hijas compartidas.
+
+| Columna | Tipo SharePoint | Requerida | Indexar | Observaciones |
+| --- | --- | --- | --- | --- |
+| `CotizaciónID` | Lookup a `Cotizaciones 2026` | Si | Si | Relacion directa con la cotizacion. |
+| `SistemaCotizaciónID` | Lookup a `Sistemas por cotización` | Si | Si | Relacion con la instancia exacta del sistema. Es clave cuando hay dos sistemas del mismo tipo. |
+| `Folio` | Texto | Si | Si | Copia del folio para busqueda y soporte. |
+| `TipoKey` | Texto | Si | Si | `SEL`, `DIN`, `PBK`, `DRV`, `CAN`, `MEZ`, `CFL`, `MZL`, `OT`. |
+| `NombreSistema` | Texto | Si | No | Nombre visible del tab, por ejemplo `Selectivo 1`. |
+
+Nota de compatibilidad: la app actual usa nombres existentes como `SistemasID`
+en `Sistema selectivo` y `SistemaID` en `Sistema Otro`. Para un esquema nuevo,
+usar `SistemaCotizaciónID`. Si se mantiene el nombre anterior, documentar el
+alias y ajustar los Patch para que no apunten a columnas inexistentes.
+
+## Campos comunes de detalle
+
+Estos campos aplican a la mayoria de listas `Sistema <Tipo>`. No todos los
+sistemas usan todos los campos; cada lista debe incluir solo los que su flujo
+requiere.
+
+| Columna | Tipo SharePoint recomendado | Observaciones |
+| --- | --- | --- |
+| `Title` | Texto | Puede duplicar `NombreSistema` por compatibilidad SharePoint. |
+| `Tipo de diseño` | Opcion | Valores: `Diseño`, `Listado de piezas`, `Planos/diseño de cliente`, `Pedido o cotización anterior`. |
+| `Ancho disponible` | Numero compatible | Area disponible. |
+| `Largo disponible` | Numero compatible | Area disponible. |
+| `Pasillo máximo` | Numero compatible | No aplica a todos los sistemas. |
+| `Pasillo mínimo` | Numero compatible | No aplica a todos los sistemas. |
+| `Ancho pasillo pickeo` | Numero compatible | Aplica a sistemas con pickeo o flujo de producto. |
+| `Altura crítica de montacargas` | Numero compatible | Solo cuando el flujo evalua montacargas. |
+| `Altura crítica de niveles` | Texto | Resumen de alturas max/min o condicion equivalente. |
+| `Definido por el cliente` | Texto multilinea | Comentarios o descripcion de definicion del cliente. |
+| `Número de pedido o cotización` | Texto | Referencia de pedido/cotizacion anterior. |
+| `Requiere adjuntar layout` | Booleano | Indicador de layout o imagen requerida. |
+| `Existe definición cliente` | Booleano | Toggle que habilita comentarios de definicion. |
+| `Acabado` | Opcion | Acabado seleccionado. De aqui se deriva galvanizado cuando aplique. |
+| `Galvanizado` | Booleano | Toggle/derivado de acabado. |
+| `Tipo de galvanizado` | Opcion | `Frio`, `Caliente`, `Pregalvanizado`. |
+| `Precio por kilogramo galvanizado` | Numero compatible | Solo frio/caliente si se captura precio. |
+| `Instalación` | Booleano | Requiere instalacion. |
+| `Costo instalación` | Numero compatible | Costo o importe de instalacion si aplica. |
+| `Comentarios instalación` | Texto multilinea | Detalle de instalacion. |
+| `Memoria de cálculo` | Booleano | Requiere memoria de calculo. |
+| `Costo memoria cálculo` | Numero compatible | Costo de memoria si aplica. |
+| `Unirse a estructura de otro proveedor` | Booleano | Indicador de union a estructura existente. |
+| `Comentarios estructura` | Texto multilinea | Detalle de estructura de otro proveedor. |
+| `Proveedores externos` | Booleano | Indica si hay proveedores externos en tabla hija. |
+| `Consideraciones especiales` | Texto multilinea | Comentarios generales. |
+| `PayloadSistemaJson` | Texto multilinea | Opcional, solo auditoria o respaldo temporal. No usar como fuente principal. |
+
+## Listas de detalle por sistema
+
+Cada lista de detalle incluye las columnas de relacion obligatorias y las
+columnas comunes que correspondan al flujo. Las tablas repetibles no van aqui:
+se guardan en las listas hijas compartidas.
 
 ### `Sistemas por cotización`
 
-Lista puente obligatoria para todos los sistemas.
-
-| Columna | Tipo SharePoint | Requerida | Fuente app | Observaciones |
-| --- | --- | --- | --- | --- |
-| `Title` | Texto | Si | `t.TipoNombre` | Nombre del tipo de sistema, por ejemplo `Selectivo`. |
-| `Nombre` | Texto | Si | `t.NombreSistema` | Nombre de tab, por ejemplo `Selectivo 1`. |
-| `SistemaID` | Numero | Si | `t.SistemaId` | ID local de tab. |
-| `CotizaciónID` | Lookup a `Cotizaciones 2026` | Si | `varCotizacionFinal.ID` | Relacion con cotizacion. |
-| `Folio` | Texto | Si | `varCotizacionFinal.Folio` | Trazabilidad. |
+| Columna | Tipo SharePoint | Requerida | Observaciones |
+| --- | --- | --- | --- |
+| `Title` | Texto | Si | Nombre del tipo de sistema, por ejemplo `Selectivo`. |
+| `Nombre` | Texto | Si | Nombre de tab, por ejemplo `Selectivo 1`. |
+| `SistemaID` | Numero | Si | ID local usado por la app para distinguir tabs. |
+| `TipoKey` | Texto | Si | Clave normalizada del sistema. Recomendado aunque no exista aun. |
+| `CotizaciónID` | Lookup a `Cotizaciones 2026` | Si | Relacion con cotizacion. Indexar. |
+| `Folio` | Texto | Si | Trazabilidad. Indexar. |
 
 ### `Sistema selectivo`
 
-Lista de detalle actualmente persistida por `scrFDI`.
+| Columna | Tipo SharePoint recomendado | Observaciones |
+| --- | --- | --- |
+| Columnas de relacion obligatorias | Ver seccion anterior | En lista existente puede llamarse `SistemasID` en vez de `SistemaCotizaciónID`. |
+| Campos comunes de detalle | Ver seccion anterior | Incluir los campos aplicables. |
+| `Configuración de niveles` | Opcion | Metodo o criterio de niveles si aplica. |
+| `Considerar altura máxima montacargas` | Booleano | Decision del flujo. |
+| `Considerar altura nave` | Booleano | Decision del flujo. |
+| `Altura máxima nave` | Numero compatible | Visible si se considera altura de nave. |
+| `Altura mínima nave` | Numero compatible | Visible si se considera altura de nave. |
+| `Comentarios configuración cliente` | Texto multilinea | Visible si existe definicion del cliente. |
 
-| Columna | Tipo SharePoint recomendado | Fuente app | Observaciones |
-| --- | --- | --- | --- |
-| `CotizaciónID` | Lookup a `Cotizaciones 2026` | `varCotizacionFinal.ID` | Requerida. |
-| `SistemasID` | Lookup a `Sistemas por cotización` | `_puente.PuenteID` | Requerida. |
-| `Folio` | Texto | Folio de cotizacion | Requerida. |
-| `Title` | Texto | `s.NombreSistema` | Nombre del sistema/tab. |
-| `Tipo de diseño` | Opcion | `s.TipoDiseño` | Valores: `Diseño`, `Listado de piezas`, `Planos/diseño de cliente`, `Pedido o cotización anterior`. |
-| `PayloadSistemaJson` | Texto multilinea | JSON completo | Campo clave para reconstruir tablas y campos sin columna directa. |
-| `Proveedores externos` | Booleano | `s.ProvExternos` | Indicador comun. |
-| `Pasillo máximo` | Numero compatible | `s.PasilloMax` | Capturado como texto. |
-| `Pasillo mínimo` | Numero compatible | `s.PasilloMin` | Capturado como texto. |
-| `Ancho disponible` | Numero compatible | `s.AnchoDisp` | Capturado como texto. |
-| `Largo disponible` | Numero compatible | `s.LargoDisp` | Capturado como texto. |
-| `Configuración de niveles` | Opcion | `s.ConfNiv` | Puede quedar en blanco. |
-| `Altura crítica de montacargas` | Numero compatible | `s.AltCritMonta` | Solo si se considera altura de montacargas. |
-| `Altura crítica de niveles` | Texto | Resumen max/min nave | Ejemplo: `Máx 8 / Mín 6`. |
-| `Definido por el cliente` | Texto multilinea | Comentarios cliente | Solo si el toggle esta activo. |
-| `Elementos de seguridad` | Texto multilinea | Resumen de `colElementoSeguridad` | Detalle tambien va en payload. |
-| `Piezas de usuario` | Texto multilinea | Resumen de `colListadoPiezas` | Detalle tambien va en payload. |
-| `Número de pedido o cotización` | Texto | Folio cotizacion/pedido anterior | Resumen de referencia. |
-| `Galvanizado` | Booleano | `s.GalvList` | Derivado de acabado. |
-| `Tipo de galvanizado` | Opcion | `s.TipoGalv` | Valores actuales normalizados: `Frio`, `Caliente`, `Pregalvanizado`. |
-| `Precio por kilogramo galvanizado` | Numero compatible | `s.PpkgGalv` | Solo frio/caliente. |
-| `Instalación` | Booleano | `s.Ins` | Indicador comun. |
-| `Memoria de cálculo` | Booleano | `s.MemCalc` | Indicador comun. |
-| `Unirse a estructura de otro proveedor` | Booleano | `s.EstProv` | Indicador comun. |
-| `Consideraciones especiales` | Texto multilinea | `s.ConsEsp` | Comentarios generales. |
+### `Sistema Dinámico`
+
+| Columna | Tipo SharePoint recomendado | Observaciones |
+| --- | --- | --- |
+| Columnas de relacion obligatorias | Ver seccion anterior | Requeridas. |
+| Campos comunes de detalle | Ver seccion anterior | Incluir los campos aplicables. |
+| `Frentes buscados` | Numero compatible | Configuracion del rack. |
+| `Fondos buscados` | Numero compatible | Configuracion del rack. |
+| `Niveles buscados` | Numero compatible | Configuracion del rack. |
+| `Tipo rodamiento` | Opcion | Valores actuales: `Rodillo 2.5`, `Rodillo 1.9`, `Rodillo 2.5 fácil limpieza`, `Rodillo 1.9 fácil limpieza`, `Llantas`, `Por cálculo`. |
+| `Método cálculo entrecentros` | Opcion | `Manual` o `Por cálculo`. |
+| `Entrecentros manual` | Numero compatible | Visible si metodo manual. |
+| `Utilizar rodamiento alto impacto` | Booleano | Decision del flujo. |
+| `Especificación rodamiento alto impacto` | Texto multilinea | Visible si el toggle esta activo. |
+
+### `Sistema Pushback`
+
+| Columna | Tipo SharePoint recomendado | Observaciones |
+| --- | --- | --- |
+| Columnas de relacion obligatorias | Ver seccion anterior | Requeridas. |
+| Campos comunes de detalle | Ver seccion anterior | Incluir los campos aplicables. |
+| `Frentes buscados` | Numero compatible | Configuracion del rack. |
+| `Fondos buscados` | Numero compatible | Configuracion del rack. |
+| `Niveles buscados` | Numero compatible | Configuracion del rack. |
+| `Tipo rodamiento` | Opcion | Valores equivalentes a Dinamico cuando aplique. |
+| `Método cálculo entrecentros` | Opcion | `Manual` o `Por cálculo`. |
+| `Entrecentros manual` | Numero compatible | Visible si metodo manual. |
+| `Utilizar rodamiento alto impacto` | Booleano | Decision del flujo. |
+| `Especificación rodamiento alto impacto` | Texto multilinea | Visible si el toggle esta activo. |
+
+### `Sistema Drive In`
+
+| Columna | Tipo SharePoint recomendado | Observaciones |
+| --- | --- | --- |
+| Columnas de relacion obligatorias | Ver seccion anterior | Requeridas. |
+| Campos comunes de detalle | Ver seccion anterior | Incluir los campos aplicables. |
+| `Frentes buscados` | Numero compatible | Configuracion del rack. |
+| `Fondos buscados` | Numero compatible | Configuracion del rack. |
+| `Niveles buscados` | Numero compatible | Configuracion del rack. |
+| `Tipo captura montacargas` | Opcion | `Medidas` o `Modelo`. |
+| `Altura cabina montacargas` | Numero compatible | Visible si tipo captura = `Medidas`. |
+| `Ancho total montacargas` | Numero compatible | Visible si tipo captura = `Medidas`. |
+| `Ancho mástil montacargas` | Numero compatible | Visible si tipo captura = `Medidas`. |
+| `Modelo montacargas` | Texto | Visible si tipo captura = `Modelo`. |
+
+### `Sistema Cantiléver`
+
+| Columna | Tipo SharePoint recomendado | Observaciones |
+| --- | --- | --- |
+| Columnas de relacion obligatorias | Ver seccion anterior | Requeridas. |
+| Campos comunes de detalle | Ver seccion anterior | Incluir los campos aplicables. |
+| `Tipo producto` | Texto | Tipo de carga o producto. |
+| `Longitud carga` | Numero compatible | Longitud de carga. |
+| `Sección carga` | Numero compatible | Seccion, diametro o ancho segun producto. |
+| `Peso carga` | Numero compatible | Peso de carga. |
+| `Cantidad por nivel` | Numero compatible | Cantidad por nivel de brazos. |
+| `Tipo góndola` | Opcion | `Góndola sencilla` o `Góndola doble`. |
+
+### `Sistema Mezzanine`
+
+| Columna | Tipo SharePoint recomendado | Observaciones |
+| --- | --- | --- |
+| Columnas de relacion obligatorias | Ver seccion anterior | Requeridas. |
+| Campos comunes de detalle | Ver seccion anterior | Incluir los campos aplicables. |
+| `Altura recomendada entrepiso` | Numero compatible | Valor default actual observado: `2.4`. |
+| `Cantidad entrepisos` | Numero compatible | Numero de niveles o entrepisos. |
+| `Requiere elevador` | Booleano | Decision del flujo. |
+| `Especificación elevador` | Texto multilinea | Visible si requiere elevador. |
+| `Tipo piso` | Opcion | Tipo de piso requerido. |
+| `Usa carrito` | Booleano | Decision del flujo. |
+| `Medidas carrito` | Texto | Visible si usa carrito. |
+| `Número ruedas` | Numero compatible | Visible si usa carrito. |
+| `Tipo rueda` | Texto | Visible si usa carrito. |
+| `Medida rueda` | Texto | Visible si usa carrito. |
+| `Peso carrito` | Numero compatible | Visible si usa carrito. |
+| `Requiere escaleras` | Booleano | Decision del flujo. |
+
+### `Sistema Carton Flow`
+
+| Columna | Tipo SharePoint recomendado | Observaciones |
+| --- | --- | --- |
+| Columnas de relacion obligatorias | Ver seccion anterior | Requeridas. |
+| Campos comunes de detalle | Ver seccion anterior | Incluir los campos aplicables. |
+| `Frentes buscados` | Numero compatible | Configuracion del flujo. |
+| `Fondos buscados` | Numero compatible | Configuracion del flujo. |
+| `Niveles buscados` | Numero compatible | Configuracion del flujo. |
+| `Tipo rodamiento` | Opcion | Valores esperados: `Rodillo 3/4`, `Rodajas` y variantes definidas por ingenieria. |
+| `Método cálculo entrecentros` | Opcion | `Manual` o `Por cálculo`. |
+| `Entrecentros manual` | Numero compatible | Visible si metodo manual. |
+
+### `Sistema Mezzanine Limpio`
+
+| Columna | Tipo SharePoint recomendado | Observaciones |
+| --- | --- | --- |
+| Columnas de relacion obligatorias | Ver seccion anterior | Requeridas. |
+| Campos comunes de detalle | Ver seccion anterior | Incluir los campos aplicables. |
+| `Cantidad pisos` | Numero compatible | Cantidad de pisos. |
+| `Carga por m2` | Numero compatible | Capacidad requerida. |
+| `Es modulado` | Booleano | Decision del flujo. |
+| `Zona modulada` | Texto | Visible si es modulado. |
+| `Usa tarimas` | Booleano | Habilita tabla `Sistema Tarimas`. |
+| `Requiere elevador` | Booleano | Decision del flujo. |
+| `Especificación elevador` | Texto multilinea | Visible si requiere elevador. |
+| `Tipo piso` | Opcion | Tipo de piso requerido. |
+| `Usa carrito` | Booleano | Decision del flujo. |
+| `Medidas carrito` | Texto | Visible si usa carrito. |
+| `Número ruedas` | Numero compatible | Visible si usa carrito. |
+| `Tipo rueda` | Texto | Visible si usa carrito. |
+| `Medida rueda` | Texto | Visible si usa carrito. |
+| `Peso carrito` | Numero compatible | Visible si usa carrito. |
+| `Requiere escaleras` | Booleano | Decision del flujo. |
+| `Método separación columnas` | Opcion | `Manual` o calculado, segun flujo. |
+| `Separación columnas manual` | Numero compatible | Visible si metodo manual. |
 
 ### `Sistema Otro`
 
-Lista de detalle actualmente persistida por `scrFDI`.
+| Columna | Tipo SharePoint recomendado | Observaciones |
+| --- | --- | --- |
+| Columnas de relacion obligatorias | Ver seccion anterior | En lista existente puede llamarse `SistemaID` en vez de `SistemaCotizaciónID`. |
+| `Title` | Texto | Nombre del sistema/tab. |
+| `HTML` | Texto multilinea | Contenido del editor HTML. |
 
-| Columna | Tipo SharePoint recomendado | Fuente app | Observaciones |
-| --- | --- | --- | --- |
-| `CotizaciónID` | Lookup a `Cotizaciones 2026` | `varCotizacionFinal.ID` | Requerida. |
-| `SistemaID` | Lookup a `Sistemas por cotización` | `_puente.PuenteID` | En esta lista el nombre usado por la app es singular. |
-| `Folio` | Texto | Folio de cotizacion | Requerida. |
-| `Title` | Texto | `s.NombreSistema` | Nombre del sistema/tab. |
-| `HTML` | Texto multilinea | `s.HTMLCol` | Contenido del editor HTML. |
+## Listas hijas compartidas
 
-## Columnas comunes para listas de detalle pendientes
+Todas las listas hijas deben incluir estas columnas base ademas de sus campos
+propios.
 
-Usar esta base para `Sistema Dinamico`, `Sistema Pushback`, `Sistema Drive In`,
-`Sistema Cantiléver`, `Sistema Mezzanine`, `Sistema Carton Flow` y
-`Sistema Mezzanine Limpio` si se decide crear persistencia de detalle.
+| Columna | Tipo SharePoint | Requerida | Indexar | Observaciones |
+| --- | --- | --- | --- | --- |
+| `Title` | Texto | No | No | Etiqueta de renglon, por ejemplo `Tarima 1`. |
+| `CotizaciónID` | Lookup a `Cotizaciones 2026` | Si | Si | Relacion con cotizacion. |
+| `SistemaCotizaciónID` | Lookup a `Sistemas por cotización` | Si | Si | Relacion con la instancia exacta del sistema. |
+| `Folio` | Texto | Si | Si | Trazabilidad. |
+| `TipoKey` | Texto | Si | Si | Sistema que genero el renglon. |
+| `NombreSistema` | Texto | Si | No | Nombre de tab. |
+| `Orden` | Numero | Si | No | Orden visual del renglon. |
+| `RowId` | Texto | No | No | GUID/local id recomendado para upsert desde la app. |
 
-| Columna | Tipo SharePoint recomendado | Sistemas | Observaciones |
-| --- | --- | --- | --- |
-| `CotizaciónID` | Lookup a `Cotizaciones 2026` | Todos | Relaciona el detalle con la cotizacion. |
-| `SistemasID` | Lookup a `Sistemas por cotización` | Todos | Relaciona el detalle con el registro puente. |
-| `Folio` | Texto | Todos | Trazabilidad. |
-| `Title` | Texto | Todos | Nombre del sistema/tab. |
-| `PayloadSistemaJson` | Texto multilinea | Todos | Campo obligatorio recomendado para no perder tablas ni campos propios. |
-| `Tipo de diseño` | Opcion o Texto | Todos | Metodo de captura normalizado. |
-| `Piezas de usuario` | Texto multilinea | Todos | Resumen de `colListadoPiezas`. |
-| `Elementos de seguridad` | Texto multilinea | Todos | Resumen de `colElementoSeguridad`. |
-| `Número de pedido o cotización` | Texto | Todos | Resumen de referencia anterior. |
-| `Proveedores externos` | Booleano | Todos | Indicador comun. |
-| `Pasillo máximo` | Numero compatible | `DIN`, `PBK`, `DRV`, `CAN` | No aplica a `MEZ`, `CFL`, `MZL`. |
-| `Pasillo mínimo` | Numero compatible | `DIN`, `PBK`, `DRV`, `CAN` | No aplica a `MEZ`, `CFL`, `MZL`. |
-| `Ancho disponible` | Numero compatible | Todos | Area disponible. |
-| `Largo disponible` | Numero compatible | Todos | Area disponible. |
-| `Altura crítica de montacargas` | Numero compatible | `DIN`, `PBK`, `DRV`, `CAN` | No aplica a `MEZ`, `CFL`, `MZL`. |
-| `Altura crítica de niveles` | Texto | Todos | Resumen de altura de nave o niveles. |
-| `Definido por el cliente` | Texto multilinea | Todos | Comentarios de configuracion del cliente. |
-| `Galvanizado` | Booleano | Todos | Derivado de acabado. |
-| `Tipo de galvanizado` | Opcion o Texto | Todos | Derivado de acabado. |
-| `Precio por kilogramo galvanizado` | Numero compatible | Todos | Solo frio/caliente. |
-| `Instalación` | Booleano | Todos | Indicador comun. |
-| `Memoria de cálculo` | Booleano | Todos | Indicador comun. |
-| `Unirse a estructura de otro proveedor` | Booleano | Todos | Indicador comun. |
-| `Consideraciones especiales` | Texto multilinea | Todos | Comentarios generales. |
+### `Sistema Tarimas`
 
-## Campos propios por sistema
+| Columna | Tipo SharePoint recomendado | Observaciones |
+| --- | --- | --- |
+| Columnas base de lista hija | Ver seccion anterior | Requeridas. |
+| `Tipo tarima` | Texto | Tipo o descripcion de tarima. |
+| `Peso tarima` | Numero compatible | Peso capturado. |
+| `Alto tarima` | Numero compatible | Alto capturado. |
+| `Frente tarima` | Numero compatible | Frente capturado. |
+| `Fondo tarima` | Numero compatible | Fondo capturado. |
+| `Huella tarima` | Texto | Huella o configuracion. |
+| `Excedente` | Booleano | Toggle por renglon. |
+| `Excedente frente` | Numero compatible | Visible si `Excedente` activo. |
+| `Excedente fondo` | Numero compatible | Visible si `Excedente` activo. |
 
-Estos campos pueden vivir solo dentro de `PayloadSistemaJson`. Crear columnas
-planas para ellos es opcional y requiere ajustar el Patch final.
+### `Sistema Productos`
 
-## Patron de componentes en `scrFDI`
+| Columna | Tipo SharePoint recomendado | Observaciones |
+| --- | --- | --- |
+| Columnas base de lista hija | Ver seccion anterior | Requeridas. |
+| `Tipo producto` | Texto | Tipo o descripcion del producto. |
+| `Largo producto` | Numero compatible | Capturado como texto si no hay conversion. |
+| `Ancho producto` | Numero compatible | Capturado como texto si no hay conversion. |
+| `Alto producto` | Numero compatible | Capturado como texto si no hay conversion. |
+| `Peso producto` | Numero compatible | Capturado como texto si no hay conversion. |
+| `Cantidad por nivel` | Numero compatible | Capturado como texto si no hay conversion. |
 
-| Bloque UI | Componentes/controles usados | Sistemas | Persistencia local |
-| --- | --- | --- | --- |
-| Tab de sistema | `cntSEL`, `cntDIN`, `cntPBK`, `cntDRV`, `cntCAN`, `cntMEZ`, `cntCFL`, `cntMZL`, `cntOT` | Todos | Visibilidad por `locTabSel.TipoKey`. |
-| Metodo de captura | `cmpCarddrpTipoCotización*` (`cmpCarddrp`) | Todos excepto `OT` | Campo `MetodoCaptura` y `TipoDiseño` en `col*_Draft`. |
-| Campos de texto | `cmpCardTxt`, `Classic/TextInput` en galerias | Todos | Texto en `col*_Draft` o coleccion repetible. |
-| Decisiones | `cmpCardTgl`, `Toggle@1.1.5` en galerias | Todos excepto `OT` | Booleanos en `col*_Draft` o renglon repetible. |
-| Tablas repetibles | `Gallery@2.15.0` + inputs por renglon | Sistemas con tablas | `colListadoPiezas`, `colListadoTarimas`, `colElementoSeguridad`, `colPiezasEspeciales`, `colProveedoresExternos`, `colListadoColores`, `colMEZ_Productos`, `colCFL_Productos`, `colMZL_Productos`. |
-| Editor libre | PCF `fdi_FDI.HtmlEditor` | `OT` | `colOT_Draft.HTMLCol`, lista `Sistema Otro`. |
+### `Sistema Colores`
 
-### Selectivo (`SEL`)
+| Columna | Tipo SharePoint recomendado | Observaciones |
+| --- | --- | --- |
+| Columnas base de lista hija | Ver seccion anterior | Requeridas. |
+| `Pieza` | Texto | Pieza, componente o zona que recibe color. |
+| `ColorKey` | Texto | Clave normalizada si existe catalogo. |
+| `ColorNombre` | Texto | Nombre visible del color. |
+| `ColorTexto` | Texto | Campo libre opcional cuando no hay catalogo. |
 
-| Campo payload / local | Tipo recomendado | Coleccion | Observaciones |
-| --- | --- | --- | --- |
-| `Tarimas[].Tipo` | Texto | `colListadoTarimas` | Tipo de tarima si aplica. |
-| `Tarimas[].Peso` | Numero compatible | `colListadoTarimas` | Capturado como texto. |
-| `Tarimas[].Alto` | Numero compatible | `colListadoTarimas` | Capturado como texto. |
-| `Tarimas[].Frente` | Numero compatible | `colListadoTarimas` | Capturado como texto. |
-| `Tarimas[].Fondo` | Numero compatible | `colListadoTarimas` | Capturado como texto. |
-| `Tarimas[].HuellaTarima` | Texto | `colListadoTarimas` | Texto libre. |
-| `Tarimas[].Excedente` | Booleano | `colListadoTarimas` | Toggle por renglon. |
-| `Tarimas[].ExcedenteFrente` | Numero compatible | `colListadoTarimas` | Visible si excedente. |
-| `Tarimas[].ExcedenteFondo` | Numero compatible | `colListadoTarimas` | Visible si excedente. |
-| `ConsiderarAlturaMaxMonta` | Booleano | `colSEL_Draft` | Criterio de niveles. |
-| `ConsiderarAlturaNave` | Booleano | `colSEL_Draft` | Criterio de niveles. |
-| `AdjuntarImagenLayout` | Booleano | `colSEL_Draft` | Adjuntos viven en `Cotizaciones 2026`. |
-| `ExisteDefCliente` | Booleano | `colSEL_Draft` | Habilita comentarios. |
+### `Sistema Elementos Seguridad`
 
-### Dinamico (`DIN`) y Pushback (`PBK`)
+| Columna | Tipo SharePoint recomendado | Observaciones |
+| --- | --- | --- |
+| Columnas base de lista hija | Ver seccion anterior | Requeridas. |
+| `Elemento` | Texto | Elemento de seguridad seleccionado o capturado. |
+| `Comentarios` | Texto multilinea | Comentarios o especificacion. |
 
-| Campo payload / local | Tipo recomendado | Coleccion | Observaciones |
-| --- | --- | --- | --- |
-| `FrentesBuscados` | Numero compatible | `colDIN_Draft` / `colPBK_Draft` | Configuracion del rack. |
-| `FondosBuscados` | Numero compatible | `colDIN_Draft` / `colPBK_Draft` | Configuracion del rack. |
-| `NivelesBuscados` | Numero compatible | `colDIN_Draft` / `colPBK_Draft` | Configuracion del rack. |
-| `TipoRodamiento` | Opcion | `colDIN_Draft` / `colPBK_Draft` | `Rodillo 2.5`, `Rodillo 1.9`, `Rodillo 2.5 fácil limpieza`, `Rodillo 1.9 fácil limpieza`, `Llantas`, `Por cálculo`. |
-| `MetodoCalculoEntrecentros` | Opcion | `colDIN_Draft` / `colPBK_Draft` | `Manual`, `Por cálculo`. |
-| `EntrecentrosManual` | Numero compatible | `colDIN_Draft` / `colPBK_Draft` | Solo si metodo manual. |
-| `UtilizarRodamientoAltoImpacto` | Booleano | `colDIN_Draft` / `colPBK_Draft` | Toggle. |
-| `EspecificacionRodamientoAltoImpacto` | Texto multilinea | `colDIN_Draft` / `colPBK_Draft` | Visible si toggle activo. |
-| `Tarimas[]` | Ver campos de Selectivo | `colListadoTarimas` | Misma tabla compartida. |
+### `Sistema Piezas Especiales`
 
-### Drive In (`DRV`)
+| Columna | Tipo SharePoint recomendado | Observaciones |
+| --- | --- | --- |
+| Columnas base de lista hija | Ver seccion anterior | Requeridas. |
+| `Pieza` | Texto | Pieza especial. |
+| `Comentarios` | Texto multilinea | Comentarios o especificacion. |
 
-| Campo payload / local | Tipo recomendado | Coleccion | Observaciones |
-| --- | --- | --- | --- |
-| `FrentesBuscados` | Numero compatible | `colDRV_Draft` | Configuracion del rack. |
-| `FondosBuscados` | Numero compatible | `colDRV_Draft` | Configuracion del rack. |
-| `NivelesBuscados` | Numero compatible | `colDRV_Draft` | Configuracion del rack. |
-| `TipoCapturaMontacargas` | Opcion | `colDRV_Draft` | `Medidas`, `Modelo`. |
-| `AlturaCabinaMontacargas` | Numero compatible | `colDRV_Draft` | Visible si tipo captura = `Medidas`. |
-| `AnchoTotalMontacargas` | Numero compatible | `colDRV_Draft` | Visible si tipo captura = `Medidas`. |
-| `AnchoMastilMontacargas` | Numero compatible | `colDRV_Draft` | Visible si tipo captura = `Medidas`. |
-| `ModeloMontacargas` | Texto | `colDRV_Draft` | Visible si tipo captura = `Modelo`. |
-| `Tarimas[]` | Ver campos de Selectivo | `colListadoTarimas` | Misma tabla compartida. |
+### `Sistema Proveedores Externos`
 
-### Cantilever (`CAN`)
+| Columna | Tipo SharePoint recomendado | Observaciones |
+| --- | --- | --- |
+| Columnas base de lista hija | Ver seccion anterior | Requeridas. |
+| `Proveedor` | Texto | Nombre del proveedor. |
+| `Alcance` | Texto multilinea | Que suministra o que queda fuera del alcance FDI. |
 
-| Campo payload / local | Tipo recomendado | Coleccion | Observaciones |
-| --- | --- | --- | --- |
-| `TipoProducto` | Texto | `colCAN_Draft` | Texto abierto. |
-| `LongitudCarga` | Numero compatible | `colCAN_Draft` | Capturado como texto. |
-| `SeccionCarga` | Numero compatible | `colCAN_Draft` | Seccion, diametro o ancho. |
-| `PesoCarga` | Numero compatible | `colCAN_Draft` | Peso por pieza o nivel. |
-| `CantidadPorNivel` | Numero compatible | `colCAN_Draft` | Por nivel de brazos. |
-| `TipoGondola` | Opcion | `colCAN_Draft` | `Góndola sencilla`, `Góndola doble`. |
+### `Sistema Listado Piezas`
 
-### Mezzanine (`MEZ`)
+| Columna | Tipo SharePoint recomendado | Observaciones |
+| --- | --- | --- |
+| Columnas base de lista hija | Ver seccion anterior | Requeridas. |
+| `Pieza` | Texto | Pieza solicitada por el cliente o usuario. |
+| `Cantidad` | Numero compatible | Si se captura cantidad. |
+| `Comentarios` | Texto multilinea | Comentarios de la pieza. |
 
-| Campo payload / local | Tipo recomendado | Coleccion | Observaciones |
-| --- | --- | --- | --- |
-| `Productos[].TipoProducto` | Texto | `colMEZ_Productos` | Tabla de productos. |
-| `Productos[].LargoProducto` | Numero compatible | `colMEZ_Productos` | Capturado como texto. |
-| `Productos[].AnchoProducto` | Numero compatible | `colMEZ_Productos` | Capturado como texto. |
-| `Productos[].AltoProducto` | Numero compatible | `colMEZ_Productos` | Capturado como texto. |
-| `Productos[].PesoProducto` | Numero compatible | `colMEZ_Productos` | Capturado como texto. |
-| `Productos[].CantidadPorNivel` | Numero compatible | `colMEZ_Productos` | Capturado como texto. |
-| `AlturaRecomendadaEntrepiso` | Numero compatible | `colMEZ_Draft` | Valor default actual `2.4`. |
-| `CantidadEntrepisos` | Numero compatible | `colMEZ_Draft` | Capturado como texto. |
-| `RequiereElevador` | Booleano | `colMEZ_Draft` | Toggle. |
-| `ElevadorSpec` | Texto multilinea | `colMEZ_Draft` | Visible si requiere elevador. |
-| `TipoPiso` | Opcion | `colMEZ_Draft` | `Rejilla Irving`, `MDF`. |
-| `UsaCarrito` | Booleano | `colMEZ_Draft` | Toggle. |
-| `MedidasCarrito` | Texto | `colMEZ_Draft` | Visible si usa carrito. |
-| `NumeroRuedas` | Numero compatible | `colMEZ_Draft` | Visible si usa carrito. |
-| `TipoRueda` | Texto | `colMEZ_Draft` | Visible si usa carrito. |
-| `MedidaRueda` | Texto | `colMEZ_Draft` | Visible si usa carrito. |
-| `PesoCarrito` | Numero compatible | `colMEZ_Draft` | Visible si usa carrito. |
-| `RequiereEscaleras` | Booleano | `colMEZ_Draft` | Toggle. |
-| `AnchoPasilloPickeo` | Numero compatible | `colMEZ_Draft` | Sin columna directa comun. |
+## Patron de persistencia esperado
 
-### Carton Flow (`CFL`)
+Al guardar la cotizacion desde `scrFDI`, el Patch debe seguir este orden:
 
-| Campo payload / local | Tipo recomendado | Coleccion | Observaciones |
-| --- | --- | --- | --- |
-| `Productos[].TipoProducto` | Texto | `colCFL_Productos` | Tabla de productos. |
-| `Productos[].LargoProducto` | Numero compatible | `colCFL_Productos` | Capturado como texto. |
-| `Productos[].AnchoProducto` | Numero compatible | `colCFL_Productos` | Capturado como texto. |
-| `Productos[].AltoProducto` | Numero compatible | `colCFL_Productos` | Capturado como texto. |
-| `Productos[].PesoProducto` | Numero compatible | `colCFL_Productos` | Capturado como texto. |
-| `Productos[].CantidadPorNivel` | Numero compatible | `colCFL_Productos` | Capturado como texto. |
-| `FrentesBuscados` | Numero compatible | `colCFL_Draft` | Configuracion del rack. |
-| `FondosBuscados` | Numero compatible | `colCFL_Draft` | Configuracion del rack. |
-| `NivelesBuscados` | Numero compatible | `colCFL_Draft` | Configuracion del rack. |
-| `TipoRodamiento` | Opcion | `colCFL_Draft` | `Rodillo de 3/4`, `Rodajas`. |
-| `MetodoCalculoEntrecentros` | Opcion | `colCFL_Draft` | `Manual`, `Por cálculo`. |
-| `EntrecentrosManual` | Numero compatible | `colCFL_Draft` | Solo si metodo manual. |
-| `AnchoPasilloPickeo` | Numero compatible | `colCFL_Draft` | Sin columna directa comun. |
+1. Guardar o actualizar `Cotizaciones 2026`.
+2. Crear una fila en `Sistemas por cotización` por cada sistema capturado.
+3. Crear o actualizar una fila en la lista de detalle `Sistema <Tipo>` con los
+   campos escalares del draft local.
+4. Guardar cada tabla repetible con `ForAll(...)` hacia su lista hija compartida,
+   usando `SistemaCotizaciónID` para relacionar cada renglon con su sistema.
+5. Si se edita una cotizacion existente, reemplazar o actualizar renglones hijos
+   por `SistemaCotizaciónID` y `RowId` para no mezclar datos entre sistemas.
 
-### Mezzanine Limpio (`MZL`)
+Las colecciones draft locales (`colSEL_Draft`, `colDIN_Draft`, `colPBK_Draft`,
+etc.) siguen siendo correctas para la captura en pantalla. SharePoint solo debe
+recibir datos en el guardado final.
 
-| Campo payload / local | Tipo recomendado | Coleccion | Observaciones |
-| --- | --- | --- | --- |
-| `CantidadPisos` | Numero compatible | `colMZL_Draft` | Capturado como texto. |
-| `CargaPorM2` | Numero compatible | `colMZL_Draft` | Capturado como texto. |
-| `EsModulado` | Booleano | `colMZL_Draft` | Si es true muestra zona/productos. |
-| `ZonaModulada` | Texto multilinea | `colMZL_Draft` | Visible si modulado. |
-| `UsaTarimas` | Booleano | `colMZL_Draft` | Si es true muestra tabla de tarimas. |
-| `RequiereElevador` | Booleano | `colMZL_Draft` | Toggle. |
-| `ElevadorSpec` | Texto multilinea | `colMZL_Draft` | Visible si requiere elevador. |
-| `TipoPiso` | Opcion | `colMZL_Draft` | `Rejilla Irving`, `MDF`. |
-| `UsaCarrito` | Booleano | `colMZL_Draft` | Toggle. |
-| `MedidasCarrito` | Texto | `colMZL_Draft` | Visible si usa carrito. |
-| `NumeroRuedas` | Numero compatible | `colMZL_Draft` | Visible si usa carrito. |
-| `TipoRueda` | Texto | `colMZL_Draft` | Visible si usa carrito. |
-| `MedidaRueda` | Texto | `colMZL_Draft` | Visible si usa carrito. |
-| `PesoCarrito` | Numero compatible | `colMZL_Draft` | Visible si usa carrito. |
-| `RequiereEscaleras` | Booleano | `colMZL_Draft` | Toggle. |
-| `MetodoSeparacionColumnas` | Opcion | `colMZL_Draft` | `Manual`, `Por cálculo`. |
-| `SeparacionColumnasManual` | Numero compatible | `colMZL_Draft` | Visible si separacion manual. |
-| `Productos[]` | Ver campos de Mezzanine | `colMZL_Productos` | Visible si `EsModulado`. |
-| `Tarimas[]` | Ver campos de Selectivo | `colListadoTarimas` | Visible si `UsaTarimas`. |
-| `AnchoPasilloPickeo` | Numero compatible | `colMZL_Draft` | Sin columna directa comun. |
+## Indices recomendados
 
-## Colecciones compartidas
+Indexar estas columnas antes de cargar datos:
 
-| Coleccion | Campos | Tipo recomendado | Uso |
-| --- | --- | --- | --- |
-| `colListadoPiezas` | `RowId`, `SistemaId`, `Pieza`, `Comentarios` | GUID, Numero, Texto, Texto multilinea | Listado de piezas por sistema. |
-| `colListadoTarimas` | `RowId`, `SistemaId`, `Tipo`, `Peso`, `Alto`, `Frente`, `Fondo`, `HuellaTarima`, `Excedente`, `ExcedenteFrente`, `ExcedenteFondo` | GUID, Numero, Texto, Numero compatible, Booleano | Tarimas por sistema. |
-| `colElementoSeguridad` | `RowId`, `SistemaId`, `Pieza`, `Comentario` | GUID, Numero, Texto, Texto multilinea | Elementos de seguridad. |
-| `colPiezasEspeciales` | `RowId`, `SistemaId`, `Pieza`, `Comentario` | GUID, Numero, Texto, Texto multilinea | Piezas especiales. |
-| `colProveedoresExternos` | `RowId`, `SistemaId`, `Proveedor`, `Alcance` | GUID, Numero, Texto, Texto multilinea | Proveedores externos. |
-| `colListadoColores` | `RowId`, `SistemaId`, `Pieza`, `Color` | GUID, Numero, Texto, Texto | Colores por pieza. `Color` viene del catalogo local `colColores`. |
+| Lista | Columnas a indexar |
+| --- | --- |
+| `Sistemas por cotización` | `CotizaciónID`, `Folio`, `TipoKey` |
+| Listas `Sistema <Tipo>` | `CotizaciónID`, `SistemaCotizaciónID`, `Folio`, `TipoKey` |
+| Listas hijas compartidas | `CotizaciónID`, `SistemaCotizaciónID`, `TipoKey`, `Folio` |
 
-## Recomendacion de carga inicial
+El indice mas importante es `SistemaCotizaciónID` en las listas hijas. Sin ese
+lookup, no se puede distinguir correctamente entre dos sistemas del mismo tipo
+en la misma cotizacion.
 
-1. Mantener `PayloadSistemaJson` en todas las listas de detalle nuevas.
-2. Crear primero `Sistemas por cotización`; todas las listas de detalle dependen de ella.
-3. Crear las listas pendientes con las columnas comunes de este documento.
-4. No crear columnas propias antes de confirmar si se quieren fuera del payload.
-5. Si se elige tipo `Numero` para medidas/costos, planear cambio en Power Apps para convertir strings con `Value(...)` en el Patch final.
-6. Despues de crear una lista nueva, agregar el datasource en Power Apps Studio y luego implementar el Patch final correspondiente. No editar el `.msapp` a mano para conectar fuentes nuevas.
+## Estado de implementacion en la app
+
+Este documento describe el esquema SharePoint recomendado para carga y
+persistencia final. La app actual ya captura en draft local y tiene persistencia
+parcial para listas existentes como `Sistema selectivo`, `Sistema Otro` y la
+lista puente. Para usar este esquema completo se requiere agregar las listas
+como datasources en Power Apps y ajustar el Patch final para crear registros en
+las listas de detalle y listas hijas compartidas.
