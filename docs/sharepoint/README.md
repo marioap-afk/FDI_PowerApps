@@ -44,3 +44,8 @@ El script es de solo lectura. No usa `Remove-PnPList`, `Remove-PnPField`, `Set-P
 - `sharepoint-audit.md`
 - `delete-candidates.md`
 
+## Referencias manuales
+
+- `FDI_System_Lists_Field_Reference.md`: campos, listas, componentes/colecciones
+  y tipos de dato recomendados para cargar o crear las listas SharePoint de los
+  sistemas de `scrFDI`.
