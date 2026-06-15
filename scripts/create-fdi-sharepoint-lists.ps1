@@ -4,9 +4,10 @@
   según docs/sharepoint/FDI_System_Lists_Field_Reference.md.
 
 .DESCRIPTION
-  Idempotente: crea lo que falte y omite lo que ya existe. Los campos "Número compatible"
-  del doc se crean como Texto (compatibilidad con el draft). Los lookups apuntan a las
-  listas 'Cotizaciones' (padre) y 'Sistemas por cotización' (puente).
+  Idempotente: crea lo que falte y omite lo que ya existe. DECISIÓN: las medidas se
+  crean como Texto (no se fijan unidades; el usuario incluye la unidad en el valor).
+  Solo 'SistemaID' y 'Orden' (internos de la app) son Number. Los lookups apuntan a
+  las listas 'Cotizaciones' (padre) y 'Sistemas por cotización' (puente).
 
   NO crea ni borra la lista padre 'Cotizaciones' (tiene su propio esquema y la usa la app).
   Sí puede crear/recrear el puente y las listas de sistemas.

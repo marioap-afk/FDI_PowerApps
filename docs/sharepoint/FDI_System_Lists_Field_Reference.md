@@ -34,7 +34,7 @@ Listado de piezas) van en **listas hijas**. `PayloadSistemaJson` queda **opciona
 | Booleano | Sí/No | Toggles del flujo. |
 | Opción | Choice | Conjunto de valores controlado. |
 | Lookup | Lookup | Relación a otra lista. |
-| Número compatible | Una línea de texto | Recomendado mientras el draft guarde números como texto; migrable a `Número` si el Patch convierte con `Value(...)`. |
+| Número compatible | Una línea de texto | **Decisión:** las medidas se guardan como **texto** (no se fija una unidad estándar; el usuario incluye la unidad en el valor). **No** migrar a `Número` nativo salvo que se decida fijar unidades por campo. Solo `SistemaID` y `Orden` (valores internos de la app) son `Número`. |
 
 ## Bloques de columnas reutilizables
 
