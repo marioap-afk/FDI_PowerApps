@@ -17,14 +17,30 @@
   - La lista padre 'Cotizaciones' debe existir en el sitio.
   - Permisos para crear listas/columnas en el sitio.
 
+.PERMISOS / CONEXIÓN  (PnP.PowerShell 2.x ya NO trae app por defecto)
+  El primer login pide iniciar sesión y CONSENTIR permisos (a veces requiere admin).
+  Registra UNA SOLA VEZ tu propia app de Entra ID y luego conéctate con su ClientId:
+
+    Register-PnPEntraIDAppForInteractiveLogin `
+      -ApplicationName "FDI-PnP-Provisioning" `
+      -Tenant "TENANT.onmicrosoft.com" -Interactive
+    # te devuelve un ClientId (GUID). Consiente los permisos de SharePoint cuando lo pida.
+
+  Permisos que pedirá (delegados; actúas con TU usuario): SharePoint AllSites.FullControl
+  (crear listas/columnas) + Graph User.Read básico. Es un consentimiento único.
+
 .EJEMPLO
-  ./create-fdi-sharepoint-lists.ps1 -Url "https://TENANT.sharepoint.com/sites/FDI"
-  ./create-fdi-sharepoint-lists.ps1 -Url "..." -DropExisting   # borra y recrea las listas de sistemas (NO el padre)
-  ./create-fdi-sharepoint-lists.ps1 -Url "..." -DryRun         # solo imprime, no crea nada
+  ./create-fdi-sharepoint-lists.ps1 -Url "https://TENANT.sharepoint.com/sites/FDI" -ClientId "<GUID>" -DryRun
+  ./create-fdi-sharepoint-lists.ps1 -Url "..." -ClientId "<GUID>"                  # crear
+  ./create-fdi-sharepoint-lists.ps1 -Url "..." -ClientId "<GUID>" -DeviceLogin     # si no abre navegador
+  ./create-fdi-sharepoint-lists.ps1 -Url "..." -ClientId "<GUID>" -DropExisting    # recrea listas de sistemas (NO el padre)
 #>
 [CmdletBinding()]
 param(
   [Parameter(Mandatory = $true)][string]$Url,
+  [string]$ClientId,
+  [string]$Tenant,
+  [switch]$DeviceLogin,
   [switch]$DropExisting,
   [switch]$DryRun,
   [string]$ParentList = "Cotizaciones",
@@ -210,7 +226,15 @@ $all = @($bridge) + $detalle + $hijas
 
 # ---------- ejecución ----------
 Write-Host "Conectando a $Url ..." -ForegroundColor Cyan
-Connect-PnPOnline -Url $Url -Interactive
+$connect = @{ Url = $Url }
+if ($ClientId) { $connect.ClientId = $ClientId }
+if ($Tenant)   { $connect.Tenant   = $Tenant }
+if ($DeviceLogin) { $connect.DeviceLogin = $true } else { $connect.Interactive = $true }
+if (-not $ClientId) {
+  Write-Warning "Sin -ClientId. PnP.PowerShell 2.x requiere una app de Entra registrada (ver .PERMISOS en el encabezado)."
+  Write-Warning "Si falla, corre primero: Register-PnPEntraIDAppForInteractiveLogin -ApplicationName 'FDI-PnP-Provisioning' -Tenant '<tenant>.onmicrosoft.com' -Interactive"
+}
+Connect-PnPOnline @connect
 
 if (-not (Get-PnPList -Identity $ParentList -ErrorAction SilentlyContinue)) {
   throw "La lista padre '$ParentList' no existe en el sitio. Créala primero (tiene su propio esquema)."
