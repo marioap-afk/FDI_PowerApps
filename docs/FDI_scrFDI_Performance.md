@@ -5,6 +5,23 @@
 > Hermano de [FDI_MisCotizaciones_Performance.md](FDI_MisCotizaciones_Performance.md), pero para la
 > pantalla de captura. **Causa de fondo: la pantalla es estructuralmente demasiado grande.**
 
+## Estado (tras `19d4409` "Optimiza entradas de captura FDI")
+
+Codex aplicó los **quick wins**; la **reestructuración sigue pendiente**. Comparado `f214298` → `19d4409`:
+
+| Ítem | Estado | Evidencia |
+| --- | --- | --- |
+| **R6** DelayOutput en entradas | ✅ **Hecho** | `DelayOutput=true`: **7 → 133** text inputs |
+| **R3** `Concurrent` en OnVisible | ✅ **Parcial** | `Concurrent(`: **0 → 1** (línea 31 de OnVisible) |
+| **R1** partir la pantalla | ❌ **Pendiente** | **9 → 9** pantallas; scrFDI **1,412 → 1,412** controles |
+| **R2** cachear el borrador | ❌ **Pendiente** | siguen **~689 `LookUp(colXXX_Draft, …)`** campo por campo |
+| **R3** quitar el `CountRows(Filter)` O(n²) | ❌ **Pendiente** | sigue en `OnVisible` (`TipoIndex: CountRows(Filter(colTabs, …))`) |
+| **R5** galerías | ❌ **Pendiente** | sin cambios |
+
+> **Lectura:** se sentirá algo **más ágil al teclear** (DelayOutput) y un poco mejor la carga
+> (Concurrent), pero **la carga inicial pesada (1,412 controles) y el lag al cambiar de campo
+> (LookUp sin cachear) siguen igual**. El salto grande está en **R1** y **R2**.
+
 ## 1. Diagnóstico medido (números reales de `scrFDI`)
 
 | Métrica | Valor | Referencia sana |
@@ -112,14 +129,14 @@ Mover los `CountRows`/`LookUp` por renglón a un cálculo **único** (colección
 
 ## 4. Esfuerzo vs impacto
 
-| Acción | Impacto | Esfuerzo | Cuándo |
-| --- | --- | --- | --- |
-| **R2** cachear borrador | 🔴 Alto (lag al escribir/cambiar) | Medio | Primero (independiente de R1) |
-| **R6** DelayOutput + settings | 🟠 Medio | Bajo | Quick win inmediato |
-| **R3** OnVisible (Concurrent + O(n²)) | 🟠 Medio (carga) | Bajo-Medio | Quick win |
-| **R4** delegación | 🟠 Medio (apertura) | Medio | Con cambio de schema |
-| **R1** partir pantalla | 🔴 Alto (carga + lag) | **Alto** | Estructural — planear bien |
-| **R5** galerías | 🟠 Medio | Medio | Con R1 |
+| Acción | Impacto | Esfuerzo | Cuándo | Estado |
+| --- | --- | --- | --- | --- |
+| **R2** cachear borrador | 🔴 Alto (lag al escribir/cambiar) | Medio | Primero (independiente de R1) | ❌ pendiente |
+| **R6** DelayOutput + settings | 🟠 Medio | Bajo | Quick win inmediato | ✅ DelayOutput hecho (`19d4409`); faltan settings (Delayed load / Explicit column selection) |
+| **R3** OnVisible (Concurrent + O(n²)) | 🟠 Medio (carga) | Bajo-Medio | Quick win | ✅ Concurrent parcial; ❌ falta quitar el O(n²) |
+| **R4** delegación | 🟠 Medio (apertura) | Medio | Con cambio de schema | ❌ pendiente |
+| **R1** partir pantalla | 🔴 Alto (carga + lag) | **Alto** | Estructural — planear bien | ❌ pendiente (el mayor salto) |
+| **R5** galerías | 🟠 Medio | Medio | Con R1 | ❌ pendiente |
 
 **Orden sugerido:** R6 + R3 (quick wins) → R2 (gran alivio de lag, sin reestructurar) → **R1**
 (reestructura, el mayor salto) → R4/R5.
