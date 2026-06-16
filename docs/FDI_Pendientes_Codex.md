@@ -19,8 +19,8 @@
 | # | Pendiente | Prioridad | Detalle | Estado |
 | --- | --- | --- | --- | --- |
 | 1 | **Regenerar el `.msapp` desde Studio** (Guardar/Publicar). Hoy `Src/` tiene el split (18 pantallas) pero `Controls/` sigue en la versión vieja (9). Hasta resolverlo, el split / DelayOutput / fix de correo **pueden no estar vivos en runtime** y el último paquete **no es desplegable**. | 🔴 Crítica | [FDI_scrFDI_Performance.md](FDI_scrFDI_Performance.md) §⚠️ CRÍTICO | ❌ abierto |
-| 2 | **`scrCorreoPlantilla`**: sigue usando la colección vieja `MyPeople`; alinear a `Destinatario`/`CC` con esquema proyectado (como ya se hizo en `scrCorreo`). | 🟠 Media | [FDI_Correo_Bug_Report.md](FDI_Correo_Bug_Report.md) §3 / tabla §5 (ítem 4) | ❌ abierto |
-| 3 | **Confirmar en Studio** que el correo abre/envía sin errores y que `varEnviando` se resetea en `OnFailure` del form. | 🟠 Media | [FDI_Correo_Bug_Report.md](FDI_Correo_Bug_Report.md) §2 / tabla §5 (ítem 3) | ⏳ verificar |
+| 2 | **`scrCorreoPlantilla`**: sigue usando la colección vieja `MyPeople`; alinear a `Destinatario`/`CC` con esquema proyectado (como ya se hizo en `scrCorreo`). | 🟠 Media | [FDI_Correo_Bug_Report.md](FDI_Correo_Bug_Report.md) §3 / tabla §5 (ítem 4) | ✅ fuente actualizada; falta Guardar/Publicar en Studio |
+| 3 | **Confirmar en Studio** que el correo abre/envía sin errores y que `varEnviando` se resetea en `OnFailure` del form. | 🟠 Media | [FDI_Correo_Bug_Report.md](FDI_Correo_Bug_Report.md) §2 / tabla §5 (ítem 3) | ✅ fuente confirmada; ⏳ probar en Studio |
 | 4 | **Rendimiento R2** — cachear el borrador activo en un registro (`varDraftActual`) y enlazar los campos a él: ~689 `LookUp(colXXX_Draft,…)` → ~1 por pantalla. | 🔴 Alta | [FDI_scrFDI_Performance.md](FDI_scrFDI_Performance.md) §R2 | ❌ abierto |
 | 5 | **Rendimiento R5** — galerías: precalcular `CountRows`/`LookUp` por fila en un cálculo único. | 🟠 Media | [FDI_scrFDI_Performance.md](FDI_scrFDI_Performance.md) §R5 | ❌ abierto |
 | 6 | **Rendimiento R4** — delegación del `LookUp` de borrador (`'Created By'.Email` / `Estado.Value` no delegables). | 🟠 Media | [FDI_scrFDI_Performance.md](FDI_scrFDI_Performance.md) §R4 | ❌ abierto |
@@ -30,5 +30,7 @@
 ## Cerrados recientemente (referencia)
 
 - ✅ Fix people picker `scrCorreo` (esquema proyectado + `Collect(CC, ForAll(...))`) — `f214298`.
+- ✅ Fix people picker `scrCorreoPlantilla` (`MyPeople` → `Destinatario`, esquema `{DisplayName, UserPrincipalName, Mail}`) — fuente lista; falta compilar por Studio.
+- ✅ `CotizaciónForm.OnFailure` contiene `Set(varEnviando, false)` y `OnSuccess` mantiene `Navigate(scrCorreo, ScreenTransition.None)` — fuente confirmada.
 - ✅ R6 DelayOutput (7→133) y R3 `Concurrent`/`TipoIndex` O(n²) — `19d4409`/`3bb1391` *(en `Src/`; falta compilar por Studio, ver #1)*.
 - ✅ Split de captura por sistema **en `Src/`** — `d5691a2` *(falta compilar por Studio, ver #1)*.

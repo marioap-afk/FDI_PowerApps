@@ -20,8 +20,8 @@ Codex aplicó **`f214298` "Corrige people picker de correo FDI"**. Verificado en
 
 - ✅ **§1.1 esquema unificado** — ahora usa `With({u: UsuariosdeOffice365.UserProfile(...)}, {DisplayName, UserPrincipalName, Mail})` para proyectar a un esquema consistente.
 - ✅ **§1.2 `Collect` dentro de `ForAll`** — ahora es `Collect(CC, ForAll(...))` (forma basada en conjuntos).
-- ⏳ **§2 navegación** — depende de que `scrCorreo` quede sin errores; **confirmar en Studio** que el correo abre/envía y que `varEnviando` se resetea en `OnFailure`.
-- ❌ **§3 `scrCorreoPlantilla` SIGUE pendiente** — aún referencia `MyPeople` (12 ocurrencias en `19d4409`). **No** se alineó con `Destinatario`/`CC`.
+- ✅ **§2 navegación en fuente** — `CotizaciónForm.OnFailure` resetea `varEnviando` y `OnSuccess` mantiene `Navigate(scrCorreo, ScreenTransition.None)`. **Pendiente:** confirmar en Studio que el correo abre/envía sin X rojas.
+- ✅ **§3 `scrCorreoPlantilla` fuente actualizada** — ya no referencia `MyPeople`; usa `Destinatario` con esquema proyectado `{DisplayName, UserPrincipalName, Mail}` y limpia `Destinatario`/`CC` en `OnVisible`.
 
 **Salvedad:** no corro el analizador offline; "cero X rojas" se confirma abriendo en Studio. Los
 patrones de causa raíz (§1) ya están resueltos en la fuente.
@@ -115,10 +115,9 @@ Collect(CC,
 crea (ahora usa `Destinatario`/`CC`). Codex renombró en una pantalla pero no en la otra.
 **Revisar** si `scrCorreoPlantilla` quedó a medias o usa su propia colección a propósito.
 
-> **⏳ Pendiente confirmado:** tras `f214298` (verificado en `19d4409`), `scrCorreoPlantilla` **sigue
-> con 12 referencias a `MyPeople`**. Si `MyPeople` ya no se inicializa en ningún `OnVisible`, este
-> picker se queda vacío/inconsistente. **Acción Codex:** alinear `scrCorreoPlantilla` al mismo patrón
-> (`Destinatario`/`CC` con esquema proyectado), o documentar por qué usa su propia colección.
+> **Estado fuente:** `scrCorreoPlantilla` ya usa `Destinatario` en lugar de `MyPeople`, conserva el
+> esquema proyectado `{DisplayName, UserPrincipalName, Mail}` y limpia `Destinatario`/`CC` en
+> `OnVisible`. Falta abrir en Studio, Guardar/Publicar y validar que no haya X rojas.
 
 ---
 
@@ -139,6 +138,6 @@ crea (ahora usa `Destinatario`/`CC`). Codex renombró en una pantalla pero no en
 | --- | --- | --- | --- | --- |
 | 1 | Unificar esquema de `Collect` (proyectar a `{DisplayName, UserPrincipalName, Mail}`) en los 3 puntos | `scrCorreo` (OnVisible, search OnSelect, browse gallery) — `Destinatario` y `CC` | 🔴 Alta | ✅ `f214298` |
 | 2 | Quitar `Collect` dentro de `ForAll`; usar `Collect(CC, ForAll(...))` | `scrCorreo.OnVisible` | 🔴 Alta | ✅ `f214298` |
-| 3 | Resetear `varEnviando` en `OnFailure`; confirmar `Navigate(scrCorreo)` en `OnSuccess` | `scrFDI` (botón Enviar solicitud / `CotizaciónForm`) | 🔴 Alta | ⏳ confirmar en Studio |
-| 4 | **Alinear `scrCorreoPlantilla` (`MyPeople` → `Destinatario`/`CC`)** | `scrCorreoPlantilla` | 🟠 Media | ❌ **pendiente** (12 refs a `MyPeople` en `19d4409`) |
+| 3 | Resetear `varEnviando` en `OnFailure`; confirmar `Navigate(scrCorreo)` en `OnSuccess` | `scrFDI` (botón Enviar solicitud / `CotizaciónForm`) | 🔴 Alta | ✅ fuente confirmada; ⏳ probar en Studio |
+| 4 | **Alinear `scrCorreoPlantilla` (`MyPeople` → `Destinatario`/`CC`)** | `scrCorreoPlantilla` | 🟠 Media | ✅ fuente actualizada; ⏳ probar en Studio |
 | 5 | Reabrir/reguardar `scrFDI` en Studio para re-normalizar `Controls/508.json` (`%RESERVED%`) | `scrFDI` | 🟡 Baja | ⏳ pendiente |
