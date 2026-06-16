@@ -60,7 +60,9 @@ Cada lista declara abajo **qué bloques** incluye + sus columnas propias.
 | --- | --- | --- |
 | `Title` | Texto | Puede duplicar `NombreSistema`. |
 | `Tipo de diseño` | Opción | `Diseño`, `Listado de piezas`, `Planos/diseño de cliente`, `Pedido o cotización anterior`. |
-| `Número de pedido o cotización` | Texto | Para el método *Pedido o cotización anterior*. |
+| `Folio de cotización anterior` | Texto | Método *Pedido o cotización anterior*. Es una entrada distinta del folio de pedido; **pueden coexistir**. |
+| `Folio de pedido anterior` | Texto | Método *Pedido o cotización anterior*. Entrada distinta del folio de cotización; **pueden coexistir**. |
+| `Comentarios / alcance de la referencia` | Texto multilínea | Alcance/comentarios de la referencia anterior. |
 | `Acabado` | Opción | **Único selector de acabado.** Valores: `Pintado`, `Galvanizado en frío`, `Galvanizado en caliente`, `Pregalvanizado`. |
 | `Galvanizado` | Booleano | Derivado (reportes/Excel). `false` solo para `Pintado`. No se captura en UI. |
 | `Tipo de galvanizado` | Opción | Derivado. Vacío para `Pintado`; `Frío` / `Caliente` / `Pregalvanizado` según `Acabado`. No se captura en UI. |

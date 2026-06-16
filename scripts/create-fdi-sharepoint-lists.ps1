@@ -58,7 +58,9 @@ function Get-InternalName([string]$s) {
       [void]$sb.Append($c)
     }
   }
-  return ($sb.ToString() -replace '[^A-Za-z0-9]', '')
+  $name = ($sb.ToString() -replace '[^A-Za-z0-9]', '')
+  if ($name.Length -gt 32) { $name = $name.Substring(0, 32) }  # límite de internal name en SharePoint
+  return $name
 }
 
 # Definición compacta de columnas: T = Text|Note|Boolean|Number|Choice|Lookup
@@ -113,7 +115,9 @@ $TGAL = @("Frío", "Caliente", "Pregalvanizado")
 $MET  = @("Diseño", "Listado de piezas", "Planos/diseño de cliente", "Pedido o cotización anterior")
 $C = @(
   (Col "Tipo de diseño" "Choice" $MET),
-  (Col "Número de pedido o cotización" "Text"),
+  (Col "Folio de cotización anterior" "Text"),
+  (Col "Folio de pedido anterior" "Text"),
+  (Col "Comentarios / alcance de la referencia" "Note"),
   (Col "Acabado" "Choice" $ACAB),
   (Col "Galvanizado" "Boolean"),
   (Col "Tipo de galvanizado" "Choice" $TGAL),
