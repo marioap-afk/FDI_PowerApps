@@ -7,7 +7,7 @@ El flujo queda dividido en dos responsabilidades:
 - `scrFDI` guarda la solicitud, los sistemas y el detalle repetible en SharePoint.
 - `scrCorreo` envía un correo HTML editable usando el flujo `Correo_Teams_Solicitud_Cotización`.
 - `Creación_FDI` se dispara cuando `Cotizaciones 2026.Estado = "Sin asignar"` y `CarpetaCreada` no es verdadero.
-- La generación avanzada del Excel debe usar una plantilla base y un payload JSON multi-sistema.
+- La generación avanzada del Excel usa una plantilla base y un payload JSON multi-sistema construido desde listas normalizadas.
 
 ## Causa Raíz
 
@@ -18,7 +18,7 @@ La solicitud podía quedar incompleta porque las tablas repetibles de `scrFDI` v
 - `colElementoSeguridad`
 - `colListadoColores`
 
-Antes no se persistía un payload estructurado de esas tablas al crear el registro de `Sistema selectivo`. Eso impedía reconstruir todos los datos necesarios para cotizar una FDI con varios sistemas.
+Antes no se persistía el detalle normalizado de esas tablas al crear el registro de cada sistema. Eso impedía reconstruir todos los datos necesarios para cotizar una FDI con varios sistemas.
 
 También el correo recibía HTML, pero el flujo lo envolvía en `<p>...</p>`, lo que podía romper cuerpos ricos con tablas, vínculos o imágenes.
 
@@ -34,23 +34,23 @@ También el correo recibía HTML, pero el flujo lo envolvía en `<p>...</p>`, lo
 - `CotizaciónForm.OnFailure` muestra error y libera `varEnviando`.
 - `CotizaciónForm.OnSuccess`:
   - crea registros puente en `Sistemas por cotización`;
-  - guarda sistemas `SEL` y `OT`;
-  - guarda los datos principales de `SEL` en campos existentes de `Sistema selectivo`;
-  - deja resumen corto en `Piezas de usuario` y `Elementos de seguridad`;
+  - guarda el detalle de `SEL`, `DIN`, `PBK`, `DRV`, `CAN`, `MEZ`, `CFL`, `MZL` y `OT` en sus listas de SharePoint;
+  - guarda tablas repetibles en listas hijas por `SistemaCotizaciónID`;
+  - mantiene `PayloadSistemaJson` solo como espejo de compatibilidad para registros `SEL` legacy;
   - actualiza `Cotizaciones 2026.Estado` a `Sin asignar`;
   - limpia colecciones de captura al terminar.
 
-No se crearon columnas ni listas.
+Las listas y columnas vienen de `docs/sharepoint/FDI_System_Lists_Field_Reference.md`; la app no renombra columnas.
 
-### Nota de Compatibilidad para Generación
+### Fuente de Generación
 
-`Creación_FDI` sigue consumiendo `PayloadSistemaJson` para armar el payload global que recibe el Office Script. Para no romper la generación del FDI durante la migración a listas normalizadas, la decisión actual es mantener ese JSON en paralelo como espejo de compatibilidad del detalle de cada sistema.
+`Creación_FDI` arma el payload global leyendo las listas normalizadas:
 
-La fuente operativa de la app debe migrar a columnas y listas normalizadas, pero el flujo se mantiene estable mientras no se rehaga para leer directamente las listas de detalle e hijas. Cuando se migre `Creación_FDI`, este espejo podrá retirarse con una prueba completa de generación.
+- `Sistemas por cotización` define las instancias, orden y nombre de cada tab.
+- Las listas de detalle (`Sistema Selectivo`, `Sistema Dinámico`, etc.) aportan Bloque R/C/A y campos propios.
+- Las listas hijas (`Hija Tarimas`, `Hija Productos`, `Hija Colores`, etc.) se agrupan por `SistemaCotizaciónID`.
 
-```text
-PayloadSistemaJson
-```
+`PayloadSistemaJson` ya no es fuente del flujo. Queda únicamente como espejo temporal en `Sistema selectivo` para compatibilidad histórica.
 
 `Sistema selectivo.Lista de piezas` está exportado en `References/DataSources.json` como `type: string`, `format: uri`, por lo que no debe usarse para guardar JSON.
 
@@ -152,15 +152,14 @@ El script no modifica la plantilla original.
 3. Protección interna: continuar solo si `CarpetaCreada != true`.
 4. Crear/validar carpeta de año, carpeta de cotización y subcarpeta `Docs`.
 5. Leer `Sistemas por cotización` por `CotizaciónID`.
-6. Leer `Sistema selectivo` por `CotizaciónID`.
-7. Leer `Sistema Otro` por `CotizaciónID`.
-8. Armar sistemas `SEL` parseando `Sistema selectivo.PayloadSistemaJson`.
-9. Armar sistemas `OT` desde `Sistema Otro.HTML`.
-10. Armar `Payload_Global` con `{ cotizacion, sistemas }`.
-11. Copiar `/Recursos/FDI_Master.xlsx` a `Docs`.
-12. Ejecutar Office Script `scripts/office-scripts/fill-fdi-workbook.ts` sobre la copia.
-13. Copiar cotizador.
-14. Actualizar `Carpeta`, `FolderPath` y `CarpetaCreada` únicamente después de terminar la generación.
+6. Leer listas de detalle por `CotizaciónID`: `Sistema Selectivo`, `Sistema Dinámico`, `Sistema Pushback`, `Sistema Drive In`, `Sistema Cantiliver`, `Sistema Mezzanine`, `Sistema Carton Flow`, `Sistema Mezzanine Limpio` y `Sistema Otro`.
+7. Leer listas hijas por `CotizaciónID`: `Hija Listado Piezas`, `Hija Tarimas`, `Hija Productos`, `Hija Colores`, `Hija Elementos Seguridad`, `Hija Piezas Especiales` y `Hija Proveedores Externos`.
+8. Iterar `Sistemas por cotización`; para cada puente, localizar su detalle por `SistemaCotizaciónID` y anexar hijas por el mismo ID.
+9. Armar `Payload_Global` con `{ cotizacion, sistemas }`.
+10. Copiar `/Recursos/FDI_Master.xlsx` a `Docs`.
+11. Ejecutar Office Script `scripts/office-scripts/fill-fdi-workbook.ts` sobre la copia.
+12. Copiar cotizador.
+13. Actualizar `Carpeta`, `FolderPath` y `CarpetaCreada` únicamente después de terminar la generación.
 
 El flujo ya no actualiza ni copia `FDI_Master_Puente.xlsx`.
 
@@ -211,7 +210,6 @@ outputs('Payload_Global_JSON')
   - archivos en carpeta `Docs`;
   - parámetro nuevo del flujo de correo.
 - Implementar adjuntos requiere ampliar el contrato del flujo de correo.
-- Definir plantilla/formato para tipos de sistema distintos a `SEL`.
 - Validar si `Creación_FDI` debe dispararse antes o después de enviar correo. Actualmente se dispara al cerrar `scrFDI`, antes del correo.
 - Confirmar en Power Automate que el `file` dinámico de `FDI_Crear` resuelve correctamente en Excel Online Business.
 
@@ -221,8 +219,9 @@ El fixture `examples/fdi-sharepoint-records.sample.json` simula:
 
 - una cotización `Cotizaciones 2026`;
 - registros en `Sistemas por cotización`;
-- dos registros `Sistema selectivo` con `Lista_x0020_de_x0020_piezas` como string JSON;
-- un registro `Sistema Otro`.
+- registros de detalle normalizados;
+- registros de listas hijas agrupables por `SistemaCotizaciónID`;
+- compatibilidad con registros legacy `Sistema selectivo` que todavía tengan `PayloadSistemaJson`.
 
 Generar payload global:
 
