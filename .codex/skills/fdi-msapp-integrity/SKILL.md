@@ -64,6 +64,7 @@ python3 .codex/skills/fdi-msapp-integrity/validate_msapp.py <ruta.msapp>
 
 | # | Chequeo | Tipo | Qué atrapa |
 | --- | --- | --- | --- |
+| 0 | **`Src/*.pa.yaml` válido** (parsea + sin claves duplicadas) | **FAIL** | YAML que Studio **no puede abrir** (`PA1001 YamlInvalidSyntax`, p. ej. propiedad duplicada en un control tras el split) |
 | 1 | Todos los JSON internos parsean + `Header` coherente (DocVersion, MSAppStructureVersion) | FAIL | `.msapp` corrupto |
 | 2 | **`Src/` ↔ `Controls/`: mismo set de pantallas** | **FAIL** | pantallas en `Src/` no compiladas (split/alta de pantalla por round-trip) — *el caso que motivó esta skill* |
 | 3 | Conteo de controles por pantalla común sin divergencia gruesa (> 3×) | WARN | `Controls/` stale en una pantalla existente |

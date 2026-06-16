@@ -12,6 +12,10 @@ Salida: PASS/FAIL por chequeo. Exit code != 0 si hay algún FAIL (bloqueante).
 Los WARN no bloquean pero se reportan.
 """
 import io, os, re, sys, json, glob, zipfile, hashlib
+try:
+    import yaml  # PyYAML: para validar la sintaxis de Src/*.pa.yaml (lo que abre Studio)
+except Exception:
+    yaml = None
 
 REPO = "/workspaces/FDI_PowerApps"
 DEFAULT_MSAPP = f"{REPO}/CanvasApps/mapc_fdi_412ec_DocumentUri.msapp"
@@ -63,11 +67,47 @@ def controls_screens(zf):
                 out[tp.get("Name")] = cnt[0]
     return out
 
+def src_yaml_issues(zf):
+    """Parsea cada Src/*.pa.yaml y detecta errores de sintaxis y CLAVES DUPLICADAS
+    (la PaYaml de Studio rechaza claves repetidas; PyYAML las acepta, por eso se
+    revisan a mano con yaml.compose). Devuelve lista de (archivo, problema)."""
+    out = []
+    if yaml is None:
+        return [("(PyYAML no disponible)", "no se pudo validar la sintaxis de Src/")]
+    for n in zf.namelist():
+        if not (n.startswith("Src/") and n.endswith(".pa.yaml")):
+            continue
+        base = os.path.basename(n)
+        try:
+            node = yaml.compose(io.StringIO(zf.read(n).decode("utf-8", "replace")), Loader=yaml.SafeLoader)
+        except Exception as e:
+            out.append((base, f"parse error: {str(e).splitlines()[0][:120]}")); continue
+        def walk(nd):
+            if isinstance(nd, yaml.MappingNode):
+                seen = {}
+                for k, v in nd.value:
+                    key = getattr(k, "value", None); ln = k.start_mark.line + 1
+                    if key in seen: out.append((base, f"clave duplicada '{key}' (líneas {seen[key]} y {ln})"))
+                    else: seen[key] = ln
+                    walk(v)
+            elif isinstance(nd, yaml.SequenceNode):
+                for c in nd.value: walk(c)
+        walk(node)
+    return out
+
 def main():
     msapp = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_MSAPP
     print("="*64); print(f"FDI .msapp integrity — {os.path.basename(msapp)}"); print("="*64)
     raw, zf = load(msapp)
     names = zf.namelist()
+
+    # --- 0) CRÍTICO: Src/*.pa.yaml válido (lo que abre Power Apps Studio) ---
+    print("\n[0] Validez de Src/*.pa.yaml (lo que abre Studio)")
+    yi = src_yaml_issues(zf)
+    if not yi:
+        ok(f"{sum(n.startswith('Src/') and n.endswith('.pa.yaml') for n in names)} Src/*.pa.yaml válidos, sin claves duplicadas")
+    else:
+        for f_, msg in yi[:12]: fail(f"{f_}: {msg}")
 
     # --- 1) Todos los JSON internos parsean + Header coherente ---
     print("\n[1] Estructura interna")
