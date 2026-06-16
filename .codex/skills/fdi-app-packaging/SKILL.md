@@ -60,6 +60,13 @@ El repo puede estar en uno de dos formatos. Inspeccionar `Other/Customizations.x
 
 ## 3. Validaciones de integridad (obligatorias)
 
+0. **Integridad interna del `.msapp` (paso previo OBLIGATORIO)** — correr la skill
+   [[fdi-msapp-integrity]]: `python3 .codex/skills/fdi-msapp-integrity/validate_msapp.py`.
+   Si hay **FAIL** (p. ej. `Src/` ≠ `Controls/`: pantallas en la fuente que no están compiladas) →
+   **PARAR**. El `.msapp` **no es canónico** (producido por round-trip YAML sin guardar por Studio);
+   los cambios pueden no surtir efecto al importar. Pedir a Codex que **regenere el `.msapp` desde
+   Power Apps Studio** (Guardar/Publicar). **No empaquetar.** Un WARN de `AppVersion` repetida no
+   bloquea, pero se reporta.
 1. **CanvasApps y Workflows sincronizados**
    - `CanvasApps/`: `mapc_fdi_412ec_DocumentUri.msapp`, `_BackgroundImageUri`, `_AdditionalUris0_identity.json`.
    - `Workflows/`: cada `*.json` referenciado debe existir; child flow `Creación_FDI` con `<Subprocess>1</Subprocess>` en su `.json.data.xml` (o inline en customizations).
