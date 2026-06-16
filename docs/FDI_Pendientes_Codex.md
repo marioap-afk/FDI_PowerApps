@@ -28,6 +28,14 @@
 | 7 | **Permisos de usuario** — implementar el RBAC (lista `Usuarios` con auto-registro, matriz `Permisos`, `varCaps` multi-rol, gating, pantalla admin in-app). Backlog P1–P8. | 🟠 Media | [FDI_Permisos_Usuario_Design.md](FDI_Permisos_Usuario_Design.md) §6 | ❌ abierto (decisiones D1–D7 cerradas) |
 | 8 | **Trazabilidad de versión** — bumpear `<Version>`/`AppVersion` por export (se resuelve solo si #1 se hace por Studio). | 🟡 Baja | reportes de empaquetado | ⏳ |
 
+## Decisión de rendimiento (2026-06-16)
+
+El split (R1) **no mejoró mucho** el rendimiento percibido y **bajó la estética**. Diagnóstico: el
+cuello real es **R2** (los ~689 `LookUp(colXXX_Draft,…)` de hidratación), que **sigue pendiente**.
+**Decisión:** hacer **R2 primero** sobre el estado actual (con el split), **medir con el Monitor de
+Power Apps** (antes/después), y **recién entonces decidir** si se mantiene el split o se revierte a
+una sola pantalla. El split queda **en pausa de decisión** (no revertir ni pulir aún).
+
 ## Cerrados recientemente (referencia)
 
 - ✅ Fix people picker `scrCorreo` (esquema proyectado + `Collect(CC, ForAll(...))`) — `f214298`.
