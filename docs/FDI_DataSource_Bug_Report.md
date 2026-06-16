@@ -1,5 +1,11 @@
 # FDI — Bug: data source duplicado `Sistema selectivo` (404) rompe captura y botón Enviar
 
+> **✅ RESUELTO (2026-06-16, build `f8bd8ef`/`82558bd`).** El Monitor confirma que `cmpCarddrp.Items`
+> ya resuelve `Sistema Selectivo` (GUID **`49e4088a-4095-44e6-860d-fbdb57460fbc`**) → **HTTP 200**.
+> No quedan referencias a `'Sistema selectivo'` (minúscula) en `Src/`. El 404 desapareció.
+> **El botón Enviar AÚN falla, pero por OTRA causa** (campos requeridos vacíos): ver
+> [FDI_Form_CamposVacios_Bug_Report.md](FDI_Form_CamposVacios_Bug_Report.md).
+>
 > **Autor:** Claude Release. Diagnóstico sobre el Monitor de Power Apps (sesión del usuario,
 > 2026-06-16, build `31f15fb` con split + R2) + la fuente real del `.msapp`. **Arreglo: Codex
 > (re-apuntar fórmulas) + usuario (limpiar data source en Studio).**
