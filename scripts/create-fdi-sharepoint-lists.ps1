@@ -170,7 +170,7 @@ $drv = @(
 $can = @(
   (Col "Tipo producto" "Text"), (Col "Longitud carga" "Text"), (Col "Sección carga" "Text"),
   (Col "Peso carga" "Text"), (Col "Cantidad por nivel" "Text"),
-  (Col "Tipo góndola" "Choice" @("Góndola sencilla", "Góndola doble"))
+  (Col "Tipo góndola" "Choice" @("Góndola sencilla", "Góndola doble", "Ambas", "Por diseño"))
 )
 $carrito = @(
   (Col "Usa carrito" "Boolean"), (Col "Medidas carrito" "Text"), (Col "Número ruedas" "Text"),

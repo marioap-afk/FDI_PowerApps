@@ -199,7 +199,7 @@ no una tabla; por eso NO usa `Sistema Productos`).*
 | `Sección carga` | Número compatible | Sección / diámetro / ancho. |
 | `Peso carga` | Número compatible | Peso por pieza / por nivel. |
 | `Cantidad por nivel` | Número compatible | Cantidad por nivel de brazos. |
-| `Tipo góndola` | Opción | `Góndola sencilla`, `Góndola doble`. |
+| `Tipo góndola` | Opción | `Góndola sencilla`, `Góndola doble`, `Ambas`, `Por diseño`. |
 
 ### `Sistema Mezzanine` (`MEZ`)
 **Columnas = Bloque R + Bloque C + Bloque A-P + propias:** *(el producto va en `Sistema Productos`).*

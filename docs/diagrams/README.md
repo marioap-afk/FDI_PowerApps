@@ -25,7 +25,7 @@ diseno funcional y visual de la aplicacion Power Apps FDI.
 - `diseno-sistema-cantiliver.mmd`: estructura propuesta para la captura de un
   sistema cantiléver (cargas largas sobre brazos en voladizo). "Tarima" se cambia
   por "Carga / producto" (tipo abierto, medidas, peso, cantidad por nivel); la
-  "Configuracion del rack" solo captura gondola sencilla/doble (columnas, brazos,
+  "Configuracion del rack" solo captura el tipo de gondola (sencilla/doble/ambas/por diseño) (columnas, brazos,
   altura, base, voladizo e inclinacion los deriva ingenieria); sin seccion
   Montacargas. Destinado a una tab nueva.
 - `diseno-sistema-mezzanine.mmd`: estructura propuesta para la captura de un
@@ -57,7 +57,7 @@ diseno funcional y visual de la aplicacion Power Apps FDI.
   seccion Montacargas y su ayuda visual `assets/montacargas-medidas.webp`).
 - `../sistemas/FDI_Cantiliver_Process_Map.md`: tabla de procesos, validaciones,
   controles y columnas requeridas para el sistema cantiléver (Carga/producto en
-  vez de Tarima; solo gondola sencilla/doble; sin Montacargas).
+  vez de Tarima; solo tipo de gondola (sencilla/doble/ambas/por diseño); sin Montacargas).
 - `../sistemas/FDI_Mezzanine_Process_Map.md`: tabla de procesos, validaciones,
   controles y columnas requeridas para el sistema mezzanine (Producto como tabla;
   Configuracion del entrepiso; sin Montacargas; pickeo manual).

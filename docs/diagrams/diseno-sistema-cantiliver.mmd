@@ -17,9 +17,11 @@ flowchart TB
     CAR4["Peso por pieza / por nivel"]
     CAR5["Cantidad por nivel"]
 
-    CONF1{"¿Góndola sencilla o doble?"}
+    CONF1{"¿Tipo de góndola?"}
     CONF1A["Góndola sencilla"]
     CONF1B["Góndola doble"]
+    CONF1C["Ambas"]
+    CONF1D["Por diseño"]
 
     P1["Pasillo máximo de montacargas"]
     P2["Pasillo mínimo de montacargas"]
@@ -85,7 +87,7 @@ flowchart TB
  %% separación, base, voladizo e inclinación los deriva ingeniería del producto;
  %% no se capturan aquí.
  CONF --> CONF1
- CONF1 --> CONF1A & CONF1B
+ CONF1 --> CONF1A & CONF1B & CONF1C & CONF1D
 
  %% Área disponible / pasillos
  AREA --> P1 & P2 & P3 & P4

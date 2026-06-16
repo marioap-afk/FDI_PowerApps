@@ -10,7 +10,7 @@ canvas app.
 > tarimas). Reusa el marco comun (metodo de captura, referencia anterior, datos
 > comunes) y difiere asi:
 > - "Tarima" → **"Carga / producto"** (tipo abierto, medidas, peso, cantidad por nivel).
-> - "Configuracion del rack" → solo **Gondola sencilla / Gondola doble**. El **numero
+> - "Configuracion del rack" → solo **tipo de gondola (Sencilla / Doble / Ambas / Por diseño)**. El **numero
 >   de columnas, longitud y capacidad de brazo, altura de columna, separacion entre
 >   niveles, base, voladizo e inclinacion** los **deriva ingenieria** del peso/medidas
 >   del producto; **no se capturan** (si el cliente los define, se usa el metodo
@@ -81,9 +81,11 @@ Columnas requeridas para activar persistencia de detalle (comunes con los demas)
 | `CAR4` Peso por pieza / por nivel | Carga / producto | Text input numerico | Método = `Diseño` o `Planos/diseño de cliente` | `PayloadSistemaJson.Carga.Peso` | `colCAN_Draft` | Numero recomendado. | Base para que ingenieria derive columnas/brazos. |
 | `CAR5` Cantidad por nivel | Carga / producto | Text input numerico | Método = `Diseño` o `Planos/diseño de cliente` | `PayloadSistemaJson.Carga.CantidadPorNivel` | `colCAN_Draft` | Numero recomendado. | Por nivel de brazos. |
 | `CONF` Sección: Configuración del rack (cantiléver) | Configuración del rack | Grupo de campos | Método = `Diseño` | `PayloadSistemaJson.Gondola` | `colCAN_Draft` | Visible solo en diseno. | Solo captura gondola; el resto lo deriva ingenieria. |
-| `CONF1` ¿Góndola sencilla o doble? | Configuración del rack | Dropdown | Método = `Diseño` | `PayloadSistemaJson.Gondola` | `colCAN_Draft` | Debe elegir una opcion. | Define footprint y estabilidad; "una cara / doble cara". |
+| `CONF1` ¿Tipo de góndola? | Configuración del rack | Dropdown | Método = `Diseño` | `PayloadSistemaJson.Gondola` | `colCAN_Draft` | Debe elegir una opcion. | Define footprint y estabilidad; 4 opciones. |
 | `CONF1A` Góndola sencilla | Configuración del rack | Opcion de dropdown | Selector de góndola | `PayloadSistemaJson.Gondola` | `colCAN_Draft` | Opcion valida. | Una cara. |
 | `CONF1B` Góndola doble | Configuración del rack | Opcion de dropdown | Selector de góndola | `PayloadSistemaJson.Gondola` | `colCAN_Draft` | Opcion valida. | Doble cara. |
+| `CONF1C` Ambas | Configuración del rack | Opcion de dropdown | Selector de góndola | `PayloadSistemaJson.Gondola` | `colCAN_Draft` | Opcion valida. | Combina sencilla y doble en el mismo sistema. |
+| `CONF1D` Por diseño | Configuración del rack | Opcion de dropdown | Selector de góndola | `PayloadSistemaJson.Gondola` | `colCAN_Draft` | Opcion valida. | Lo define ingenieria segun el layout. |
 | `AREA` Sección: Área disponible / pasillos | Área disponible / pasillos | Grupo de text inputs | Método = `Diseño` | Columnas area/pasillos requeridas | `colCAN_Draft` | Visible solo en diseno. | Reutiliza patron comun. |
 | `P1` Pasillo máximo de montacargas | Área disponible / pasillos | Text input numerico | Método = `Diseño` | `Pasillo máximo` | `colCAN_Draft` | Numero recomendado. | Columna requerida. |
 | `P2` Pasillo mínimo de montacargas | Área disponible / pasillos | Text input numerico | Método = `Diseño` | `Pasillo mínimo` | `colCAN_Draft` | Numero recomendado. | Columna requerida. |
