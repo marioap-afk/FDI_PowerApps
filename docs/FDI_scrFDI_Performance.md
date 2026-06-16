@@ -5,57 +5,56 @@
 > Hermano de [FDI_MisCotizaciones_Performance.md](FDI_MisCotizaciones_Performance.md), pero para la
 > pantalla de captura. **Causa de fondo: la pantalla es estructuralmente demasiado grande.**
 
-## Estado (tras `19d4409` y ajuste R3 posterior)
+## Estado (tras R1)
 
-Codex aplicó los **quick wins**; la **reestructuración sigue pendiente**. Comparado `f214298` → `19d4409`:
+Codex aplicó los **quick wins** y separó la captura por sistema. Comparado contra el baseline medido en este documento:
 
 | Ítem | Estado | Evidencia |
 | --- | --- | --- |
 | **R6** DelayOutput en entradas | ✅ **Hecho** | `DelayOutput=true`: **7 → 133** text inputs |
 | **R3** `Concurrent` en OnVisible | ✅ **Parcial** | `Concurrent(`: **0 → 1** (línea 31 de OnVisible) |
-| **R1** partir la pantalla | ❌ **Pendiente** | **9 → 9** pantallas; scrFDI **1,412 → 1,412** controles |
+| **R1** partir la pantalla | ✅ **Hecho** | **9 → 18** pantallas; `scrFDI` **1,412 → 133** controles |
 | **R2** cachear el borrador | ❌ **Pendiente** | siguen **~689 `LookUp(colXXX_Draft, …)`** campo por campo |
 | **R3** quitar el `CountRows(Filter)` O(n²) | ✅ **Hecho** | `TipoIndex` ya no lee `colTabs` mientras se construye; usa `colPuentesHidratacion` |
 | **R5** galerías | ❌ **Pendiente** | sin cambios |
 
-> **Lectura:** se sentirá algo **más ágil al teclear** (DelayOutput) y un poco mejor la carga
-> (Concurrent), pero **la carga inicial pesada (1,412 controles) y el lag al cambiar de campo
-> (LookUp sin cachear) siguen igual**. El salto grande está en **R1** y **R2**.
+> **Lectura:** la carga de `scrFDI` ya no instancia los nueve sistemas a la vez. El siguiente cuello
+> fuerte es **R2**: cachear el borrador activo para eliminar cientos de `LookUp` repetidos dentro de
+> la pantalla de captura de cada sistema.
 
 ## 1. Diagnóstico medido (números reales de `scrFDI`)
 
 | Métrica | Valor | Referencia sana |
 | --- | --- | --- |
-| Líneas de `scrFDI.pa.yaml` | **29,710** | — |
-| **Controles en la pantalla** | **1,412** | < ~300 por pantalla (guía MS) |
-| Galerías | 50 | pocas, virtualizadas |
-| GroupContainers | 215 | — |
-| Forms / TypedDataCard | 23 | — |
-| DataCards | 197 | — |
-| PCF HtmlEditor (control pesado) | 2 | solo el activo |
-| `LookUp(` en fórmulas | **794** | — |
-| `CountRows(` | 113 | — |
-| `Filter(` | 115 | — |
+| Líneas de `scrFDI.pa.yaml` | **5,639** | — |
+| **Controles en `scrFDI`** | **133** | < ~300 por pantalla (guía MS) |
+| Galerías | 2 en `scrFDI` / 50 en captura total | pocas, virtualizadas |
+| GroupContainers | 8 en `scrFDI` / 232 en captura total | — |
+| Forms / TypedDataCard | 1 / 22 | — |
+| DataCards | 22 | — |
+| PCF HtmlEditor (control pesado) | 0 en `scrFDI`; 1 en `scrFDI_OT` | solo el activo |
+| `LookUp(` en fórmulas | 87 en `scrFDI` / **803** en captura total | — |
+| `CountRows(` | 8 en `scrFDI` / 122 en captura total | — |
+| `Filter(` | 59 en `scrFDI` / 133 en captura total | — |
 | `ForAll(` | 43 | — |
 | `Concurrent(` | **1** | usar para cargas paralelas |
-| TextInputs con `DelayOutput=true` | **133 / 133** | completo |
+| TextInputs con `DelayOutput=true` | 7/7 en `scrFDI`; **133 / 133** en captura total | completo |
 | `DeserializationLoadTime` (autoría) | **~10.7 s** | proxy de bloat |
 | `AnalysisLoadTime` (autoría) | **~12.9 s** | proxy de bloat |
 
-**Los 9 sistemas conviven en la misma pantalla.** Refs a la colección borrador de cada uno
-(≈ tamaño del bloque a separar):
+**Los 9 sistemas ya no conviven en `scrFDI`.** Se movieron a pantallas dedicadas:
 
-| Sistema | SEL | DIN | PBK | DRV | CAN | MEZ | CFL | MZL | OT |
+| Pantalla | `scrFDI_SEL` | `scrFDI_DIN` | `scrFDI_PBK` | `scrFDI_DRV` | `scrFDI_CAN` | `scrFDI_MEZ` | `scrFDI_CFL` | `scrFDI_MZL` | `scrFDI_OT` |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| refs `colXXX_Draft` | 101 | 122 | 122 | 118 | 112 | 117 | 102 | 129 | 10 |
+| Controles | 154 | 165 | 165 | 169 | 132 | 162 | 156 | 205 | 6 |
 
 ## 2. Por qué se siente lenta (causas → evidencia)
 
-1. **Todo en una pantalla (1,412 controles).** Los 9 sistemas se **ocultan con `Visible`**
+1. ~~**Todo en una pantalla (1,412 controles).** Los 9 sistemas se **ocultan con `Visible`**
    (`cmpCarddrpTipoCotización_XXX.Selected.Value = "Diseño"`), no se cargan bajo demanda. Un
    control oculto **se instancia igual y sus fórmulas se evalúan** → se paga el costo completo
-   aunque solo se vea un sistema. Esto golpea la **carga inicial** (instanciación) y el **lag** al
-   interactuar (recálculo).
+   aunque solo se vea un sistema.~~ **Corregido en R1:** `scrFDI` conserva cotización, tabs y alta de
+   sistemas; cada `cntXXX` vive en `scrFDI_XXX` y se abre con `Navigate(...)` pasando `locTabSel`.
 2. **Hidratación campo por campo con `LookUp` repetido.** Patrón real, repetido ~100–130 veces por
    sistema:
    ```powerapps
@@ -63,8 +62,8 @@ Codex aplicó los **quick wins**; la **reestructuración sigue pendiente**. Comp
    ```
    La **misma clave** (`SistemaId = locTabSel.SistemaId`) se resuelve cientos de veces. De ahí los
    **794 `LookUp`**.
-3. **`OnVisible` pesado y 100% secuencial** (sin `Concurrent`): un `LookUp` de borrador + `EditForm`/
-   `NewForm` + **~20 `Clear()`** + `ClearCollect` + un `ForAll` de hidratación.
+3. **`OnVisible` todavía pesado, aunque ya no 100% secuencial**: un `LookUp` de borrador +
+   `EditForm`/`NewForm` + clears agrupados + `ClearCollect` + un `ForAll` de hidratación.
 4. **Hidratación O(n²) en el `ForAll`.** En `19d4409`, dentro del `ForAll` sobre los puentes se calculaba:
    ```powerapps
    TipoIndex: CountRows(Filter(colTabs, TipoKey = _tipo)) + 1
@@ -81,18 +80,16 @@ Codex aplicó los **quick wins**; la **reestructuración sigue pendiente**. Comp
    `'Created By'.Email` y `Estado.Value` (choice) suelen ser **no delegables** en SharePoint → baja
    filas al cliente y filtra local.
 6. **Galerías (50)** con `LookUp`/`CountRows` por fila → recálculo por renglón en cada render.
-7. **Text inputs sin `DelayOutput`** (126 de 133): cada tecla recalcula los dependientes.
+7. ~~**Text inputs sin `DelayOutput`** (126 de 133).~~ **Corregido en R6:** los 133 text inputs ya
+   tienen `DelayOutput = true`.
 
 ## 3. Plan de refactor priorizado
 
-### R1 🔴 — Partir la mega-pantalla (la palanca #1)
-En vez de los 9 sistemas en `scrFDI`, **una pantalla (o componente) por sistema**, navegada bajo
-demanda; o **una sola pantalla "captura de sistema" reutilizable** parametrizada por el `TipoKey`
-seleccionado. Objetivo: que vivan **~120 controles a la vez en lugar de 1,412** (ver tabla §1).
-- Opción A (máximo impacto): pantalla por sistema → `Navigate(scrCaptura_MZL, …)`.
-- Opción B: convertir cada bloque de sistema en **componente canvas** e instanciar **solo el activo**
-  (el contenedor del sistema no seleccionado no se coloca, no solo se oculta).
-- Mantener el borrador (`colXXX_Draft`) como hoy; solo cambia **dónde** se renderiza la UI.
+### R1 ✅ — Partir la mega-pantalla (hecho)
+Se aplicó la opción de **pantalla por sistema**: `scrFDI_SEL`, `scrFDI_DIN`, `scrFDI_PBK`,
+`scrFDI_DRV`, `scrFDI_CAN`, `scrFDI_MEZ`, `scrFDI_CFL`, `scrFDI_MZL` y `scrFDI_OT`.
+`scrFDI` navega a la pantalla correspondiente con `locTabSel`; cada pantalla tiene una barra de
+regreso que vuelve a `scrFDI` sin rehidratar toda la cotización.
 
 ### R2 🔴 — Cachear el borrador en un registro (1 `LookUp` en vez de ~100)
 Al entrar al sistema / cambiar de tab, resolver la fila **una vez**:
@@ -133,15 +130,14 @@ Mover los `CountRows`/`LookUp` por renglón a un cálculo **único** (colección
 
 | Acción | Impacto | Esfuerzo | Cuándo | Estado |
 | --- | --- | --- | --- | --- |
-| **R2** cachear borrador | 🔴 Alto (lag al escribir/cambiar) | Medio | Primero (independiente de R1) | ❌ pendiente |
+| **R2** cachear borrador | 🔴 Alto (lag al escribir/cambiar) | Medio | Siguiente | ❌ pendiente |
 | **R6** DelayOutput + settings | 🟠 Medio | Bajo | Quick win inmediato | ✅ DelayOutput hecho (`19d4409`); ✅ settings verificados activos |
 | **R3** OnVisible (Concurrent + O(n²)) | 🟠 Medio (carga) | Bajo-Medio | Quick win | ✅ Concurrent parcial; ✅ O(n² de `TipoIndex`) corregido |
 | **R4** delegación | 🟠 Medio (apertura) | Medio | Con cambio de schema | ❌ pendiente |
-| **R1** partir pantalla | 🔴 Alto (carga + lag) | **Alto** | Estructural — planear bien | ❌ pendiente (el mayor salto) |
+| **R1** partir pantalla | 🔴 Alto (carga + lag) | **Alto** | Estructural | ✅ hecho |
 | **R5** galerías | 🟠 Medio | Medio | Con R1 | ❌ pendiente |
 
-**Orden sugerido:** R6 + R3 (quick wins) → R2 (gran alivio de lag, sin reestructurar) → **R1**
-(reestructura, el mayor salto) → R4/R5.
+**Orden restante sugerido:** R2 → R4/R5.
 
 ## 5. Cómo medir (antes/después)
 - **Monitor** de Power Apps (Studio → Advanced tools → Monitor): ver tiempo de `OnVisible`, nº de
