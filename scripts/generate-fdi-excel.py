@@ -9,12 +9,14 @@ from pathlib import Path
 from typing import Any
 
 from openpyxl import load_workbook
-from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.table import Table, TableStyleInfo
+from openpyxl.utils import column_index_from_string, get_column_letter, range_boundaries
 
 
 HEADER_SHEET = "Datos de cotización"
 SYSTEMS_INDEX_SHEET = "Índice de sistemas"
 PAYLOAD_SHEET = "FDI_Payload_JSON"
+LAYOUT_FILE = Path(__file__).with_name("fdi-excel-layout.json")
 
 TYPE_TEMPLATES = {
     "SEL": "SEL_S01_Form",
@@ -51,44 +53,22 @@ HEADER_ROWS = [
 ]
 
 COMMON_LAYOUT = {
-    "SEL": {"design_end": 63, "acabado": 66, "galv": 67, "tipo_galv": 68, "precio_galv": 69, "colors": (72, 75), "services": 78, "providers": (88, 90), "comments": 92},
-    "DIN": {"design_end": 71, "acabado": 74, "galv": 75, "tipo_galv": 76, "precio_galv": 77, "colors": (80, 83), "services": 86, "providers": (96, 98), "comments": 100},
-    "PBK": {"design_end": 71, "acabado": 74, "galv": 75, "tipo_galv": 76, "precio_galv": 77, "colors": (80, 83), "services": 86, "providers": (96, 98), "comments": 100},
-    "DRV": {"design_end": 73, "acabado": 76, "galv": 77, "tipo_galv": 78, "precio_galv": 79, "colors": (82, 85), "services": 88, "providers": (98, 100), "comments": 102},
-    "CAN": {"design_end": 62, "acabado": 65, "galv": 66, "tipo_galv": 67, "precio_galv": 68, "colors": (71, 74), "services": 77, "providers": (87, 89), "comments": 91},
-    "MEZ": {"design_end": 74, "acabado": 77, "galv": 78, "tipo_galv": 79, "precio_galv": 80, "colors": (83, 86), "services": 89, "providers": (99, 101), "comments": 103},
-    "CFL": {"design_end": 67, "acabado": 70, "galv": 71, "tipo_galv": 72, "precio_galv": 73, "colors": (76, 79), "services": 82, "providers": (92, 94), "comments": 96},
-    "MZL": {"design_end": 86, "acabado": 89, "galv": 90, "tipo_galv": 91, "precio_galv": 92, "colors": (95, 98), "services": 101, "providers": (111, 113), "comments": 115},
+    "SEL": {"design_end": 63, "acabado": 66, "galv": 67, "tipo_galv": 68, "precio_galv": 69, "services": 78, "comments": 92},
+    "DIN": {"design_end": 71, "acabado": 74, "galv": 75, "tipo_galv": 76, "precio_galv": 77, "services": 86, "comments": 100},
+    "PBK": {"design_end": 71, "acabado": 74, "galv": 75, "tipo_galv": 76, "precio_galv": 77, "services": 86, "comments": 100},
+    "DRV": {"design_end": 73, "acabado": 76, "galv": 77, "tipo_galv": 78, "precio_galv": 79, "services": 88, "comments": 102},
+    "CAN": {"design_end": 62, "acabado": 65, "galv": 66, "tipo_galv": 67, "precio_galv": 68, "services": 77, "comments": 91},
+    "MEZ": {"design_end": 74, "acabado": 77, "galv": 78, "tipo_galv": 79, "precio_galv": 80, "services": 89, "comments": 103},
+    "CFL": {"design_end": 67, "acabado": 70, "galv": 71, "tipo_galv": 72, "precio_galv": 73, "services": 82, "comments": 96},
+    "MZL": {"design_end": 86, "acabado": 89, "galv": 90, "tipo_galv": 91, "precio_galv": 92, "services": 101, "comments": 115},
 }
 
-PIEZAS_COLUMNS = [
-    ("Pieza", "Código", "Codigo"),
-    ("Comentarios", "Comentario", "Descripción", "Descripcion"),
-    ("Cantidad",),
-    ("Unidad",),
-    ("Notas",),
-]
-PRODUCT_COLUMNS = [
-    ("TipoProducto", "Tipo producto", "Tipo", "Producto"),
-    ("LargoProducto", "Largo"),
-    ("AnchoProducto", "Ancho"),
-    ("AltoProducto", "Alto"),
-    ("PesoProducto", "Peso", "PesoPieza"),
-    ("CantidadPorNivel", "Cantidad por nivel", "Cantidad"),
-]
-SEGURIDAD_COLUMNS = [("Pieza", "Elemento"), ("Cantidad",), ("Comentario", "Comentarios")]
-PIEZAS_ESPECIALES_COLUMNS = [("Pieza",), ("Cantidad",), ("Comentario", "Comentarios")]
-COLOR_COLUMNS = [("Pieza",), ("Color", "ColorNombre", "ColorTexto")]
-PROVEEDOR_COLUMNS = [("Proveedor",), ("Alcance", "Comentarios")]
-TARIMA_MZL_COLUMNS = [
-    ("Peso", "PesoTarima"),
-    ("Alto", "AltoTarima"),
-    ("Frente", "FrenteTarima"),
-    ("Fondo", "FondoTarima"),
-    ("Huella", "HuellaTarima"),
-    ("ExcedenteFrente", "Excedente frente"),
-    ("ExcedenteFondo", "Excedente fondo"),
-]
+def load_layout_config() -> dict[str, Any]:
+    return json.loads(LAYOUT_FILE.read_text(encoding="utf-8"))
+
+
+LAYOUT_CONFIG = load_layout_config()
+TABLE_DEFINITIONS: dict[str, dict[str, Any]] = LAYOUT_CONFIG["tables"]
 
 
 def truthy(value: Any) -> Any:
@@ -187,6 +167,29 @@ def copy_tables(source_ws, target_ws, suffix: str) -> None:
         target_ws.add_table(copied)
 
 
+def table_columns(table_key: str) -> list[tuple[str, ...]]:
+    return [tuple(aliases) for aliases in TABLE_DEFINITIONS[table_key]["aliases"]]
+
+
+def find_table(ws, table_key: str, tipo: str):
+    base_name = TABLE_DEFINITIONS[table_key]["baseName"]
+    expected_prefix = f"{base_name}_{tipo}"
+    for table in ws.tables.values():
+        if table.name == expected_prefix or table.name.startswith(f"{expected_prefix}_"):
+            return table
+    for table in ws.tables.values():
+        if table.name.startswith(f"{base_name}_"):
+            return table
+    return None
+
+
+def table_ref(ws, table_key: str, tipo: str) -> str:
+    table = find_table(ws, table_key, tipo)
+    if table is not None:
+        return table.ref
+    return TABLE_DEFINITIONS[table_key]["range"]
+
+
 def set_cell(ws, address: str, value: Any) -> None:
     target = ws[address]
     if target.__class__.__name__ == "MergedCell":
@@ -203,11 +206,29 @@ def clear_table_area(ws, start_row: int, end_row: int, column_count: int) -> Non
             ws.cell(row, col).value = None
 
 
-def write_table(ws, start_row: int, end_row: int, rows: list[dict[str, Any]], columns: list[tuple[str, ...]]) -> None:
-    clear_table_area(ws, start_row, end_row, len(columns))
-    for row_offset, item in enumerate(rows[: max(0, end_row - start_row + 1)]):
+def clear_table_range(ws, ref: str, columns: list[tuple[str, ...]]) -> None:
+    min_col, min_row, _max_col, max_row = range_boundaries(ref)
+    for row in range(min_row + 1, max_row + 1):
+        for col in range(min_col, min_col + len(columns)):
+            ws.cell(row, col).value = None
+
+
+def write_table_to_ref(ws, ref: str, rows: list[dict[str, Any]], columns: list[tuple[str, ...]]) -> None:
+    min_col, min_row, _max_col, max_row = range_boundaries(ref)
+    clear_table_range(ws, ref, columns)
+    capacity = max(0, max_row - min_row)
+    for row_offset, item in enumerate(rows[:capacity]):
         for col_offset, aliases in enumerate(columns, 1):
-            ws.cell(start_row + row_offset, col_offset).value = truthy(pick(item, *aliases))
+            ws.cell(min_row + 1 + row_offset, min_col + col_offset - 1).value = truthy(pick(item, *aliases))
+
+
+def write_system_table(ws, tipo: str, table_key: str, rows: list[dict[str, Any]]) -> None:
+    definition = TABLE_DEFINITIONS[table_key]
+    columns = table_columns(table_key)
+    write_table_to_ref(ws, table_ref(ws, table_key, tipo), rows, columns)
+    preview_ref = definition.get("previewRanges", {}).get(tipo)
+    if preview_ref:
+        write_table_to_ref(ws, preview_ref, rows, columns)
 
 
 def set_rows_hidden(ws, start_row: int, end_row: int, hidden: bool) -> None:
@@ -288,7 +309,6 @@ def fill_identity_and_method(ws, tipo: str, system: dict[str, Any], system_no: i
     set_cell(ws, "B12", pick(system, "FolioCotizacionAnterior", "FolioCotAnterior"))
     set_cell(ws, "B13", pick(system, "FolioPedidoAnterior", "PedidoBase", "NumPedidoCot"))
     set_cell(ws, "B14", pick(system, "ComentariosReferencia", "ConsEsp"))
-    write_table(ws, 17, 22, rows_from_summary(as_list(pick(system, "piezas", "Piezas", default=[])), pick(system, "PiezasResumen")), PIEZAS_COLUMNS)
     set_cell(ws, "B25", truthy(pick(system, "AdjuntarImagenLayout", "RequiereAdjuntarLayout")))
 
 
@@ -300,8 +320,6 @@ def fill_common(ws, tipo: str, system: dict[str, Any]) -> None:
     set_cell(ws, f"B{layout['galv']}", galvanizado_from_acabado(acabado))
     set_cell(ws, f"B{layout['tipo_galv']}", tipo_galv)
     set_cell(ws, f"B{layout['precio_galv']}", pick(system, "PpkgGalv", "Precio por kilogramo galvanizado") if tipo_galv in ("Frio", "Caliente") else "")
-    color_start, color_end = layout["colors"]
-    write_table(ws, color_start, color_end, as_list(pick(system, "colores", "Colores", default=[])), COLOR_COLUMNS)
     service_row = layout["services"]
     set_cell(ws, f"B{service_row}", pick(system, "Ins", "Instalacion", "Instalación"))
     set_cell(ws, f"B{service_row + 1}", pick(system, "CostoInstalacion", "Costo instalación"))
@@ -311,8 +329,6 @@ def fill_common(ws, tipo: str, system: dict[str, Any]) -> None:
     set_cell(ws, f"B{service_row + 5}", pick(system, "EstProv", "Unirse a estructura de otro proveedor"))
     set_cell(ws, f"B{service_row + 6}", pick(system, "ComentariosEstructura", "Comentarios estructura"))
     set_cell(ws, f"B{service_row + 7}", pick(system, "ProvExternos", "Proveedores externos"))
-    provider_start, provider_end = layout["providers"]
-    write_table(ws, provider_start, provider_end, as_list(pick(system, "proveedoresExternos", "ProveedoresExternos", default=[])), PROVEEDOR_COLUMNS)
     set_cell(ws, f"B{layout['comments']}", pick(system, "ConsEsp", "Consideraciones especiales", "Comentarios"))
 
 
@@ -351,13 +367,6 @@ def fill_area_and_levels(ws, system: dict[str, Any], area_row: int, levels_row: 
     set_cell(ws, f"B{levels_row + offset + 5}", pick(system, "ComentariosConfigCliente", "DefPorCliente", "Definido por el cliente"))
 
 
-def fill_security_tables(ws, system: dict[str, Any], seguridad_range: tuple[int, int], especiales_range: tuple[int, int]) -> None:
-    seguridad = rows_from_summary(as_list(pick(system, "elementosSeguridad", "ElementosSeguridad", default=[])), pick(system, "ElementosSeguridadResumen"))
-    especiales = as_list(pick(system, "piezasEspeciales", "PiezasEspeciales", default=[]))
-    write_table(ws, seguridad_range[0], seguridad_range[1], seguridad, SEGURIDAD_COLUMNS)
-    write_table(ws, especiales_range[0], especiales_range[1], especiales, PIEZAS_ESPECIALES_COLUMNS)
-
-
 def fill_rack(ws, system: dict[str, Any], start_row: int, high_impact: bool = True) -> None:
     set_cell(ws, f"B{start_row}", pick(system, "FrentesBuscados", "Frentes buscados"))
     set_cell(ws, f"B{start_row + 1}", pick(system, "FondosBuscados", "Fondos buscados"))
@@ -369,9 +378,32 @@ def fill_rack(ws, system: dict[str, Any], start_row: int, high_impact: bool = Tr
         set_cell(ws, f"B{start_row + 6}", pick(system, "EspecificacionRodamientoAltoImpacto", "Especificación rodamiento alto impacto"))
 
 
-def fill_product_table(ws, system: dict[str, Any], start_row: int, end_row: int) -> None:
-    productos = as_list(pick(system, "productos", "Productos", default=[]))
-    write_table(ws, start_row, end_row, productos, PRODUCT_COLUMNS)
+def fill_detail_tables(ws, tipo: str, system: dict[str, Any]) -> None:
+    write_system_table(
+        ws,
+        tipo,
+        "piezas",
+        rows_from_summary(as_list(pick(system, "piezas", "Piezas", default=[])), pick(system, "PiezasResumen")),
+    )
+    write_system_table(ws, tipo, "tarimas", as_list(pick(system, "tarimas", "Tarimas", default=[])))
+    write_system_table(ws, tipo, "productos", as_list(pick(system, "productos", "Productos", default=[])))
+    write_system_table(
+        ws,
+        tipo,
+        "elementosSeguridad",
+        rows_from_summary(
+            as_list(pick(system, "elementosSeguridad", "ElementosSeguridad", default=[])),
+            pick(system, "ElementosSeguridadResumen"),
+        ),
+    )
+    write_system_table(ws, tipo, "piezasEspeciales", as_list(pick(system, "piezasEspeciales", "PiezasEspeciales", default=[])))
+    write_system_table(ws, tipo, "colores", as_list(pick(system, "colores", "Colores", default=[])))
+    write_system_table(
+        ws,
+        tipo,
+        "proveedoresExternos",
+        as_list(pick(system, "proveedoresExternos", "ProveedoresExternos", default=[])),
+    )
 
 
 def fill_supported_form(ws, tipo: str, system: dict[str, Any], system_no: int) -> None:
@@ -379,12 +411,10 @@ def fill_supported_form(ws, tipo: str, system: dict[str, Any], system_no: int) -
     if tipo == "SEL":
         fill_tarima_block(ws, system, 29)
         fill_area_and_levels(ws, system, 38, 43, True)
-        fill_security_tables(ws, system, (53, 56), (60, 62))
     elif tipo in ("DIN", "PBK"):
         fill_tarima_block(ws, system, 29)
         fill_rack(ws, system, 38, True)
         fill_area_and_levels(ws, system, 46, 51, True)
-        fill_security_tables(ws, system, (61, 64), (68, 70))
     elif tipo == "DRV":
         fill_tarima_block(ws, system, 29)
         set_cell(ws, "B38", pick(system, "FrentesBuscados", "Frentes buscados"))
@@ -396,7 +426,6 @@ def fill_supported_form(ws, tipo: str, system: dict[str, Any], system_no: int) -
         set_cell(ws, "B45", pick(system, "AnchoMastilMontacargas"))
         set_cell(ws, "B46", pick(system, "ModeloMontacargas"))
         fill_area_and_levels(ws, system, 48, 53, True)
-        fill_security_tables(ws, system, (63, 66), (70, 72))
     elif tipo == "CAN":
         set_cell(ws, "B29", pick(system, "TipoProducto"))
         set_cell(ws, "B30", pick(system, "LongitudCarga"))
@@ -416,9 +445,7 @@ def fill_supported_form(ws, tipo: str, system: dict[str, Any], system_no: int) -
         set_cell(ws, "B47", pick(system, "AdjuntarImagenLayout", "Requiere adjuntar layout"))
         set_cell(ws, "B48", pick(system, "ExisteDefCliente", "Existe definición cliente"))
         set_cell(ws, "B49", pick(system, "ComentariosConfigCliente", "DefPorCliente", "Definido por el cliente"))
-        fill_security_tables(ws, system, (52, 55), (59, 61))
     elif tipo == "MEZ":
-        fill_product_table(ws, system, 31, 36)
         set_cell(ws, "B39", pick(system, "AlturaRecomendadaEntrepiso", "Altura recomendada entrepiso"))
         set_cell(ws, "B40", pick(system, "CantidadEntrepisos", "Cantidad entrepisos"))
         set_cell(ws, "B41", pick(system, "RequiereElevador"))
@@ -432,12 +459,9 @@ def fill_supported_form(ws, tipo: str, system: dict[str, Any], system_no: int) -
         set_cell(ws, "B49", pick(system, "PesoCarrito"))
         set_cell(ws, "B50", pick(system, "RequiereEscaleras"))
         fill_area_and_levels(ws, system, 52, 56, False)
-        fill_security_tables(ws, system, (64, 67), (71, 73))
     elif tipo == "CFL":
-        fill_product_table(ws, system, 31, 36)
         fill_rack(ws, system, 39, False)
         fill_area_and_levels(ws, system, 45, 49, False)
-        fill_security_tables(ws, system, (57, 60), (64, 66))
     elif tipo == "MZL":
         set_cell(ws, "B29", pick(system, "CantidadPisos"))
         set_cell(ws, "B30", pick(system, "CargaPorM2"))
@@ -456,39 +480,9 @@ def fill_supported_form(ws, tipo: str, system: dict[str, Any], system_no: int) -
         set_cell(ws, "B43", pick(system, "RequiereEscaleras"))
         set_cell(ws, "B45", pick(system, "MetodoSeparacionColumnas", "Método separación columnas"))
         set_cell(ws, "B46", pick(system, "SeparacionColumnasManual", "Separación columnas manual"))
-        fill_product_table(ws, system, 50, 53)
-        write_table(ws, 58, 61, as_list(pick(system, "tarimas", "Tarimas", default=[])), TARIMA_MZL_COLUMNS)
         fill_area_and_levels(ws, system, 64, 68, False)
-        fill_security_tables(ws, system, (76, 79), (83, 85))
     fill_common(ws, tipo, system)
-
-
-def add_detail_sheet(wb, system: dict[str, Any], sheet_name: str) -> None:
-    ws = wb.create_sheet(safe_sheet_name(sheet_name.replace("_Form", "_Datos")))
-    ws["A1"] = "Detalle estructurado del sistema"
-    ws["A2"] = pick(system, "NombreSistema", "Title", default=sheet_name)
-    sections = [
-        ("Piezas", ["Pieza", "Comentarios", "Cantidad", "Unidad", "Notas"], rows_from_summary(as_list(pick(system, "piezas", "Piezas", default=[])), pick(system, "PiezasResumen"))),
-        ("Tarimas", ["Peso", "Alto", "Frente", "Fondo", "Huella", "ExcedenteFrente", "ExcedenteFondo"], as_list(pick(system, "tarimas", "Tarimas", default=[]))),
-        ("Productos", ["TipoProducto", "LargoProducto", "AnchoProducto", "AltoProducto", "PesoProducto", "CantidadPorNivel"], as_list(pick(system, "productos", "Productos", default=[]))),
-        ("Elementos de seguridad", ["Pieza", "Cantidad", "Comentario"], rows_from_summary(as_list(pick(system, "elementosSeguridad", "ElementosSeguridad", default=[])), pick(system, "ElementosSeguridadResumen"))),
-        ("Piezas especiales", ["Pieza", "Cantidad", "Comentario"], as_list(pick(system, "piezasEspeciales", "PiezasEspeciales", default=[]))),
-        ("Colores", ["Pieza", "Color"], as_list(pick(system, "colores", "Colores", default=[]))),
-        ("Proveedores externos", ["Proveedor", "Alcance"], as_list(pick(system, "proveedoresExternos", "ProveedoresExternos", default=[]))),
-    ]
-    row = 4
-    for title, headers, rows in sections:
-        ws.cell(row, 1).value = title
-        row += 1
-        for col, header in enumerate(headers, 1):
-            ws.cell(row, col).value = header
-        for item in rows:
-            row += 1
-            for col, header in enumerate(headers, 1):
-                ws.cell(row, col).value = truthy(item.get(header, ""))
-        row += 2
-    for col in range(1, 9):
-        ws.column_dimensions[get_column_letter(col)].width = 24
+    fill_detail_tables(ws, tipo, system)
 
 
 def add_ot_sheet(wb, system: dict[str, Any], sheet_name: str, system_no: int) -> None:
@@ -515,6 +509,59 @@ def add_payload_sheet(wb, payload: dict[str, Any]) -> None:
     ws["A1"] = "Payload JSON usado para generar este archivo"
     for index in range(0, len(text), 30000):
         ws.cell(index // 30000 + 2, 1).value = text[index:index + 30000]
+
+
+def hide_layout_columns(ws) -> None:
+    for column_range in LAYOUT_CONFIG.get("hiddenColumns", []):
+        start, end = column_range.split(":", 1)
+        for column_index in range(column_index_from_string(start), column_index_from_string(end) + 1):
+            column_letter = get_column_letter(column_index)
+            ws.column_dimensions[column_letter].hidden = True
+
+
+def ensure_form_tables(wb) -> None:
+    style = TableStyleInfo(name="TableStyleMedium2", showFirstColumn=False, showLastColumn=False, showRowStripes=True, showColumnStripes=False)
+    for tipo, sheet_name in TYPE_TEMPLATES.items():
+        if sheet_name not in wb.sheetnames:
+            continue
+        ws = wb[sheet_name]
+        for table_name in list(ws.tables.keys()):
+            del ws.tables[table_name]
+        hide_layout_columns(ws)
+
+        for table_key, definition in TABLE_DEFINITIONS.items():
+            ref = definition["range"]
+            min_col, min_row, _max_col, max_row = range_boundaries(ref)
+            headers = definition["headers"]
+            for offset, header in enumerate(headers):
+                ws.cell(min_row, min_col + offset).value = header
+            for row in range(min_row + 1, max_row + 1):
+                for col in range(min_col, min_col + len(headers)):
+                    ws.cell(row, col).value = None
+
+            table_name = f"{definition['baseName']}_{tipo}"
+            table = Table(displayName=table_name, ref=ref)
+            table.tableStyleInfo = deepcopy(style)
+            ws.add_table(table)
+
+
+def write_layout_config_sheet(wb) -> None:
+    config_sheet = LAYOUT_CONFIG.get("configSheet", "FDI_Table_Config")
+    if config_sheet in wb.sheetnames:
+        del wb[config_sheet]
+    ws = wb.create_sheet(config_sheet)
+    ws.sheet_state = "hidden"
+    ws["A1"] = "FDI Excel layout JSON"
+    text = json.dumps(LAYOUT_CONFIG, ensure_ascii=False, separators=(",", ":"))
+    for index in range(0, len(text), 30000):
+        ws.cell(index // 30000 + 2, 1).value = text[index:index + 30000]
+
+
+def normalize_template(template: Path) -> None:
+    wb = load_workbook(template)
+    ensure_form_tables(wb)
+    write_layout_config_sheet(wb)
+    wb.save(template)
 
 
 def create_system_sheets(wb, systems: list[dict[str, Any]]) -> dict[int, str]:
@@ -545,7 +592,6 @@ def create_system_sheets(wb, systems: list[dict[str, Any]]) -> dict[int, str]:
             del wb[template_name]
     for ws, tipo, system, index in to_fill:
         fill_supported_form(ws, tipo, system, index)
-        add_detail_sheet(wb, system, ws.title)
     return sheet_names
 
 
@@ -555,6 +601,8 @@ def generate(template: Path, payload_path: Path, output: Path) -> None:
     systems = payload.get("sistemas", [])
 
     wb = load_workbook(template)
+    ensure_form_tables(wb)
+    write_layout_config_sheet(wb)
     fill_header(wb, cotizacion)
     sheet_names = create_system_sheets(wb, systems)
     fill_sistemas_index(wb, systems, sheet_names)
@@ -569,7 +617,12 @@ def main() -> None:
     parser.add_argument("--template", default="templates/FDI_Master.xlsx", type=Path)
     parser.add_argument("--payload", default="examples/fdi-payload.sample.json", type=Path)
     parser.add_argument("--output", default="work/fdi_closure_20260609_01/output/FDI_TEST_001-26.xlsx", type=Path)
+    parser.add_argument("--normalize-template", action="store_true", help="Actualiza la plantilla con las tablas normalizadas y la configuración oculta.")
     args = parser.parse_args()
+    if args.normalize_template:
+        normalize_template(args.template)
+        print(args.template)
+        return
     generate(args.template, args.payload, args.output)
     print(args.output)
 

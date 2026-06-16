@@ -128,7 +128,9 @@ Campos comunes:
 - `Acabado`: selector base del sistema.
 - `Galvanizado` y `Tipo de galvanizado`: derivados desde `Acabado`; no se capturan como campos independientes.
 
-Cada sistema soportado también genera una hoja `TIPO_S##_Datos` con las tablas completas: piezas, tarimas, productos, elementos de seguridad, piezas especiales, colores y proveedores externos.
+Cada sistema soportado conserva una sola hoja `TIPO_S##_Form`. La hoja contiene las tablas normalizadas para piezas, tarimas, productos, elementos de seguridad, piezas especiales, colores y proveedores externos dentro del mismo formulario. Los rangos y columnas salen de `scripts/fdi-excel-layout.json`; el generador inserta esa configuración en la hoja oculta `FDI_Table_Config` de `templates/FDI_Master.xlsx`, y el Office Script la lee al ejecutarse.
+
+La plantilla ya no debe generar hojas `TIPO_S##_Datos`. Para evitar colisiones de nombres de tabla en Excel, las tablas de la plantilla usan el sufijo de tipo, por ejemplo `tblPiezas_SEL`, `tblColores_MZL`; al duplicar sistemas del mismo tipo se agregan sufijos de instancia como `_02`.
 
 ## Script Local
 
@@ -162,6 +164,8 @@ El script no modifica la plantilla original.
 13. Actualizar `Carpeta`, `FolderPath` y `CarpetaCreada` únicamente después de terminar la generación.
 
 El flujo ya no actualiza ni copia `FDI_Master_Puente.xlsx`.
+
+Las lecturas de detalle y listas hijas corren en paralelo después de `Get_sistemas_puente`; `Payload_Cotizacion` espera a que todas terminen. Los `GetItems` usan `$top = 500` para evitar paginación sobredimensionada en cotizaciones normales.
 
 ### Parámetro de Office Script
 

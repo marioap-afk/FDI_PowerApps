@@ -451,7 +451,7 @@
                   "table": "49e4088a-4095-44e6-860d-fbdb57460fbc",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "ID asc",
-                  "$top": 5000
+                  "$top": 500
                 },
                 "host": {
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
@@ -473,7 +473,7 @@
                   "table": "4cbf73c9-e56a-492c-8cfa-9488d3f99384",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "ID asc",
-                  "$top": 5000
+                  "$top": 500
                 },
                 "host": {
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
@@ -482,7 +482,7 @@
                 }
               },
               "runAfter": {
-                "Get_sistemas_sel": [
+                "Get_sistemas_puente": [
                   "Succeeded"
                 ]
               }
@@ -495,7 +495,7 @@
                   "table": "384e7e0d-6bf3-448a-8e45-daae023d0a74",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "ID asc",
-                  "$top": 5000
+                  "$top": 500
                 },
                 "host": {
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
@@ -504,7 +504,7 @@
                 }
               },
               "runAfter": {
-                "Get_sistemas_din": [
+                "Get_sistemas_puente": [
                   "Succeeded"
                 ]
               }
@@ -517,7 +517,7 @@
                   "table": "7b78bff1-40df-4d59-bd26-147298f55ea0",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "ID asc",
-                  "$top": 5000
+                  "$top": 500
                 },
                 "host": {
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
@@ -526,7 +526,7 @@
                 }
               },
               "runAfter": {
-                "Get_sistemas_pbk": [
+                "Get_sistemas_puente": [
                   "Succeeded"
                 ]
               }
@@ -539,7 +539,7 @@
                   "table": "ac95efa8-9c17-4711-a606-d0ede65dc47b",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "ID asc",
-                  "$top": 5000
+                  "$top": 500
                 },
                 "host": {
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
@@ -548,7 +548,7 @@
                 }
               },
               "runAfter": {
-                "Get_sistemas_drv": [
+                "Get_sistemas_puente": [
                   "Succeeded"
                 ]
               }
@@ -561,7 +561,7 @@
                   "table": "b2a3008d-eee9-4933-b9f1-5a8b963a8473",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "ID asc",
-                  "$top": 5000
+                  "$top": 500
                 },
                 "host": {
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
@@ -570,7 +570,7 @@
                 }
               },
               "runAfter": {
-                "Get_sistemas_can": [
+                "Get_sistemas_puente": [
                   "Succeeded"
                 ]
               }
@@ -583,7 +583,7 @@
                   "table": "5f4632e6-7584-4178-b437-30fa15d2017f",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "ID asc",
-                  "$top": 5000
+                  "$top": 500
                 },
                 "host": {
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
@@ -592,7 +592,7 @@
                 }
               },
               "runAfter": {
-                "Get_sistemas_mez": [
+                "Get_sistemas_puente": [
                   "Succeeded"
                 ]
               }
@@ -605,7 +605,7 @@
                   "table": "87c8be82-d437-412c-bf85-570b452b146e",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "ID asc",
-                  "$top": 5000
+                  "$top": 500
                 },
                 "host": {
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
@@ -614,7 +614,7 @@
                 }
               },
               "runAfter": {
-                "Get_sistemas_cfl": [
+                "Get_sistemas_puente": [
                   "Succeeded"
                 ]
               }
@@ -627,7 +627,7 @@
                   "table": "80069fdc-2de1-4c95-a88b-02770ca25959",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "ID asc",
-                  "$top": 5000
+                  "$top": 500
                 },
                 "host": {
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
@@ -636,7 +636,7 @@
                 }
               },
               "runAfter": {
-                "Get_sistemas_mzl": [
+                "Get_sistemas_puente": [
                   "Succeeded"
                 ]
               }
@@ -649,7 +649,7 @@
                   "table": "15dbc11e-0dcc-4374-99f0-b08ef2e32da5",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "SistemaCotizaci_x00f3_nIDId asc, Orden asc",
-                  "$top": 5000
+                  "$top": 500
                 },
                 "host": {
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
@@ -658,7 +658,7 @@
                 }
               },
               "runAfter": {
-                "Get_sistemas_ot": [
+                "Get_sistemas_puente": [
                   "Succeeded"
                 ]
               }
@@ -671,7 +671,7 @@
                   "table": "2de8ae3c-2e93-45ea-9e97-614acb8eee4e",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "SistemaCotizaci_x00f3_nIDId asc, Orden asc",
-                  "$top": 5000
+                  "$top": 500
                 },
                 "host": {
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
@@ -680,7 +680,7 @@
                 }
               },
               "runAfter": {
-                "Get_hija_listado_piezas": [
+                "Get_sistemas_puente": [
                   "Succeeded"
                 ]
               }
@@ -693,7 +693,7 @@
                   "table": "0443828d-c0a4-487f-883b-b72f29b33554",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "SistemaCotizaci_x00f3_nIDId asc, Orden asc",
-                  "$top": 5000
+                  "$top": 500
                 },
                 "host": {
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
@@ -702,7 +702,7 @@
                 }
               },
               "runAfter": {
-                "Get_hija_tarimas": [
+                "Get_sistemas_puente": [
                   "Succeeded"
                 ]
               }
@@ -715,7 +715,7 @@
                   "table": "99b5175d-4c65-484e-b01e-81a58e024c5d",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "SistemaCotizaci_x00f3_nIDId asc, Orden asc",
-                  "$top": 5000
+                  "$top": 500
                 },
                 "host": {
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
@@ -724,7 +724,7 @@
                 }
               },
               "runAfter": {
-                "Get_hija_productos": [
+                "Get_sistemas_puente": [
                   "Succeeded"
                 ]
               }
@@ -737,7 +737,7 @@
                   "table": "9c051314-b3bf-4cb9-852d-5994cb6d4afc",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "SistemaCotizaci_x00f3_nIDId asc, Orden asc",
-                  "$top": 5000
+                  "$top": 500
                 },
                 "host": {
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
@@ -746,7 +746,7 @@
                 }
               },
               "runAfter": {
-                "Get_hija_colores": [
+                "Get_sistemas_puente": [
                   "Succeeded"
                 ]
               }
@@ -759,7 +759,7 @@
                   "table": "c54d76c6-2d76-4f86-a8f2-380ab036ae71",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "SistemaCotizaci_x00f3_nIDId asc, Orden asc",
-                  "$top": 5000
+                  "$top": 500
                 },
                 "host": {
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
@@ -768,7 +768,7 @@
                 }
               },
               "runAfter": {
-                "Get_hija_elementos_seguridad": [
+                "Get_sistemas_puente": [
                   "Succeeded"
                 ]
               }
@@ -781,7 +781,7 @@
                   "table": "772a6dae-e1bf-47c1-a03b-1e08f7243368",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "SistemaCotizaci_x00f3_nIDId asc, Orden asc",
-                  "$top": 5000
+                  "$top": 500
                 },
                 "host": {
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
@@ -790,7 +790,7 @@
                 }
               },
               "runAfter": {
-                "Get_hija_piezas_especiales": [
+                "Get_sistemas_puente": [
                   "Succeeded"
                 ]
               }
@@ -829,6 +829,51 @@
                 "Path": "@outputs('CotizacionActual')?['{Path}']"
               },
               "runAfter": {
+                "Get_sistemas_sel": [
+                  "Succeeded"
+                ],
+                "Get_sistemas_din": [
+                  "Succeeded"
+                ],
+                "Get_sistemas_pbk": [
+                  "Succeeded"
+                ],
+                "Get_sistemas_drv": [
+                  "Succeeded"
+                ],
+                "Get_sistemas_can": [
+                  "Succeeded"
+                ],
+                "Get_sistemas_mez": [
+                  "Succeeded"
+                ],
+                "Get_sistemas_cfl": [
+                  "Succeeded"
+                ],
+                "Get_sistemas_mzl": [
+                  "Succeeded"
+                ],
+                "Get_sistemas_ot": [
+                  "Succeeded"
+                ],
+                "Get_hija_listado_piezas": [
+                  "Succeeded"
+                ],
+                "Get_hija_tarimas": [
+                  "Succeeded"
+                ],
+                "Get_hija_productos": [
+                  "Succeeded"
+                ],
+                "Get_hija_colores": [
+                  "Succeeded"
+                ],
+                "Get_hija_elementos_seguridad": [
+                  "Succeeded"
+                ],
+                "Get_hija_piezas_especiales": [
+                  "Succeeded"
+                ],
                 "Get_hija_proveedores_externos": [
                   "Succeeded"
                 ]

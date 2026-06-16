@@ -12,9 +12,10 @@ function main(workbook: ExcelScript.Workbook, payloadJson: string) {
   const payload = asRecord(JSON.parse(payloadText));
   const cotizacion = asRecord(payload.cotizacion);
   const sistemas = asRecordArray(payload.sistemas);
+  const layoutConfig = readLayoutConfig(workbook);
 
   fillHeader(workbook, cotizacion);
-  const sheetNames = prepareSystemSheets(workbook, sistemas);
+  const sheetNames = prepareSystemSheets(workbook, sistemas, layoutConfig);
   fillSistemasIndex(workbook, sistemas, sheetNames);
   writePayloadSheet(workbook, JSON.stringify(payload, null, 2));
 }
@@ -22,6 +23,7 @@ function main(workbook: ExcelScript.Workbook, payloadJson: string) {
 const HEADER_SHEET = "Datos de cotización";
 const SYSTEMS_INDEX_SHEET = "Índice de sistemas";
 const PAYLOAD_SHEET = "FDI_Payload_JSON";
+const TABLE_CONFIG_SHEET = "FDI_Table_Config";
 
 const TYPE_TEMPLATES: Record<string, string> = {
   SEL: "SEL_S01_Form",
@@ -63,51 +65,32 @@ interface CommonLayout {
   galv: number;
   tipoGalv: number;
   precioGalv: number;
-  colors: [number, number];
   services: number;
-  providers: [number, number];
   comments: number;
 }
 
-const COMMON_LAYOUT: Record<string, CommonLayout> = {
-  SEL: { designEnd: 63, acabado: 66, galv: 67, tipoGalv: 68, precioGalv: 69, colors: [72, 75], services: 78, providers: [88, 90], comments: 92 },
-  DIN: { designEnd: 71, acabado: 74, galv: 75, tipoGalv: 76, precioGalv: 77, colors: [80, 83], services: 86, providers: [96, 98], comments: 100 },
-  PBK: { designEnd: 71, acabado: 74, galv: 75, tipoGalv: 76, precioGalv: 77, colors: [80, 83], services: 86, providers: [96, 98], comments: 100 },
-  DRV: { designEnd: 73, acabado: 76, galv: 77, tipoGalv: 78, precioGalv: 79, colors: [82, 85], services: 88, providers: [98, 100], comments: 102 },
-  CAN: { designEnd: 62, acabado: 65, galv: 66, tipoGalv: 67, precioGalv: 68, colors: [71, 74], services: 77, providers: [87, 89], comments: 91 },
-  MEZ: { designEnd: 74, acabado: 77, galv: 78, tipoGalv: 79, precioGalv: 80, colors: [83, 86], services: 89, providers: [99, 101], comments: 103 },
-  CFL: { designEnd: 67, acabado: 70, galv: 71, tipoGalv: 72, precioGalv: 73, colors: [76, 79], services: 82, providers: [92, 94], comments: 96 },
-  MZL: { designEnd: 86, acabado: 89, galv: 90, tipoGalv: 91, precioGalv: 92, colors: [95, 98], services: 101, providers: [111, 113], comments: 115 }
-};
+interface TableDefinition {
+  baseName: string;
+  range: string;
+  headers: string[];
+  aliases: string[][];
+  previewRanges?: Record<string, string>;
+}
 
-const PIEZAS_COLUMNS = [
-  ["Pieza", "Código", "Codigo"],
-  ["Comentarios", "Comentario", "Descripción", "Descripcion"],
-  ["Cantidad"],
-  ["Unidad"],
-  ["Notas"]
-];
-const PRODUCT_COLUMNS = [
-  ["TipoProducto", "Tipo producto", "Tipo", "Producto"],
-  ["LargoProducto", "Largo"],
-  ["AnchoProducto", "Ancho"],
-  ["AltoProducto", "Alto"],
-  ["PesoProducto", "Peso", "PesoPieza"],
-  ["CantidadPorNivel", "Cantidad por nivel", "Cantidad"]
-];
-const SEGURIDAD_COLUMNS = [["Pieza", "Elemento"], ["Cantidad"], ["Comentario", "Comentarios"]];
-const PIEZAS_ESPECIALES_COLUMNS = [["Pieza"], ["Cantidad"], ["Comentario", "Comentarios"]];
-const COLOR_COLUMNS = [["Pieza"], ["Color", "ColorNombre", "ColorTexto"]];
-const PROVEEDOR_COLUMNS = [["Proveedor"], ["Alcance", "Comentarios"]];
-const TARIMA_MZL_COLUMNS = [
-  ["Peso", "PesoTarima"],
-  ["Alto", "AltoTarima"],
-  ["Frente", "FrenteTarima"],
-  ["Fondo", "FondoTarima"],
-  ["Huella", "HuellaTarima"],
-  ["ExcedenteFrente", "Excedente frente"],
-  ["ExcedenteFondo", "Excedente fondo"]
-];
+interface LayoutConfig {
+  tables: Record<string, TableDefinition>;
+}
+
+const COMMON_LAYOUT: Record<string, CommonLayout> = {
+  SEL: { designEnd: 63, acabado: 66, galv: 67, tipoGalv: 68, precioGalv: 69, services: 78, comments: 92 },
+  DIN: { designEnd: 71, acabado: 74, galv: 75, tipoGalv: 76, precioGalv: 77, services: 86, comments: 100 },
+  PBK: { designEnd: 71, acabado: 74, galv: 75, tipoGalv: 76, precioGalv: 77, services: 86, comments: 100 },
+  DRV: { designEnd: 73, acabado: 76, galv: 77, tipoGalv: 78, precioGalv: 79, services: 88, comments: 102 },
+  CAN: { designEnd: 62, acabado: 65, galv: 66, tipoGalv: 67, precioGalv: 68, services: 77, comments: 91 },
+  MEZ: { designEnd: 74, acabado: 77, galv: 78, tipoGalv: 79, precioGalv: 80, services: 89, comments: 103 },
+  CFL: { designEnd: 67, acabado: 70, galv: 71, tipoGalv: 72, precioGalv: 73, services: 82, comments: 96 },
+  MZL: { designEnd: 86, acabado: 89, galv: 90, tipoGalv: 91, precioGalv: 92, services: 101, comments: 115 }
+};
 
 function fillHeader(workbook: ExcelScript.Workbook, cotizacion: Record<string, unknown>) {
   const sheet = workbook.getWorksheet(HEADER_SHEET);
@@ -116,7 +99,7 @@ function fillHeader(workbook: ExcelScript.Workbook, cotizacion: Record<string, u
   });
 }
 
-function prepareSystemSheets(workbook: ExcelScript.Workbook, sistemas: Record<string, unknown>[]): Record<string, string> {
+function prepareSystemSheets(workbook: ExcelScript.Workbook, sistemas: Record<string, unknown>[], layoutConfig: LayoutConfig): Record<string, string> {
   const sheetNames: Record<string, string> = {};
   const templateByType: Record<string, ExcelScript.Worksheet> = {};
   const lastByType: Record<string, ExcelScript.Worksheet> = {};
@@ -156,8 +139,7 @@ function prepareSystemSheets(workbook: ExcelScript.Workbook, sistemas: Record<st
   });
 
   toFill.forEach(([sheet, tipo, sistema, index]) => {
-    fillSupportedForm(sheet, tipo, sistema, index);
-    addDetailSheet(workbook, sistema, sheet.getName());
+    fillSupportedForm(sheet, tipo, sistema, index, layoutConfig);
   });
 
   return sheetNames;
@@ -198,7 +180,6 @@ function fillIdentityAndMethod(sheet: ExcelScript.Worksheet, tipo: string, siste
   setCell(sheet, "B12", read(sistema, "FolioCotizacionAnterior", "FolioCotAnterior", ""));
   setCell(sheet, "B13", read(sistema, "FolioPedidoAnterior", "PedidoBase", "NumPedidoCot", ""));
   setCell(sheet, "B14", read(sistema, "ComentariosReferencia", "ConsEsp", ""));
-  writeTable(sheet, 17, 22, rowsFromSummary(asRecordArray(read(sistema, "piezas", "Piezas", [])), read(sistema, "PiezasResumen", "")), PIEZAS_COLUMNS);
   setCell(sheet, "B25", read(sistema, "AdjuntarImagenLayout", "RequiereAdjuntarLayout", ""));
 }
 
@@ -211,8 +192,6 @@ function fillCommon(sheet: ExcelScript.Worksheet, tipo: string, sistema: Record<
   setCell(sheet, `B${layout.tipoGalv}`, tipoGalv);
   setCell(sheet, `B${layout.precioGalv}`, tipoGalv === "Frio" || tipoGalv === "Caliente" ? read(sistema, "PpkgGalv", "Precio por kilogramo galvanizado", "") : "");
 
-  writeTable(sheet, layout.colors[0], layout.colors[1], asRecordArray(read(sistema, "colores", "Colores", [])), COLOR_COLUMNS);
-
   const serviceRow = layout.services;
   setCell(sheet, `B${serviceRow}`, read(sistema, "Ins", "Instalacion", "Instalación", ""));
   setCell(sheet, `B${serviceRow + 1}`, read(sistema, "CostoInstalacion", "Costo instalación", ""));
@@ -222,22 +201,19 @@ function fillCommon(sheet: ExcelScript.Worksheet, tipo: string, sistema: Record<
   setCell(sheet, `B${serviceRow + 5}`, read(sistema, "EstProv", "Unirse a estructura de otro proveedor", ""));
   setCell(sheet, `B${serviceRow + 6}`, read(sistema, "ComentariosEstructura", "Comentarios estructura", ""));
   setCell(sheet, `B${serviceRow + 7}`, read(sistema, "ProvExternos", "Proveedores externos", ""));
-  writeTable(sheet, layout.providers[0], layout.providers[1], asRecordArray(read(sistema, "proveedoresExternos", "ProveedoresExternos", [])), PROVEEDOR_COLUMNS);
   setCell(sheet, `B${layout.comments}`, read(sistema, "ConsEsp", "Consideraciones especiales", "Comentarios", ""));
 }
 
-function fillSupportedForm(sheet: ExcelScript.Worksheet, tipo: string, sistema: Record<string, unknown>, systemNo: number) {
+function fillSupportedForm(sheet: ExcelScript.Worksheet, tipo: string, sistema: Record<string, unknown>, systemNo: number, layoutConfig: LayoutConfig) {
   fillIdentityAndMethod(sheet, tipo, sistema, systemNo);
 
   if (tipo === "SEL") {
     fillTarimaBlock(sheet, sistema, 29);
     fillAreaAndLevels(sheet, sistema, 38, 43, true);
-    fillSecurityTables(sheet, sistema, [53, 56], [60, 62]);
   } else if (tipo === "DIN" || tipo === "PBK") {
     fillTarimaBlock(sheet, sistema, 29);
     fillRack(sheet, sistema, 38, true);
     fillAreaAndLevels(sheet, sistema, 46, 51, true);
-    fillSecurityTables(sheet, sistema, [61, 64], [68, 70]);
   } else if (tipo === "DRV") {
     fillTarimaBlock(sheet, sistema, 29);
     setCell(sheet, "B38", read(sistema, "FrentesBuscados", "Frentes buscados", ""));
@@ -249,7 +225,6 @@ function fillSupportedForm(sheet: ExcelScript.Worksheet, tipo: string, sistema: 
     setCell(sheet, "B45", read(sistema, "AnchoMastilMontacargas", ""));
     setCell(sheet, "B46", read(sistema, "ModeloMontacargas", ""));
     fillAreaAndLevels(sheet, sistema, 48, 53, true);
-    fillSecurityTables(sheet, sistema, [63, 66], [70, 72]);
   } else if (tipo === "CAN") {
     setCell(sheet, "B29", read(sistema, "TipoProducto", ""));
     setCell(sheet, "B30", read(sistema, "LongitudCarga", ""));
@@ -269,9 +244,7 @@ function fillSupportedForm(sheet: ExcelScript.Worksheet, tipo: string, sistema: 
     setCell(sheet, "B47", read(sistema, "AdjuntarImagenLayout", "Requiere adjuntar layout", ""));
     setCell(sheet, "B48", read(sistema, "ExisteDefCliente", "Existe definición cliente", ""));
     setCell(sheet, "B49", read(sistema, "ComentariosConfigCliente", "DefPorCliente", "Definido por el cliente", ""));
-    fillSecurityTables(sheet, sistema, [52, 55], [59, 61]);
   } else if (tipo === "MEZ") {
-    fillProductTable(sheet, sistema, 31, 36);
     setCell(sheet, "B39", read(sistema, "AlturaRecomendadaEntrepiso", "Altura recomendada entrepiso", ""));
     setCell(sheet, "B40", read(sistema, "CantidadEntrepisos", "Cantidad entrepisos", ""));
     setCell(sheet, "B41", read(sistema, "RequiereElevador", ""));
@@ -285,12 +258,9 @@ function fillSupportedForm(sheet: ExcelScript.Worksheet, tipo: string, sistema: 
     setCell(sheet, "B49", read(sistema, "PesoCarrito", ""));
     setCell(sheet, "B50", read(sistema, "RequiereEscaleras", ""));
     fillAreaAndLevels(sheet, sistema, 52, 56, false);
-    fillSecurityTables(sheet, sistema, [64, 67], [71, 73]);
   } else if (tipo === "CFL") {
-    fillProductTable(sheet, sistema, 31, 36);
     fillRack(sheet, sistema, 39, false);
     fillAreaAndLevels(sheet, sistema, 45, 49, false);
-    fillSecurityTables(sheet, sistema, [57, 60], [64, 66]);
   } else if (tipo === "MZL") {
     setCell(sheet, "B29", read(sistema, "CantidadPisos", ""));
     setCell(sheet, "B30", read(sistema, "CargaPorM2", ""));
@@ -309,13 +279,11 @@ function fillSupportedForm(sheet: ExcelScript.Worksheet, tipo: string, sistema: 
     setCell(sheet, "B43", read(sistema, "RequiereEscaleras", ""));
     setCell(sheet, "B45", read(sistema, "MetodoSeparacionColumnas", "Método separación columnas", ""));
     setCell(sheet, "B46", read(sistema, "SeparacionColumnasManual", "Separación columnas manual", ""));
-    fillProductTable(sheet, sistema, 50, 53);
-    writeTable(sheet, 58, 61, asRecordArray(read(sistema, "tarimas", "Tarimas", [])), TARIMA_MZL_COLUMNS);
     fillAreaAndLevels(sheet, sistema, 64, 68, false);
-    fillSecurityTables(sheet, sistema, [76, 79], [83, 85]);
   }
 
   fillCommon(sheet, tipo, sistema);
+  fillDetailTables(sheet, tipo, sistema, layoutConfig);
 }
 
 function fillTarimaBlock(sheet: ExcelScript.Worksheet, sistema: Record<string, unknown>, baseRow: number) {
@@ -354,13 +322,6 @@ function fillAreaAndLevels(sheet: ExcelScript.Worksheet, sistema: Record<string,
   setCell(sheet, `B${levelsRow + offset + 5}`, read(sistema, "ComentariosConfigCliente", "DefPorCliente", "Definido por el cliente", ""));
 }
 
-function fillSecurityTables(sheet: ExcelScript.Worksheet, sistema: Record<string, unknown>, seguridadRange: [number, number], especialesRange: [number, number]) {
-  const seguridad = rowsFromSummary(asRecordArray(read(sistema, "elementosSeguridad", "ElementosSeguridad", [])), read(sistema, "ElementosSeguridadResumen", ""));
-  const especiales = asRecordArray(read(sistema, "piezasEspeciales", "PiezasEspeciales", []));
-  writeTable(sheet, seguridadRange[0], seguridadRange[1], seguridad, SEGURIDAD_COLUMNS);
-  writeTable(sheet, especialesRange[0], especialesRange[1], especiales, PIEZAS_ESPECIALES_COLUMNS);
-}
-
 function fillRack(sheet: ExcelScript.Worksheet, sistema: Record<string, unknown>, startRow: number, highImpact: boolean) {
   setCell(sheet, `B${startRow}`, read(sistema, "FrentesBuscados", "Frentes buscados", ""));
   setCell(sheet, `B${startRow + 1}`, read(sistema, "FondosBuscados", "Fondos buscados", ""));
@@ -371,55 +332,6 @@ function fillRack(sheet: ExcelScript.Worksheet, sistema: Record<string, unknown>
     setCell(sheet, `B${startRow + 5}`, read(sistema, "UtilizarRodamientoAltoImpacto", ""));
     setCell(sheet, `B${startRow + 6}`, read(sistema, "EspecificacionRodamientoAltoImpacto", "Especificación rodamiento alto impacto", ""));
   }
-}
-
-function fillProductTable(sheet: ExcelScript.Worksheet, sistema: Record<string, unknown>, startRow: number, endRow: number) {
-  writeTable(sheet, startRow, endRow, asRecordArray(read(sistema, "productos", "Productos", [])), PRODUCT_COLUMNS);
-}
-
-function addDetailSheet(workbook: ExcelScript.Workbook, sistema: Record<string, unknown>, formSheetName: string) {
-  const sheetName = safeSheetName(formSheetName.replace("_Form", "_Datos"));
-  const existing = tryGetWorksheet(workbook, sheetName);
-  if (existing) existing.delete();
-
-  const sheet = workbook.addWorksheet(sheetName);
-  sheet.getRange("A1").setValue("Detalle estructurado del sistema");
-  sheet.getRange("A2").setValue(formatValue(read(sistema, "NombreSistema", "Title", sheetName)));
-
-  let row = 4;
-  row = writeDetailSection(sheet, row, "Piezas", ["Pieza", "Comentarios", "Cantidad", "Unidad", "Notas"], PIEZAS_COLUMNS, rowsFromSummary(
-    asRecordArray(read(sistema, "piezas", "Piezas", [])),
-    read(sistema, "PiezasResumen", "")
-  ));
-  row = writeDetailSection(sheet, row, "Tarimas", ["Peso", "Alto", "Frente", "Fondo", "Huella", "ExcedenteFrente", "ExcedenteFondo"], TARIMA_MZL_COLUMNS, asRecordArray(read(sistema, "tarimas", "Tarimas", [])));
-  row = writeDetailSection(sheet, row, "Productos", ["TipoProducto", "LargoProducto", "AnchoProducto", "AltoProducto", "PesoProducto", "CantidadPorNivel"], PRODUCT_COLUMNS, asRecordArray(read(sistema, "productos", "Productos", [])));
-  row = writeDetailSection(sheet, row, "Elementos de seguridad", ["Pieza", "Cantidad", "Comentario"], SEGURIDAD_COLUMNS, rowsFromSummary(
-    asRecordArray(read(sistema, "elementosSeguridad", "ElementosSeguridad", [])),
-    read(sistema, "ElementosSeguridadResumen", "")
-  ));
-  row = writeDetailSection(sheet, row, "Piezas especiales", ["Pieza", "Cantidad", "Comentario"], PIEZAS_ESPECIALES_COLUMNS, asRecordArray(read(sistema, "piezasEspeciales", "PiezasEspeciales", [])));
-  row = writeDetailSection(sheet, row, "Colores", ["Pieza", "Color"], COLOR_COLUMNS, asRecordArray(read(sistema, "colores", "Colores", [])));
-  writeDetailSection(sheet, row, "Proveedores externos", ["Proveedor", "Alcance"], PROVEEDOR_COLUMNS, asRecordArray(read(sistema, "proveedoresExternos", "ProveedoresExternos", [])));
-
-  sheet.getRange("A:H").getFormat().setColumnWidth(140);
-}
-
-function writeDetailSection(
-  sheet: ExcelScript.Worksheet,
-  startRow: number,
-  title: string,
-  headers: string[],
-  columns: string[][],
-  rows: Record<string, unknown>[]
-): number {
-  sheet.getRange(`A${startRow}`).setValue(title);
-  sheet.getRangeByIndexes(startRow, 0, 1, headers.length).setValues([headers]);
-  rows.forEach((row, index) => {
-    const values = columns.map((aliases) => formatValue(pick(row, aliases, "")));
-    sheet.getRangeByIndexes(startRow + 1 + index, 0, 1, values.length).setValues([values]);
-  });
-
-  return startRow + rows.length + 3;
 }
 
 function addOtSheet(workbook: ExcelScript.Workbook, sistema: Record<string, unknown>, sheetName: string, systemNo: number) {
@@ -451,12 +363,85 @@ function writePayloadSheet(workbook: ExcelScript.Workbook, payloadJson: string) 
   }
 }
 
-function writeTable(sheet: ExcelScript.Worksheet, startRow: number, endRow: number, rows: Record<string, unknown>[], columns: string[][]) {
-  clearTableArea(sheet, startRow, endRow, columns.length);
-  const capacity = Math.max(0, endRow - startRow + 1);
+function readLayoutConfig(workbook: ExcelScript.Workbook): LayoutConfig {
+  const sheet = workbook.getWorksheet(TABLE_CONFIG_SHEET);
+  const usedRange = sheet.getUsedRange();
+  if (!usedRange || usedRange.getRowCount() < 2) {
+    throw new Error(`La plantilla no contiene configuración de tablas en ${TABLE_CONFIG_SHEET}. Regenera y sube FDI_Master.xlsx.`);
+  }
+
+  const values = sheet.getRangeByIndexes(1, 0, usedRange.getRowCount() - 1, 1).getValues();
+  const jsonText = values.map((row) => String(row[0] || "")).join("");
+  return JSON.parse(jsonText) as LayoutConfig;
+}
+
+function fillDetailTables(sheet: ExcelScript.Worksheet, tipo: string, sistema: Record<string, unknown>, layoutConfig: LayoutConfig) {
+  writeSystemTable(
+    sheet,
+    tipo,
+    layoutConfig,
+    "piezas",
+    rowsFromSummary(asRecordArray(read(sistema, "piezas", "Piezas", [])), read(sistema, "PiezasResumen", ""))
+  );
+  writeSystemTable(sheet, tipo, layoutConfig, "tarimas", asRecordArray(read(sistema, "tarimas", "Tarimas", [])));
+  writeSystemTable(sheet, tipo, layoutConfig, "productos", asRecordArray(read(sistema, "productos", "Productos", [])));
+  writeSystemTable(
+    sheet,
+    tipo,
+    layoutConfig,
+    "elementosSeguridad",
+    rowsFromSummary(
+      asRecordArray(read(sistema, "elementosSeguridad", "ElementosSeguridad", [])),
+      read(sistema, "ElementosSeguridadResumen", "")
+    )
+  );
+  writeSystemTable(sheet, tipo, layoutConfig, "piezasEspeciales", asRecordArray(read(sistema, "piezasEspeciales", "PiezasEspeciales", [])));
+  writeSystemTable(sheet, tipo, layoutConfig, "colores", asRecordArray(read(sistema, "colores", "Colores", [])));
+  writeSystemTable(sheet, tipo, layoutConfig, "proveedoresExternos", asRecordArray(read(sistema, "proveedoresExternos", "ProveedoresExternos", [])));
+}
+
+function writeSystemTable(sheet: ExcelScript.Worksheet, tipo: string, layoutConfig: LayoutConfig, tableKey: string, rows: Record<string, unknown>[]) {
+  const definition = layoutConfig.tables[tableKey];
+  writeTableToRange(sheet, tableRangeFor(sheet, tipo, definition), rows, definition.aliases);
+  const previewRef = definition.previewRanges ? definition.previewRanges[tipo] : "";
+  if (previewRef) {
+    writeTableToRange(sheet, sheet.getRange(previewRef), rows, definition.aliases);
+  }
+}
+
+function tableRangeFor(sheet: ExcelScript.Worksheet, tipo: string, definition: TableDefinition): ExcelScript.Range {
+  const table = findSheetTable(sheet, definition.baseName, tipo);
+  if (table) {
+    return table.getRange();
+  }
+  return sheet.getRange(definition.range);
+}
+
+function findSheetTable(sheet: ExcelScript.Worksheet, baseName: string, tipo: string): ExcelScript.Table | undefined {
+  const expectedPrefix = `${baseName}_${tipo}`;
+  const tables = sheet.getTables();
+  for (const table of tables) {
+    const name = table.getName();
+    if (name === expectedPrefix || name.indexOf(`${expectedPrefix}_`) === 0) return table;
+  }
+  for (const table of tables) {
+    if (table.getName().indexOf(`${baseName}_`) === 0) return table;
+  }
+  return undefined;
+}
+
+function writeTableToRange(sheet: ExcelScript.Worksheet, tableRange: ExcelScript.Range, rows: Record<string, unknown>[], columns: string[][]) {
+  const dataRowCount = Math.max(0, tableRange.getRowCount() - 1);
+  if (dataRowCount < 1 || columns.length < 1) return;
+
+  const startRowIndex = tableRange.getRowIndex() + 1;
+  const startColumnIndex = tableRange.getColumnIndex();
+  sheet.getRangeByIndexes(startRowIndex, startColumnIndex, dataRowCount, columns.length).clear(ExcelScript.ClearApplyTo.contents);
+
+  const capacity = Math.max(0, dataRowCount);
   rows.slice(0, capacity).forEach((row, rowOffset) => {
     const values = columns.map((aliases) => formatValue(pick(row, aliases, "")));
-    sheet.getRangeByIndexes(startRow - 1 + rowOffset, 0, 1, values.length).setValues([values]);
+    sheet.getRangeByIndexes(startRowIndex + rowOffset, startColumnIndex, 1, values.length).setValues([values]);
   });
 }
 

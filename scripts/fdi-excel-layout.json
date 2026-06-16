@@ -1,0 +1,142 @@
+{
+  "version": 1,
+  "configSheet": "FDI_Table_Config",
+  "hiddenColumns": ["I:V"],
+  "tables": {
+    "piezas": {
+      "baseName": "tblPiezas",
+      "range": "I4:M29",
+      "headers": ["Pieza", "Comentarios", "Cantidad", "Unidad", "Notas"],
+      "aliases": [
+        ["Pieza", "C\u00f3digo", "Codigo"],
+        ["Comentarios", "Comentario", "Descripci\u00f3n", "Descripcion"],
+        ["Cantidad"],
+        ["Unidad"],
+        ["Notas"]
+      ],
+      "previewRanges": {
+        "SEL": "A16:E22",
+        "DIN": "A16:E22",
+        "PBK": "A16:E22",
+        "DRV": "A16:E22",
+        "CAN": "A16:E22",
+        "MEZ": "A16:E22",
+        "CFL": "A16:E22",
+        "MZL": "A16:E22"
+      }
+    },
+    "tarimas": {
+      "baseName": "tblTarimas",
+      "range": "O4:U29",
+      "headers": ["Peso", "Alto", "Frente", "Fondo", "Huella", "ExcedenteFrente", "ExcedenteFondo"],
+      "aliases": [
+        ["Peso", "PesoTarima"],
+        ["Alto", "AltoTarima"],
+        ["Frente", "FrenteTarima"],
+        ["Fondo", "FondoTarima"],
+        ["Huella", "HuellaTarima"],
+        ["ExcedenteFrente", "Excedente frente"],
+        ["ExcedenteFondo", "Excedente fondo"]
+      ],
+      "previewRanges": {
+        "MZL": "A57:G61"
+      }
+    },
+    "productos": {
+      "baseName": "tblProductos",
+      "range": "I32:N57",
+      "headers": ["TipoProducto", "LargoProducto", "AnchoProducto", "AltoProducto", "PesoProducto", "CantidadPorNivel"],
+      "aliases": [
+        ["TipoProducto", "Tipo producto", "Tipo", "Producto"],
+        ["LargoProducto", "Largo"],
+        ["AnchoProducto", "Ancho"],
+        ["AltoProducto", "Alto"],
+        ["PesoProducto", "Peso", "PesoPieza"],
+        ["CantidadPorNivel", "Cantidad por nivel", "Cantidad"]
+      ],
+      "previewRanges": {
+        "MEZ": "A30:F36",
+        "CFL": "A30:F36",
+        "MZL": "A49:F53"
+      }
+    },
+    "elementosSeguridad": {
+      "baseName": "tblElementosSeguridad",
+      "range": "P32:R57",
+      "headers": ["Pieza", "Cantidad", "Comentario"],
+      "aliases": [
+        ["Pieza", "Elemento"],
+        ["Cantidad"],
+        ["Comentario", "Comentarios"]
+      ],
+      "previewRanges": {
+        "SEL": "A52:C56",
+        "DIN": "A60:C64",
+        "PBK": "A60:C64",
+        "DRV": "A62:C66",
+        "CAN": "A51:C55",
+        "MEZ": "A63:C67",
+        "CFL": "A56:C60",
+        "MZL": "A75:C79"
+      }
+    },
+    "piezasEspeciales": {
+      "baseName": "tblPiezasEspeciales",
+      "range": "T32:V57",
+      "headers": ["Pieza", "Cantidad", "Comentario"],
+      "aliases": [
+        ["Pieza"],
+        ["Cantidad"],
+        ["Comentario", "Comentarios"]
+      ],
+      "previewRanges": {
+        "SEL": "A59:C62",
+        "DIN": "A67:C70",
+        "PBK": "A67:C70",
+        "DRV": "A69:C72",
+        "CAN": "A58:C61",
+        "MEZ": "A70:C73",
+        "CFL": "A63:C66",
+        "MZL": "A82:C85"
+      }
+    },
+    "colores": {
+      "baseName": "tblColores",
+      "range": "I60:J85",
+      "headers": ["Pieza", "Color"],
+      "aliases": [
+        ["Pieza"],
+        ["Color", "ColorNombre", "ColorTexto"]
+      ],
+      "previewRanges": {
+        "SEL": "A71:B75",
+        "DIN": "A79:B83",
+        "PBK": "A79:B83",
+        "DRV": "A81:B85",
+        "CAN": "A70:B74",
+        "MEZ": "A82:B86",
+        "CFL": "A75:B79",
+        "MZL": "A94:B98"
+      }
+    },
+    "proveedoresExternos": {
+      "baseName": "tblProveedoresExternos",
+      "range": "L60:M85",
+      "headers": ["Proveedor", "Alcance"],
+      "aliases": [
+        ["Proveedor"],
+        ["Alcance", "Comentarios"]
+      ],
+      "previewRanges": {
+        "SEL": "A87:B90",
+        "DIN": "A95:B98",
+        "PBK": "A95:B98",
+        "DRV": "A97:B100",
+        "CAN": "A86:B89",
+        "MEZ": "A98:B101",
+        "CFL": "A91:B94",
+        "MZL": "A110:B113"
+      }
+    }
+  }
+}
