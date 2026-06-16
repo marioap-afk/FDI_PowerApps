@@ -8,217 +8,415 @@
  * sobre la copia generada.
  */
 function main(workbook: ExcelScript.Workbook, payloadJson: string) {
-  const payload = JSON.parse(payloadJson || "{}");
+  const payloadText = payloadJson || "{}";
+  const payload = asRecord(JSON.parse(payloadText));
   const cotizacion = asRecord(payload.cotizacion);
-  const sistemas = Array.isArray(payload.sistemas) ? payload.sistemas.map(asRecord) : [];
+  const sistemas = asRecordArray(payload.sistemas);
 
   fillHeader(workbook, cotizacion);
   const sheetNames = prepareSystemSheets(workbook, sistemas);
   fillSistemasIndex(workbook, sistemas, sheetNames);
-  writePayloadSheet(workbook, payloadJson);
+  writePayloadSheet(workbook, JSON.stringify(payload, null, 2));
 }
 
-const HEADER_ROWS: Record<string, number> = {
-  "Creación": 2,
-  "ID": 3,
-  "Carpeta": 4,
-  "Folio": 5,
-  "VendedoresLookUp": 6,
-  "EmpresaLookUp": 7,
-  "Dirección de la empresa": 8,
-  "ContactoLookUp": 9,
-  "Correo empresarial": 10,
-  "Número de teléfono": 11,
-  "Moneda de cotización": 12,
-  "Flete": 13,
-  "País de destino": 14,
-  "Estado de destino": 15,
-  "Ciudad de destino": 16,
-  "Fianzas": 17,
-  "Póliza de responsabilidad civil": 18,
-  "Monto de póliza": 19,
-  "Licitación": 20,
-  "Fecha de entrega": 21,
-  "Prioridad": 22,
-  "Estado": 23,
-  "Created By": 24,
-  "Notificado": 25,
-  "Title": 26,
-  "Nombre de contacto": 27,
-  "Solicitud o generación": 28,
-  "Item Type": 29,
-  "Path": 30
+const HEADER_SHEET = "Datos de cotización";
+const SYSTEMS_INDEX_SHEET = "Índice de sistemas";
+const PAYLOAD_SHEET = "FDI_Payload_JSON";
+
+const TYPE_TEMPLATES: Record<string, string> = {
+  SEL: "SEL_S01_Form",
+  DIN: "DIN_S01_Form",
+  PBK: "PBK_S01_Form",
+  DRV: "DRV_S01_Form",
+  CAN: "CAN_S01_Form",
+  MEZ: "MEZ_S01_Form",
+  CFL: "CFL_S01_Form",
+  MZL: "MZL_S01_Form"
 };
 
+const HEADER_ROWS: Array<[number, string[]]> = [
+  [6, ["Folio"]],
+  [7, ["VendedoresLookUp", "Vendedor", "VendedorNombre"]],
+  [8, ["EmpresaLookUp", "Cliente", "Title"]],
+  [9, ["ContactoLookUp", "Nombre de contacto", "Contacto"]],
+  [10, ["Dirección de la empresa", "DireccionEmpresa", "Dirección"]],
+  [11, ["Correo empresarial", "Correo", "Email"]],
+  [12, ["Número de teléfono", "Telefono", "Teléfono"]],
+  [15, ["Moneda de cotización", "Moneda"]],
+  [16, ["Flete"]],
+  [17, ["País de destino", "PaisDestino", "País de envío"]],
+  [18, ["Estado de destino", "EstadoDestino", "Estado de envío"]],
+  [19, ["Ciudad de destino", "CiudadDestino", "Ciudad de envío"]],
+  [22, ["Fianzas"]],
+  [23, ["Póliza de responsabilidad civil", "PolizaResponsabilidadCivil"]],
+  [24, ["Monto de póliza", "MontoPoliza"]],
+  [25, ["Licitación", "Licitacion"]],
+  [26, ["Prioridad", "Prioridad de cotización"]],
+  [29, ["Fecha de entrega", "FechaEntrega"]],
+  [30, ["Fecha FDI", "Creación", "Created"]],
+  [33, ["Notas generales", "Notas", "Comentarios", "Consideraciones especiales"]]
+];
+
+interface CommonLayout {
+  designEnd: number;
+  acabado: number;
+  galv: number;
+  tipoGalv: number;
+  precioGalv: number;
+  colors: [number, number];
+  services: number;
+  providers: [number, number];
+  comments: number;
+}
+
+const COMMON_LAYOUT: Record<string, CommonLayout> = {
+  SEL: { designEnd: 63, acabado: 66, galv: 67, tipoGalv: 68, precioGalv: 69, colors: [72, 75], services: 78, providers: [88, 90], comments: 92 },
+  DIN: { designEnd: 71, acabado: 74, galv: 75, tipoGalv: 76, precioGalv: 77, colors: [80, 83], services: 86, providers: [96, 98], comments: 100 },
+  PBK: { designEnd: 71, acabado: 74, galv: 75, tipoGalv: 76, precioGalv: 77, colors: [80, 83], services: 86, providers: [96, 98], comments: 100 },
+  DRV: { designEnd: 73, acabado: 76, galv: 77, tipoGalv: 78, precioGalv: 79, colors: [82, 85], services: 88, providers: [98, 100], comments: 102 },
+  CAN: { designEnd: 62, acabado: 65, galv: 66, tipoGalv: 67, precioGalv: 68, colors: [71, 74], services: 77, providers: [87, 89], comments: 91 },
+  MEZ: { designEnd: 74, acabado: 77, galv: 78, tipoGalv: 79, precioGalv: 80, colors: [83, 86], services: 89, providers: [99, 101], comments: 103 },
+  CFL: { designEnd: 67, acabado: 70, galv: 71, tipoGalv: 72, precioGalv: 73, colors: [76, 79], services: 82, providers: [92, 94], comments: 96 },
+  MZL: { designEnd: 86, acabado: 89, galv: 90, tipoGalv: 91, precioGalv: 92, colors: [95, 98], services: 101, providers: [111, 113], comments: 115 }
+};
+
+const PIEZAS_COLUMNS = [
+  ["Pieza", "Código", "Codigo"],
+  ["Comentarios", "Comentario", "Descripción", "Descripcion"],
+  ["Cantidad"],
+  ["Unidad"],
+  ["Notas"]
+];
+const PRODUCT_COLUMNS = [
+  ["TipoProducto", "Tipo producto", "Tipo", "Producto"],
+  ["LargoProducto", "Largo"],
+  ["AnchoProducto", "Ancho"],
+  ["AltoProducto", "Alto"],
+  ["PesoProducto", "Peso", "PesoPieza"],
+  ["CantidadPorNivel", "Cantidad por nivel", "Cantidad"]
+];
+const SEGURIDAD_COLUMNS = [["Pieza", "Elemento"], ["Cantidad"], ["Comentario", "Comentarios"]];
+const PIEZAS_ESPECIALES_COLUMNS = [["Pieza"], ["Cantidad"], ["Comentario", "Comentarios"]];
+const COLOR_COLUMNS = [["Pieza"], ["Color", "ColorNombre", "ColorTexto"]];
+const PROVEEDOR_COLUMNS = [["Proveedor"], ["Alcance", "Comentarios"]];
+const TARIMA_MZL_COLUMNS = [
+  ["Peso", "PesoTarima"],
+  ["Alto", "AltoTarima"],
+  ["Frente", "FrenteTarima"],
+  ["Fondo", "FondoTarima"],
+  ["Huella", "HuellaTarima"],
+  ["ExcedenteFrente", "Excedente frente"],
+  ["ExcedenteFondo", "Excedente fondo"]
+];
+
 function fillHeader(workbook: ExcelScript.Workbook, cotizacion: Record<string, unknown>) {
-  const sheet = workbook.getWorksheet("Encabezado_Tabla");
-  Object.keys(HEADER_ROWS).forEach((key) => {
-    sheet.getRange(`C${HEADER_ROWS[key]}`).setValue(formatValue(cotizacion[key]));
+  const sheet = workbook.getWorksheet(HEADER_SHEET);
+  HEADER_ROWS.forEach(([row, aliases]) => {
+    setCell(sheet, `B${row}`, pick(cotizacion, aliases, ""));
   });
 }
 
 function prepareSystemSheets(workbook: ExcelScript.Workbook, sistemas: Record<string, unknown>[]): Record<string, string> {
   const sheetNames: Record<string, string> = {};
-  const selTemplate = workbook.getWorksheet("SEL_S01_Form");
-  let selCount = 0;
+  const templateByType: Record<string, ExcelScript.Worksheet> = {};
+  const lastByType: Record<string, ExcelScript.Worksheet> = {};
+  const usedTypes: Record<string, boolean> = {};
+  const toFill: Array<[ExcelScript.Worksheet, string, Record<string, unknown>, number]> = [];
 
-  for (let zeroIndex = 0; zeroIndex < sistemas.length; zeroIndex += 1) {
-    const sistema = sistemas[zeroIndex];
+  sistemas.forEach((sistema, zeroIndex) => {
     const index = zeroIndex + 1;
     const tipo = String(read(sistema, "TipoKey", "tipo", "Tipo", "SEL")).toUpperCase();
+    const sheetName = safeSheetName(`${tipo}_S${String(index).padStart(2, "0")}_Form`);
+    sheetNames[String(index)] = sheetName;
 
-    if (tipo === "SEL") {
-      selCount += 1;
-      const sheetName = safeSheetName(`SEL_S${String(index).padStart(2, "0")}_Form`);
-      if (selCount === 1) {
-        selTemplate.setName(sheetName);
+    if (TYPE_TEMPLATES[tipo]) {
+      let sheet: ExcelScript.Worksheet;
+      if (!templateByType[tipo]) {
+        sheet = workbook.getWorksheet(TYPE_TEMPLATES[tipo]);
+        sheet.setName(sheetName);
+        templateByType[tipo] = sheet;
+        lastByType[tipo] = sheet;
+        usedTypes[tipo] = true;
       } else {
-        selTemplate.copy(ExcelScript.WorksheetPositionType.after, selTemplate).setName(sheetName);
+        sheet = templateByType[tipo].copy(ExcelScript.WorksheetPositionType.after, lastByType[tipo]);
+        sheet.setName(sheetName);
+        lastByType[tipo] = sheet;
       }
-      sheetNames[String(index)] = sheetName;
+      toFill.push([sheet, tipo, sistema, index]);
     } else {
-      const sheetName = safeSheetName(`${tipo}_S${String(index).padStart(2, "0")}_Form`);
-      sheetNames[String(index)] = sheetName;
       addOtSheet(workbook, sistema, sheetName, index);
     }
-  }
+  });
 
-  for (let zeroIndex = 0; zeroIndex < sistemas.length; zeroIndex += 1) {
-    const sistema = sistemas[zeroIndex];
-    const index = zeroIndex + 1;
-    const tipo = String(read(sistema, "TipoKey", "tipo", "Tipo", "SEL")).toUpperCase();
-
-    if (tipo === "SEL") {
-      const sheetName = sheetNames[String(index)];
-      fillSelForm(workbook.getWorksheet(sheetName), sistema, index);
-      addDetailSheet(workbook, sistema, sheetName.replace("_Form", "_Datos"));
+  Object.keys(TYPE_TEMPLATES).forEach((tipo) => {
+    if (!usedTypes[tipo]) {
+      const unusedTemplate = tryGetWorksheet(workbook, TYPE_TEMPLATES[tipo]);
+      if (unusedTemplate) unusedTemplate.delete();
     }
-  }
+  });
+
+  toFill.forEach(([sheet, tipo, sistema, index]) => {
+    fillSupportedForm(sheet, tipo, sistema, index);
+    addDetailSheet(workbook, sistema, sheet.getName());
+  });
 
   return sheetNames;
 }
 
 function fillSistemasIndex(workbook: ExcelScript.Workbook, sistemas: Record<string, unknown>[], sheetNames: Record<string, string>) {
-  const sheet = workbook.getWorksheet("Sistemas_Index");
-  sheet.getRange("A4:I92").clear(ExcelScript.ClearApplyTo.contents);
+  const sheet = workbook.getWorksheet(SYSTEMS_INDEX_SHEET);
+  clearTableArea(sheet, 6, Math.max(getUsedRowCount(sheet), sistemas.length + 5), 6);
 
   sistemas.forEach((sistema, zeroIndex) => {
     const index = zeroIndex + 1;
-    const row = index + 3;
+    const row = index + 5;
     const tipo = String(read(sistema, "TipoKey", "tipo", "Tipo", "SEL")).toUpperCase();
-    const detalle = read(sistema, "ConsEsp", "HTMLCol", "");
-
-    sheet.getRange(`A${row}:I${row}`).setValues([[
-      `${tipo}-${String(index).padStart(4, "0")}`,
+    sheet.getRange(`A${row}:F${row}`).setValues([[
       index,
       tipo,
-      normalizeMethod(sistema),
+      formatValue(read(sistema, "NombreSistema", "TipoNombre", "Title", `Sistema ${index}`)),
+      methodLabel(sistema),
       sheetNames[String(index)] || "",
-      read(sistema, "NombreSistema", "TipoNombre", "Title", `Sistema ${index}`),
-      read(sistema, "NumPedidoCot", "PedidoBase", ""),
-      read(sistema, "DiseñoRef", "DisenoRef", ""),
-      htmlToText(detalle)
+      htmlToText(read(sistema, "ConsEsp", "HTMLCol", "Comentarios", ""))
     ]]);
   });
 
   try {
     const table = workbook.getTable("tblSistemas");
-    table.resize(sheet.getRange(`A3:I${Math.max(4, sistemas.length + 3)}`));
+    table.resize(sheet.getRange(`A5:F${Math.max(6, sistemas.length + 5)}`));
   } catch {
     // La plantilla puede existir sin tabla; el índice visible sigue lleno.
   }
 }
 
-function fillSelForm(sheet: ExcelScript.Worksheet, sistema: Record<string, unknown>, systemNo: number) {
-  const method = normalizeMethod(sistema);
-  applySelMethodVisibility(sheet, method);
-
-  setCell(sheet, "B3", systemNo);
-  setCell(sheet, "B9", read(sistema, "NumPedidoCot", "PedidoBase", ""));
-  setCell(sheet, "B10", read(sistema, "ConsEsp", ""));
-
-  const piezas = rowsFromSummary(
-    asArray(read(sistema, "piezas", "Piezas", [])),
-    read(sistema, "PiezasResumen", "")
-  );
-  piezas.slice(0, 10).forEach((piezaRaw, offset) => {
-    const pieza = asRecord(piezaRaw);
-    const row = 15 + offset;
-    sheet.getRange(`A${row}:E${row}`).setValues([[
-      read(pieza, "Pieza", "Código", "Codigo", ""),
-      read(pieza, "Comentarios", "Comentario", "Descripción", "Descripcion", ""),
-      read(pieza, "Cantidad", ""),
-      read(pieza, "Unidad", ""),
-      read(pieza, "Notas", "")
-    ]]);
-  });
-
-  const tarimas = asArray(read(sistema, "tarimas", "Tarimas", []));
-  const firstTarima = tarimas.length > 0 ? asRecord(tarimas[0]) : {};
-  setCell(sheet, "B28", read(firstTarima, "Tipo", ""));
-  setCell(sheet, "B30", read(firstTarima, "Alto", ""));
-  setCell(sheet, "B31", read(firstTarima, "Frente", ""));
-  setCell(sheet, "B32", read(firstTarima, "Fondo", ""));
-  setCell(sheet, "B33", read(firstTarima, "ExcedenteFrente", ""));
-  setCell(sheet, "B34", read(firstTarima, "ExcedenteFondo", ""));
-
-  setCell(sheet, "B39", read(sistema, "PasilloMin", ""));
-  setCell(sheet, "B40", read(sistema, "PasilloMax", ""));
-  setCell(sheet, "B41", read(sistema, "AnchoDisp", ""));
-  setCell(sheet, "B42", read(sistema, "LargoDisp", ""));
-  setCell(sheet, "A46", read(sistema, "ConfNiv", "ConfiguracionNiveles", ""));
-  setCell(sheet, "B47", read(sistema, "AltCritMonta", ""));
-  setCell(sheet, "B48", read(sistema, "AltCritNiv", ""));
-  setCell(sheet, "B51", read(sistema, "DefPorCliente", ""));
-  setCell(sheet, "B53", formatValue(read(sistema, "GalvList", "Galvanizado", "")));
-  setCell(sheet, "B54", read(sistema, "TipoGalv", ""));
-  setCell(sheet, "B55", read(sistema, "PpkgGalv", ""));
-
-  const colores = asArray(read(sistema, "colores", "Colores", []))
-    .map((colorRaw) => {
-      const color = asRecord(colorRaw);
-      const pieza = String(read(color, "Pieza", ""));
-      const valor = String(read(color, "Color", ""));
-      return pieza || valor ? `${pieza}: ${valor}`.replace(/^: /, "").replace(/: $/, "") : "";
-    })
-    .filter((value) => value !== "");
-  setCell(sheet, "B56", colores.join("; "));
-
-  setCell(sheet, "B57", formatValue(read(sistema, "Ins", "Instalacion", "")));
-  setCell(sheet, "B58", formatValue(read(sistema, "MemCalc", "")));
-  setCell(sheet, "B59", formatValue(read(sistema, "EstProv", "")));
-  setCell(sheet, "B60", formatValue(read(sistema, "ProvExternos", "")));
-  setCell(sheet, "B61", read(sistema, "ConsEsp", ""));
+function fillIdentityAndMethod(sheet: ExcelScript.Worksheet, tipo: string, sistema: Record<string, unknown>, systemNo: number) {
+  applyMethodVisibility(sheet, tipo, sistema);
+  setCell(sheet, "B5", systemNo);
+  setCell(sheet, "B6", read(sistema, "SistemaId", "SistemaID", "RegistroID", systemNo));
+  setCell(sheet, "B7", methodLabel(sistema));
+  setCell(sheet, "B8", read(sistema, "NombreSistema", "TipoNombre", "Title", `Sistema ${systemNo}`));
+  setCell(sheet, "B12", read(sistema, "FolioCotizacionAnterior", "FolioCotAnterior", ""));
+  setCell(sheet, "B13", read(sistema, "FolioPedidoAnterior", "PedidoBase", "NumPedidoCot", ""));
+  setCell(sheet, "B14", read(sistema, "ComentariosReferencia", "ConsEsp", ""));
+  writeTable(sheet, 17, 22, rowsFromSummary(asRecordArray(read(sistema, "piezas", "Piezas", [])), read(sistema, "PiezasResumen", "")), PIEZAS_COLUMNS);
+  setCell(sheet, "B25", read(sistema, "AdjuntarImagenLayout", "RequiereAdjuntarLayout", ""));
 }
 
-function addDetailSheet(workbook: ExcelScript.Workbook, sistema: Record<string, unknown>, sheetName: string) {
-  const sheet = workbook.addWorksheet(safeSheetName(sheetName));
+function fillCommon(sheet: ExcelScript.Worksheet, tipo: string, sistema: Record<string, unknown>) {
+  const layout = COMMON_LAYOUT[tipo];
+  const acabado = acabadoValue(sistema);
+  const tipoGalv = tipoGalvanizadoFromAcabado(acabado);
+  setCell(sheet, `B${layout.acabado}`, acabado);
+  setCell(sheet, `B${layout.galv}`, galvanizadoFromAcabado(acabado));
+  setCell(sheet, `B${layout.tipoGalv}`, tipoGalv);
+  setCell(sheet, `B${layout.precioGalv}`, tipoGalv === "Frio" || tipoGalv === "Caliente" ? read(sistema, "PpkgGalv", "Precio por kilogramo galvanizado", "") : "");
+
+  writeTable(sheet, layout.colors[0], layout.colors[1], asRecordArray(read(sistema, "colores", "Colores", [])), COLOR_COLUMNS);
+
+  const serviceRow = layout.services;
+  setCell(sheet, `B${serviceRow}`, read(sistema, "Ins", "Instalacion", "Instalación", ""));
+  setCell(sheet, `B${serviceRow + 1}`, read(sistema, "CostoInstalacion", "Costo instalación", ""));
+  setCell(sheet, `B${serviceRow + 2}`, read(sistema, "ComentariosInstalacion", "Comentarios instalación", ""));
+  setCell(sheet, `B${serviceRow + 3}`, read(sistema, "MemCalc", "Memoria de cálculo", ""));
+  setCell(sheet, `B${serviceRow + 4}`, read(sistema, "CostoMemCalculo", "Costo memoria cálculo", ""));
+  setCell(sheet, `B${serviceRow + 5}`, read(sistema, "EstProv", "Unirse a estructura de otro proveedor", ""));
+  setCell(sheet, `B${serviceRow + 6}`, read(sistema, "ComentariosEstructura", "Comentarios estructura", ""));
+  setCell(sheet, `B${serviceRow + 7}`, read(sistema, "ProvExternos", "Proveedores externos", ""));
+  writeTable(sheet, layout.providers[0], layout.providers[1], asRecordArray(read(sistema, "proveedoresExternos", "ProveedoresExternos", [])), PROVEEDOR_COLUMNS);
+  setCell(sheet, `B${layout.comments}`, read(sistema, "ConsEsp", "Consideraciones especiales", "Comentarios", ""));
+}
+
+function fillSupportedForm(sheet: ExcelScript.Worksheet, tipo: string, sistema: Record<string, unknown>, systemNo: number) {
+  fillIdentityAndMethod(sheet, tipo, sistema, systemNo);
+
+  if (tipo === "SEL") {
+    fillTarimaBlock(sheet, sistema, 29);
+    fillAreaAndLevels(sheet, sistema, 38, 43, true);
+    fillSecurityTables(sheet, sistema, [53, 56], [60, 62]);
+  } else if (tipo === "DIN" || tipo === "PBK") {
+    fillTarimaBlock(sheet, sistema, 29);
+    fillRack(sheet, sistema, 38, true);
+    fillAreaAndLevels(sheet, sistema, 46, 51, true);
+    fillSecurityTables(sheet, sistema, [61, 64], [68, 70]);
+  } else if (tipo === "DRV") {
+    fillTarimaBlock(sheet, sistema, 29);
+    setCell(sheet, "B38", read(sistema, "FrentesBuscados", "Frentes buscados", ""));
+    setCell(sheet, "B39", read(sistema, "FondosBuscados", "Fondos buscados", ""));
+    setCell(sheet, "B40", read(sistema, "NivelesBuscados", "Niveles buscados", ""));
+    setCell(sheet, "B42", read(sistema, "TipoCapturaMontacargas", ""));
+    setCell(sheet, "B43", read(sistema, "AlturaCabinaMontacargas", ""));
+    setCell(sheet, "B44", read(sistema, "AnchoTotalMontacargas", ""));
+    setCell(sheet, "B45", read(sistema, "AnchoMastilMontacargas", ""));
+    setCell(sheet, "B46", read(sistema, "ModeloMontacargas", ""));
+    fillAreaAndLevels(sheet, sistema, 48, 53, true);
+    fillSecurityTables(sheet, sistema, [63, 66], [70, 72]);
+  } else if (tipo === "CAN") {
+    setCell(sheet, "B29", read(sistema, "TipoProducto", ""));
+    setCell(sheet, "B30", read(sistema, "LongitudCarga", ""));
+    setCell(sheet, "B31", read(sistema, "SeccionCarga", ""));
+    setCell(sheet, "B32", read(sistema, "PesoCarga", ""));
+    setCell(sheet, "B33", read(sistema, "CantidadPorNivel", ""));
+    setCell(sheet, "B35", read(sistema, "TipoGondola", "Tipo góndola", ""));
+    setCell(sheet, "B37", read(sistema, "PasilloMax", "Pasillo máximo", ""));
+    setCell(sheet, "B38", read(sistema, "PasilloMin", "Pasillo mínimo", ""));
+    setCell(sheet, "B39", read(sistema, "AnchoDisp", "Ancho disponible", ""));
+    setCell(sheet, "B40", read(sistema, "LargoDisp", "Largo disponible", ""));
+    setCell(sheet, "B42", read(sistema, "ConsiderarAlturaMaxMonta", ""));
+    setCell(sheet, "B43", read(sistema, "AltCritMonta", "Altura crítica de montacargas", ""));
+    setCell(sheet, "B44", read(sistema, "ConsiderarAlturaNave", ""));
+    setCell(sheet, "B45", read(sistema, "AlturaMaxNave", "Altura máxima nave", ""));
+    setCell(sheet, "B46", read(sistema, "AlturaMinNave", "Altura mínima nave", ""));
+    setCell(sheet, "B47", read(sistema, "AdjuntarImagenLayout", "Requiere adjuntar layout", ""));
+    setCell(sheet, "B48", read(sistema, "ExisteDefCliente", "Existe definición cliente", ""));
+    setCell(sheet, "B49", read(sistema, "ComentariosConfigCliente", "DefPorCliente", "Definido por el cliente", ""));
+    fillSecurityTables(sheet, sistema, [52, 55], [59, 61]);
+  } else if (tipo === "MEZ") {
+    fillProductTable(sheet, sistema, 31, 36);
+    setCell(sheet, "B39", read(sistema, "AlturaRecomendadaEntrepiso", "Altura recomendada entrepiso", ""));
+    setCell(sheet, "B40", read(sistema, "CantidadEntrepisos", "Cantidad entrepisos", ""));
+    setCell(sheet, "B41", read(sistema, "RequiereElevador", ""));
+    setCell(sheet, "B42", read(sistema, "EspecificacionElevador", "Especificación elevador", ""));
+    setCell(sheet, "B43", read(sistema, "TipoPiso", "Tipo piso", ""));
+    setCell(sheet, "B44", read(sistema, "UsaCarrito", ""));
+    setCell(sheet, "B45", read(sistema, "MedidasCarrito", ""));
+    setCell(sheet, "B46", read(sistema, "NumeroRuedas", "Número ruedas", ""));
+    setCell(sheet, "B47", read(sistema, "TipoRueda", ""));
+    setCell(sheet, "B48", read(sistema, "MedidaRueda", ""));
+    setCell(sheet, "B49", read(sistema, "PesoCarrito", ""));
+    setCell(sheet, "B50", read(sistema, "RequiereEscaleras", ""));
+    fillAreaAndLevels(sheet, sistema, 52, 56, false);
+    fillSecurityTables(sheet, sistema, [64, 67], [71, 73]);
+  } else if (tipo === "CFL") {
+    fillProductTable(sheet, sistema, 31, 36);
+    fillRack(sheet, sistema, 39, false);
+    fillAreaAndLevels(sheet, sistema, 45, 49, false);
+    fillSecurityTables(sheet, sistema, [57, 60], [64, 66]);
+  } else if (tipo === "MZL") {
+    setCell(sheet, "B29", read(sistema, "CantidadPisos", ""));
+    setCell(sheet, "B30", read(sistema, "CargaPorM2", ""));
+    setCell(sheet, "B31", read(sistema, "EsModulado", ""));
+    setCell(sheet, "B32", read(sistema, "ZonaModulada", ""));
+    setCell(sheet, "B33", read(sistema, "UsaTarimas", ""));
+    setCell(sheet, "B34", read(sistema, "RequiereElevador", ""));
+    setCell(sheet, "B35", read(sistema, "EspecificacionElevador", "Especificación elevador", ""));
+    setCell(sheet, "B36", read(sistema, "TipoPiso", "Tipo piso", ""));
+    setCell(sheet, "B37", read(sistema, "UsaCarrito", ""));
+    setCell(sheet, "B38", read(sistema, "MedidasCarrito", ""));
+    setCell(sheet, "B39", read(sistema, "NumeroRuedas", "Número ruedas", ""));
+    setCell(sheet, "B40", read(sistema, "TipoRueda", ""));
+    setCell(sheet, "B41", read(sistema, "MedidaRueda", ""));
+    setCell(sheet, "B42", read(sistema, "PesoCarrito", ""));
+    setCell(sheet, "B43", read(sistema, "RequiereEscaleras", ""));
+    setCell(sheet, "B45", read(sistema, "MetodoSeparacionColumnas", "Método separación columnas", ""));
+    setCell(sheet, "B46", read(sistema, "SeparacionColumnasManual", "Separación columnas manual", ""));
+    fillProductTable(sheet, sistema, 50, 53);
+    writeTable(sheet, 58, 61, asRecordArray(read(sistema, "tarimas", "Tarimas", [])), TARIMA_MZL_COLUMNS);
+    fillAreaAndLevels(sheet, sistema, 64, 68, false);
+    fillSecurityTables(sheet, sistema, [76, 79], [83, 85]);
+  }
+
+  fillCommon(sheet, tipo, sistema);
+}
+
+function fillTarimaBlock(sheet: ExcelScript.Worksheet, sistema: Record<string, unknown>, baseRow: number) {
+  const tarimas = asRecordArray(read(sistema, "tarimas", "Tarimas", []));
+  const first = tarimas.length > 0 ? tarimas[0] : {};
+  setCell(sheet, `B${baseRow}`, read(first, "Peso", "PesoTarima", ""));
+  setCell(sheet, `B${baseRow + 1}`, read(first, "Alto", "AltoTarima", ""));
+  setCell(sheet, `B${baseRow + 2}`, read(first, "Frente", "FrenteTarima", ""));
+  setCell(sheet, `B${baseRow + 3}`, read(first, "Fondo", "FondoTarima", ""));
+  setCell(sheet, `B${baseRow + 4}`, read(first, "Excedente", hasAnyValue(first, ["ExcedenteFrente", "ExcedenteFondo"])));
+  setCell(sheet, `B${baseRow + 5}`, read(first, "ExcedenteFrente", "Excedente frente", ""));
+  setCell(sheet, `B${baseRow + 6}`, read(first, "ExcedenteFondo", "Excedente fondo", ""));
+  setCell(sheet, `B${baseRow + 7}`, read(first, "Huella", "HuellaTarima", ""));
+}
+
+function fillAreaAndLevels(sheet: ExcelScript.Worksheet, sistema: Record<string, unknown>, areaRow: number, levelsRow: number, includeMontacargas: boolean) {
+  let offset = 0;
+  if (includeMontacargas) {
+    setCell(sheet, `B${areaRow}`, read(sistema, "PasilloMax", "Pasillo máximo", ""));
+    setCell(sheet, `B${areaRow + 1}`, read(sistema, "PasilloMin", "Pasillo mínimo", ""));
+    setCell(sheet, `B${areaRow + 2}`, read(sistema, "AnchoDisp", "Ancho disponible", ""));
+    setCell(sheet, `B${areaRow + 3}`, read(sistema, "LargoDisp", "Largo disponible", ""));
+    setCell(sheet, `B${levelsRow}`, read(sistema, "ConsiderarAlturaMaxMonta", ""));
+    setCell(sheet, `B${levelsRow + 1}`, read(sistema, "AltCritMonta", "Altura crítica de montacargas", ""));
+    offset = 2;
+  } else {
+    setCell(sheet, `B${areaRow}`, read(sistema, "AnchoDisp", "Ancho disponible", ""));
+    setCell(sheet, `B${areaRow + 1}`, read(sistema, "LargoDisp", "Largo disponible", ""));
+    setCell(sheet, `B${areaRow + 2}`, read(sistema, "AnchoPasilloPickeo", "Ancho pasillo pickeo", ""));
+  }
+  setCell(sheet, `B${levelsRow + offset}`, read(sistema, "ConsiderarAlturaNave", ""));
+  setCell(sheet, `B${levelsRow + offset + 1}`, read(sistema, "AlturaMaxNave", "Altura máxima nave", ""));
+  setCell(sheet, `B${levelsRow + offset + 2}`, read(sistema, "AlturaMinNave", "Altura mínima nave", ""));
+  setCell(sheet, `B${levelsRow + offset + 3}`, read(sistema, "AdjuntarImagenLayout", "Requiere adjuntar layout", ""));
+  setCell(sheet, `B${levelsRow + offset + 4}`, read(sistema, "ExisteDefCliente", "Existe definición cliente", ""));
+  setCell(sheet, `B${levelsRow + offset + 5}`, read(sistema, "ComentariosConfigCliente", "DefPorCliente", "Definido por el cliente", ""));
+}
+
+function fillSecurityTables(sheet: ExcelScript.Worksheet, sistema: Record<string, unknown>, seguridadRange: [number, number], especialesRange: [number, number]) {
+  const seguridad = rowsFromSummary(asRecordArray(read(sistema, "elementosSeguridad", "ElementosSeguridad", [])), read(sistema, "ElementosSeguridadResumen", ""));
+  const especiales = asRecordArray(read(sistema, "piezasEspeciales", "PiezasEspeciales", []));
+  writeTable(sheet, seguridadRange[0], seguridadRange[1], seguridad, SEGURIDAD_COLUMNS);
+  writeTable(sheet, especialesRange[0], especialesRange[1], especiales, PIEZAS_ESPECIALES_COLUMNS);
+}
+
+function fillRack(sheet: ExcelScript.Worksheet, sistema: Record<string, unknown>, startRow: number, highImpact: boolean) {
+  setCell(sheet, `B${startRow}`, read(sistema, "FrentesBuscados", "Frentes buscados", ""));
+  setCell(sheet, `B${startRow + 1}`, read(sistema, "FondosBuscados", "Fondos buscados", ""));
+  setCell(sheet, `B${startRow + 2}`, read(sistema, "NivelesBuscados", "Niveles buscados", ""));
+  setCell(sheet, `B${startRow + 3}`, read(sistema, "TipoRodamiento", "Tipo rodamiento", ""));
+  setCell(sheet, `B${startRow + 4}`, read(sistema, "MetodoCalculoEntrecentros", "Método cálculo entrecentros", ""));
+  if (highImpact) {
+    setCell(sheet, `B${startRow + 5}`, read(sistema, "UtilizarRodamientoAltoImpacto", ""));
+    setCell(sheet, `B${startRow + 6}`, read(sistema, "EspecificacionRodamientoAltoImpacto", "Especificación rodamiento alto impacto", ""));
+  }
+}
+
+function fillProductTable(sheet: ExcelScript.Worksheet, sistema: Record<string, unknown>, startRow: number, endRow: number) {
+  writeTable(sheet, startRow, endRow, asRecordArray(read(sistema, "productos", "Productos", [])), PRODUCT_COLUMNS);
+}
+
+function addDetailSheet(workbook: ExcelScript.Workbook, sistema: Record<string, unknown>, formSheetName: string) {
+  const sheetName = safeSheetName(formSheetName.replace("_Form", "_Datos"));
+  const existing = tryGetWorksheet(workbook, sheetName);
+  if (existing) existing.delete();
+
+  const sheet = workbook.addWorksheet(sheetName);
   sheet.getRange("A1").setValue("Detalle estructurado del sistema");
-  sheet.getRange("A2").setValue(read(sistema, "NombreSistema", "Title", sheetName));
+  sheet.getRange("A2").setValue(formatValue(read(sistema, "NombreSistema", "Title", sheetName)));
 
   let row = 4;
-  row = writeSection(sheet, row, "Piezas", ["Pieza", "Comentarios", "Cantidad", "Unidad", "Notas"], rowsFromSummary(
-    asArray(read(sistema, "piezas", "Piezas", [])),
+  row = writeDetailSection(sheet, row, "Piezas", ["Pieza", "Comentarios", "Cantidad", "Unidad", "Notas"], PIEZAS_COLUMNS, rowsFromSummary(
+    asRecordArray(read(sistema, "piezas", "Piezas", [])),
     read(sistema, "PiezasResumen", "")
   ));
-  row = writeSection(sheet, row, "Tarimas", ["Tipo", "Alto", "Frente", "Fondo", "ExcedenteFrente", "ExcedenteFondo"], asArray(read(sistema, "tarimas", "Tarimas", [])));
-  row = writeSection(sheet, row, "Elementos de seguridad", ["Pieza", "Comentario"], rowsFromSummary(
-    asArray(read(sistema, "elementosSeguridad", "ElementosSeguridad", [])),
+  row = writeDetailSection(sheet, row, "Tarimas", ["Peso", "Alto", "Frente", "Fondo", "Huella", "ExcedenteFrente", "ExcedenteFondo"], TARIMA_MZL_COLUMNS, asRecordArray(read(sistema, "tarimas", "Tarimas", [])));
+  row = writeDetailSection(sheet, row, "Productos", ["TipoProducto", "LargoProducto", "AnchoProducto", "AltoProducto", "PesoProducto", "CantidadPorNivel"], PRODUCT_COLUMNS, asRecordArray(read(sistema, "productos", "Productos", [])));
+  row = writeDetailSection(sheet, row, "Elementos de seguridad", ["Pieza", "Cantidad", "Comentario"], SEGURIDAD_COLUMNS, rowsFromSummary(
+    asRecordArray(read(sistema, "elementosSeguridad", "ElementosSeguridad", [])),
     read(sistema, "ElementosSeguridadResumen", "")
   ));
-  writeSection(sheet, row, "Colores", ["Pieza", "Color"], asArray(read(sistema, "colores", "Colores", [])));
+  row = writeDetailSection(sheet, row, "Piezas especiales", ["Pieza", "Cantidad", "Comentario"], PIEZAS_ESPECIALES_COLUMNS, asRecordArray(read(sistema, "piezasEspeciales", "PiezasEspeciales", [])));
+  row = writeDetailSection(sheet, row, "Colores", ["Pieza", "Color"], COLOR_COLUMNS, asRecordArray(read(sistema, "colores", "Colores", [])));
+  writeDetailSection(sheet, row, "Proveedores externos", ["Proveedor", "Alcance"], PROVEEDOR_COLUMNS, asRecordArray(read(sistema, "proveedoresExternos", "ProveedoresExternos", [])));
 
   sheet.getRange("A:H").getFormat().setColumnWidth(140);
 }
 
-function writeSection(sheet: ExcelScript.Worksheet, startRow: number, title: string, headers: string[], rows: unknown[]): number {
+function writeDetailSection(
+  sheet: ExcelScript.Worksheet,
+  startRow: number,
+  title: string,
+  headers: string[],
+  columns: string[][],
+  rows: Record<string, unknown>[]
+): number {
   sheet.getRange(`A${startRow}`).setValue(title);
   sheet.getRangeByIndexes(startRow, 0, 1, headers.length).setValues([headers]);
-
-  rows.forEach((rowRaw, index) => {
-    const row = asRecord(rowRaw);
-    const values = headers.map((header) => formatValue(row[header]));
-    sheet.getRangeByIndexes(startRow + 1 + index, 0, 1, headers.length).setValues([values]);
+  rows.forEach((row, index) => {
+    const values = columns.map((aliases) => formatValue(pick(row, aliases, "")));
+    sheet.getRangeByIndexes(startRow + 1 + index, 0, 1, values.length).setValues([values]);
   });
 
   return startRow + rows.length + 3;
@@ -229,8 +427,8 @@ function addOtSheet(workbook: ExcelScript.Workbook, sistema: Record<string, unkn
   sheet.getRange("A1").setValue("Formulario de Sistema (Otro)");
   sheet.getRange("A3:B7").setValues([
     ["Sistema No", systemNo],
-    ["SistemaID", read(sistema, "SistemaId", "SistemaID", "RegistroID", "")],
-    ["Descripción", read(sistema, "NombreSistema", "Title", "")],
+    ["SistemaID", formatValue(read(sistema, "SistemaId", "SistemaID", "RegistroID", ""))],
+    ["Descripción", formatValue(read(sistema, "NombreSistema", "Title", ""))],
     ["", ""],
     ["Detalle", htmlToText(read(sistema, "HTMLCol", "HTML", ""))]
   ]);
@@ -240,13 +438,10 @@ function addOtSheet(workbook: ExcelScript.Workbook, sistema: Record<string, unkn
 }
 
 function writePayloadSheet(workbook: ExcelScript.Workbook, payloadJson: string) {
-  try {
-    workbook.getWorksheet("FDI_Payload_JSON").delete();
-  } catch {
-    // La hoja no existe en una copia limpia de la plantilla.
-  }
+  const existing = tryGetWorksheet(workbook, PAYLOAD_SHEET);
+  if (existing) existing.delete();
 
-  const sheet = workbook.addWorksheet("FDI_Payload_JSON");
+  const sheet = workbook.addWorksheet(PAYLOAD_SHEET);
   sheet.setVisibility(ExcelScript.SheetVisibility.hidden);
   sheet.getRange("A1").setValue("Payload JSON usado para generar este archivo");
 
@@ -256,14 +451,48 @@ function writePayloadSheet(workbook: ExcelScript.Workbook, payloadJson: string) 
   }
 }
 
+function writeTable(sheet: ExcelScript.Worksheet, startRow: number, endRow: number, rows: Record<string, unknown>[], columns: string[][]) {
+  clearTableArea(sheet, startRow, endRow, columns.length);
+  const capacity = Math.max(0, endRow - startRow + 1);
+  rows.slice(0, capacity).forEach((row, rowOffset) => {
+    const values = columns.map((aliases) => formatValue(pick(row, aliases, "")));
+    sheet.getRangeByIndexes(startRow - 1 + rowOffset, 0, 1, values.length).setValues([values]);
+  });
+}
+
+function clearTableArea(sheet: ExcelScript.Worksheet, startRow: number, endRow: number, columnCount: number) {
+  if (endRow < startRow || columnCount < 1) return;
+  sheet.getRangeByIndexes(startRow - 1, 0, endRow - startRow + 1, columnCount).clear(ExcelScript.ClearApplyTo.contents);
+}
+
+function applyMethodVisibility(sheet: ExcelScript.Worksheet, tipo: string, sistema: Record<string, unknown>) {
+  const method = normalizeMethod(sistema);
+  setRowsHidden(sheet, 11, 14, method !== "PedidoAnterior");
+  setRowsHidden(sheet, 15, 22, method !== "ListaPiezas");
+  setRowsHidden(sheet, 24, 26, method !== "Planos");
+  setRowsHidden(sheet, 27, COMMON_LAYOUT[tipo].designEnd, method === "PedidoAnterior" || method === "ListaPiezas");
+}
+
+function setRowsHidden(sheet: ExcelScript.Worksheet, startRow: number, endRow: number, hidden: boolean) {
+  sheet.getRange(`${startRow}:${endRow}`).setRowHidden(hidden);
+}
+
 function setCell(sheet: ExcelScript.Worksheet, address: string, value: unknown) {
   sheet.getRange(address).setValue(formatValue(value));
 }
 
-function read(obj: Record<string, unknown>, ...keysAndFallback: string[]): unknown {
+function read(obj: Record<string, unknown>, ...keysAndFallback: unknown[]): unknown {
   const fallback = keysAndFallback.length > 0 ? keysAndFallback[keysAndFallback.length - 1] : "";
-  const keys = keysAndFallback.slice(0, -1);
+  const keys = keysAndFallback.slice(0, -1).filter((key): key is string => typeof key === "string");
   for (const key of keys) {
+    const value = obj[key];
+    if (value !== undefined && value !== null && value !== "") return value;
+  }
+  return fallback;
+}
+
+function pick(obj: Record<string, unknown>, aliases: string[], fallback: unknown): unknown {
+  for (const key of aliases) {
     const value = obj[key];
     if (value !== undefined && value !== null && value !== "") return value;
   }
@@ -278,56 +507,49 @@ function formatValue(value: unknown): string | number | boolean {
   return String(value);
 }
 
-function htmlToText(value: unknown): string {
-  const html = String(value || "");
-  if (!html) return "";
-
-  return html
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/p\s*>/gi, "\n")
-    .replace(/<\/div\s*>/gi, "\n")
-    .replace(/<\/li\s*>/gi, "\n")
-    .replace(/<li[^>]*>/gi, "- ")
-    .replace(/<[^>]+>/g, "")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, "\"")
-    .replace(/&#39;/g, "'")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-}
-
 function normalizeMethod(system: Record<string, unknown>): string {
-  const raw = String(read(system, "TipoDiseño", "MetodoCotizacion", "MétodoCotización", "Diseño")).toLowerCase();
+  const raw = String(read(system, "TipoDiseño", "MetodoCaptura", "MetodoCotizacion", "MétodoCotización", "Diseño")).toLowerCase();
   if (raw.includes("pieza")) return "ListaPiezas";
-  if (raw.includes("pedido")) return "PedidoAnterior";
+  if (raw.includes("pedido") || raw.includes("cotización anterior") || raw.includes("cotizacion anterior")) return "PedidoAnterior";
+  if (raw.includes("plano") || raw.includes("cliente")) return "Planos";
   return "Diseño";
 }
 
-function applySelMethodVisibility(sheet: ExcelScript.Worksheet, method: string) {
-  setRowsHidden(sheet, "8:10", method !== "PedidoAnterior");
-  setRowsHidden(sheet, "12:25", method !== "ListaPiezas");
-  setRowsHidden(sheet, "26:61", method !== "Diseño");
+function methodLabel(system: Record<string, unknown>): string {
+  const method = normalizeMethod(system);
+  if (method === "ListaPiezas") return "Listado de piezas";
+  if (method === "PedidoAnterior") return "Cotización o pedido anterior";
+  if (method === "Planos") return "Planos/diseño de cliente";
+  return "Diseño";
 }
 
-function setRowsHidden(sheet: ExcelScript.Worksheet, rowsAddress: string, hidden: boolean) {
-  sheet.getRange(rowsAddress).setRowHidden(hidden);
-}
-
-function asRecord(value: unknown): Record<string, unknown> {
-  if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-    return value as Record<string, unknown>;
+function acabadoValue(system: Record<string, unknown>): string {
+  const raw = String(read(system, "Acabado", "TipoGalv", "")).trim();
+  if (raw) {
+    const lower = raw.toLowerCase();
+    if (lower === "frio" || lower === "frío" || lower === "galvanizado en frio" || lower === "galvanizado en frío") return "Galvanizado en frío";
+    if (lower === "caliente" || lower === "hot-dip" || lower === "hot dip" || lower === "galvanizado en caliente") return "Galvanizado en caliente";
+    if (lower === "pregalvanizado" || lower === "pre-galvanizado") return "Pregalvanizado";
+    if (lower === "pintado") return "Pintado";
+    return raw;
   }
-  return {};
+  if (coerceBoolean(read(system, "GalvList", "Galvanizado", false))) return "Galvanizado";
+  return "Pintado";
 }
 
-function asArray(value: unknown): unknown[] {
-  return Array.isArray(value) ? value : [];
+function galvanizadoFromAcabado(acabado: string): boolean {
+  return acabado.toLowerCase().includes("galv") && acabado.toLowerCase() !== "pintado";
 }
 
-function rowsFromSummary(rows: unknown[], summary: unknown): unknown[] {
+function tipoGalvanizadoFromAcabado(acabado: string): string {
+  const lower = acabado.toLowerCase();
+  if (lower.includes("fr")) return "Frio";
+  if (lower.includes("caliente") || lower.includes("hot")) return "Caliente";
+  if (lower.includes("pregalv")) return "Pregalvanizado";
+  return "";
+}
+
+function rowsFromSummary(rows: Record<string, unknown>[], summary: unknown): Record<string, unknown>[] {
   if (rows.length > 0) return rows;
 
   const text = String(summary || "").trim();
@@ -343,6 +565,70 @@ function rowsFromSummary(rows: unknown[], summary: unknown): unknown[] {
   });
 }
 
+function htmlToText(value: unknown): string {
+  const html = String(value || "");
+  if (!html) return "";
+
+  return html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/t[dh]\s*>/gi, " | ")
+    .replace(/<\/tr\s*>/gi, "\n")
+    .replace(/<\/p\s*>/gi, "\n")
+    .replace(/<\/div\s*>/gi, "\n")
+    .replace(/<\/li\s*>/gi, "\n")
+    .replace(/<li[^>]*>/gi, "- ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, "\"")
+    .replace(/&#39;/g, "'")
+    .replace(/\n{3,}/g, "\n\n")
+    .split(/\r?\n/)
+    .map((line) => line.trim().replace(/\s*\|\s*$/, ""))
+    .filter((line) => line !== "")
+    .join("\n")
+    .trim();
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+  return {};
+}
+
+function asRecordArray(value: unknown): Record<string, unknown>[] {
+  if (!Array.isArray(value)) return [];
+  return value.map(asRecord);
+}
+
 function safeSheetName(name: string): string {
   return name.replace(/[\[\]:*?/\\]/g, "_").substring(0, 31);
+}
+
+function tryGetWorksheet(workbook: ExcelScript.Workbook, name: string): ExcelScript.Worksheet | undefined {
+  try {
+    return workbook.getWorksheet(name);
+  } catch {
+    return undefined;
+  }
+}
+
+function getUsedRowCount(sheet: ExcelScript.Worksheet): number {
+  const usedRange = sheet.getUsedRange();
+  if (!usedRange) return 1;
+  return usedRange.getRowIndex() + usedRange.getRowCount();
+}
+
+function hasAnyValue(obj: Record<string, unknown>, keys: string[]): boolean {
+  return keys.some((key) => obj[key] !== undefined && obj[key] !== null && obj[key] !== "");
+}
+
+function coerceBoolean(value: unknown): boolean {
+  if (value === true) return true;
+  if (value === false || value === undefined || value === null) return false;
+  const normalized = String(value).trim().toLowerCase();
+  return normalized === "sí" || normalized === "si" || normalized === "true" || normalized === "1" || normalized === "yes" || normalized === "y";
 }

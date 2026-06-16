@@ -42,17 +42,17 @@ También el correo recibía HTML, pero el flujo lo envolvía en `<p>...</p>`, lo
 
 No se crearon columnas ni listas.
 
-### Nota de Persistencia SEL
+### Nota de Compatibilidad para Generación
 
-`Sistema selectivo.Lista de piezas` está exportado en `References/DataSources.json` como `type: string`, `format: uri`, por lo que es un campo URL/hipervínculo y no puede recibir JSON.
+`Creación_FDI` sigue consumiendo `PayloadSistemaJson` para armar el payload global que recibe el Office Script. Para no romper la generación del FDI durante la migración a listas normalizadas, la decisión actual es mantener ese JSON en paralelo como espejo de compatibilidad del detalle de cada sistema.
 
-`Sistema selectivo.PayloadSistemaJson` existe en SharePoint como texto de varias líneas y es el almacenamiento oficial del payload completo de cada sistema selectivo:
+La fuente operativa de la app debe migrar a columnas y listas normalizadas, pero el flujo se mantiene estable mientras no se rehaga para leer directamente las listas de detalle e hijas. Cuando se migre `Creación_FDI`, este espejo podrá retirarse con una prueba completa de generación.
 
 ```text
 PayloadSistemaJson
 ```
 
-`scrFDI` guarda ahí el JSON compacto con `SistemaId`, piezas, tarimas, colores, elementos de seguridad y configuración del sistema. El flujo `Creación_FDI` parsea ese campo para reconstruir cada sistema `SEL` sin usar campos URL ni campos de 255 caracteres.
+`Sistema selectivo.Lista de piezas` está exportado en `References/DataSources.json` como `type: string`, `format: uri`, por lo que no debe usarse para guardar JSON.
 
 ### scrCorreo
 
@@ -81,77 +81,54 @@ Después de enviar el correo, el mismo flujo publica la notificación Teams. Par
 
 ### Encabezado
 
-La plantilla `templates/FDI_Master.xlsx` contiene `Encabezado_Tabla`.
+La plantilla `templates/FDI_Master.xlsx` contiene la hoja `Datos de cotización`. Los scripts llenan la columna `B`.
 
 | Dato | Celda |
 | --- | --- |
-| Creación | Encabezado_Tabla!C2 |
-| ID | Encabezado_Tabla!C3 |
-| Carpeta | Encabezado_Tabla!C4 |
-| Folio | Encabezado_Tabla!C5 |
-| VendedoresLookUp | Encabezado_Tabla!C6 |
-| EmpresaLookUp | Encabezado_Tabla!C7 |
-| Dirección de la empresa | Encabezado_Tabla!C8 |
-| ContactoLookUp | Encabezado_Tabla!C9 |
-| Correo empresarial | Encabezado_Tabla!C10 |
-| Número de teléfono | Encabezado_Tabla!C11 |
-| Moneda de cotización | Encabezado_Tabla!C12 |
-| Flete | Encabezado_Tabla!C13 |
-| País de destino | Encabezado_Tabla!C14 |
-| Estado de destino | Encabezado_Tabla!C15 |
-| Ciudad de destino | Encabezado_Tabla!C16 |
-| Fianzas | Encabezado_Tabla!C17 |
-| Póliza de responsabilidad civil | Encabezado_Tabla!C18 |
-| Monto de póliza | Encabezado_Tabla!C19 |
-| Licitación | Encabezado_Tabla!C20 |
-| Fecha de entrega | Encabezado_Tabla!C21 |
-| Prioridad | Encabezado_Tabla!C22 |
-| Estado | Encabezado_Tabla!C23 |
-| Created By | Encabezado_Tabla!C24 |
-| Notificado | Encabezado_Tabla!C25 |
-| Title | Encabezado_Tabla!C26 |
-| Nombre de contacto | Encabezado_Tabla!C27 |
-| Solicitud o generación | Encabezado_Tabla!C28 |
-| Item Type | Encabezado_Tabla!C29 |
-| Path | Encabezado_Tabla!C30 |
+| Folio | `Datos de cotización!B6` |
+| Vendedor | `Datos de cotización!B7` |
+| Cliente | `Datos de cotización!B8` |
+| Contacto | `Datos de cotización!B9` |
+| Dirección | `Datos de cotización!B10` |
+| Correo | `Datos de cotización!B11` |
+| Teléfono | `Datos de cotización!B12` |
+| Moneda | `Datos de cotización!B15` |
+| Flete | `Datos de cotización!B16` |
+| País / Estado / Ciudad de envío | `Datos de cotización!B17:B19` |
+| Fianzas / Póliza / Monto / Licitación / Prioridad | `Datos de cotización!B22:B26` |
+| Fecha de entrega | `Datos de cotización!B29` |
+| Fecha FDI | `Datos de cotización!B30` |
+| Notas generales | `Datos de cotización!B33` |
 
 ### Sistemas
 
-La hoja `Sistemas_Index` recibe una fila por sistema:
+La hoja `Índice de sistemas` contiene la tabla `tblSistemas` en `A5:F*`. Los scripts limpian desde la fila 6, escriben una fila por sistema y redimensionan la tabla.
 
 | Columna | Valor |
 | --- | --- |
-| SistemaID | Tipo + consecutivo |
-| SistemaNo | Índice de sistema |
-| Tipo | `SEL`, `OT`, etc. |
-| MétodoCotización | `Diseño`, `ListaPiezas` o `PedidoAnterior` |
-| HojaFormulario | hoja generada para el sistema |
-| Descripción breve | nombre del sistema |
-| PedidoBase | pedido/cotización base si aplica |
-| DiseñoRef | referencia de diseño si aplica |
-| Notas | consideraciones especiales |
+| `#` | Índice del sistema en el payload |
+| `Tipo` | `SEL`, `DIN`, `PBK`, `DRV`, `CAN`, `MEZ`, `CFL`, `MZL` u otro |
+| `Sistema` | Nombre o descripción breve |
+| `Método de captura` | `Diseño`, `Listado de piezas`, `Planos/diseño de cliente` o `Cotización o pedido anterior` |
+| `Hoja` | Hoja generada para el sistema |
+| `Notas` | Consideraciones especiales |
 
-### Selectivo
+### Formularios por Sistema
 
-Cada sistema `SEL` genera una hoja `SEL_S##_Form` y una hoja de detalle `SEL_S##_Datos`.
+El template incluye formularios base para `SEL`, `DIN`, `PBK`, `DRV`, `CAN`, `MEZ`, `CFL` y `MZL`. Para cada sistema, los scripts renombran o copian el formulario base a `TIPO_S##_Form`; los tipos no soportados generan una hoja simple `TIPO_S##_Form`.
 
-Campos directos:
+Campos comunes:
 
-- `B3`: número de sistema.
-- `B9`: pedido base.
-- `B10`: observaciones.
-- `A15:E24`: primeras piezas del listado.
-- `B28:B34`: primera tarima como resumen visible.
-- `B39:B42`: pasillos y dimensiones disponibles.
-- `B46:B48`: configuración y alturas críticas.
-- `B51:B61`: parámetros finales del sistema.
+- `B5`: número de sistema.
+- `B6`: `SistemaID`.
+- `B7`: método de cotización.
+- `B8`: descripción.
+- `B12:B14`: referencia a cotización/pedido anterior.
+- `A17:E22`: listado de piezas cuando aplique.
+- `Acabado`: selector base del sistema.
+- `Galvanizado` y `Tipo de galvanizado`: derivados desde `Acabado`; no se capturan como campos independientes.
 
-Las tablas completas se guardan en la hoja `SEL_S##_Datos`:
-
-- Piezas.
-- Tarimas.
-- Elementos de seguridad.
-- Colores.
+Cada sistema soportado también genera una hoja `TIPO_S##_Datos` con las tablas completas: piezas, tarimas, productos, elementos de seguridad, piezas especiales, colores y proveedores externos.
 
 ## Script Local
 
