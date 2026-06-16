@@ -5,7 +5,7 @@
 > Hermano de [FDI_MisCotizaciones_Performance.md](FDI_MisCotizaciones_Performance.md), pero para la
 > pantalla de captura. **Causa de fondo: la pantalla es estructuralmente demasiado grande.**
 
-## Estado (tras `19d4409` "Optimiza entradas de captura FDI")
+## Estado (tras `19d4409` y ajuste R3 posterior)
 
 Codex aplicó los **quick wins**; la **reestructuración sigue pendiente**. Comparado `f214298` → `19d4409`:
 
@@ -15,7 +15,7 @@ Codex aplicó los **quick wins**; la **reestructuración sigue pendiente**. Comp
 | **R3** `Concurrent` en OnVisible | ✅ **Parcial** | `Concurrent(`: **0 → 1** (línea 31 de OnVisible) |
 | **R1** partir la pantalla | ❌ **Pendiente** | **9 → 9** pantallas; scrFDI **1,412 → 1,412** controles |
 | **R2** cachear el borrador | ❌ **Pendiente** | siguen **~689 `LookUp(colXXX_Draft, …)`** campo por campo |
-| **R3** quitar el `CountRows(Filter)` O(n²) | ❌ **Pendiente** | sigue en `OnVisible` (`TipoIndex: CountRows(Filter(colTabs, …))`) |
+| **R3** quitar el `CountRows(Filter)` O(n²) | ✅ **Hecho** | `TipoIndex` ya no lee `colTabs` mientras se construye; usa `colPuentesHidratacion` |
 | **R5** galerías | ❌ **Pendiente** | sin cambios |
 
 > **Lectura:** se sentirá algo **más ágil al teclear** (DelayOutput) y un poco mejor la carga
@@ -26,7 +26,7 @@ Codex aplicó los **quick wins**; la **reestructuración sigue pendiente**. Comp
 
 | Métrica | Valor | Referencia sana |
 | --- | --- | --- |
-| Líneas de `scrFDI.pa.yaml` | **29,575** | — |
+| Líneas de `scrFDI.pa.yaml` | **29,710** | — |
 | **Controles en la pantalla** | **1,412** | < ~300 por pantalla (guía MS) |
 | Galerías | 50 | pocas, virtualizadas |
 | GroupContainers | 215 | — |
@@ -37,8 +37,8 @@ Codex aplicó los **quick wins**; la **reestructuración sigue pendiente**. Comp
 | `CountRows(` | 113 | — |
 | `Filter(` | 115 | — |
 | `ForAll(` | 43 | — |
-| `Concurrent(` | **0** | usar para cargas paralelas |
-| TextInputs con `DelayOutput=true` | **7 / 133** | la mayoría debería tenerlo |
+| `Concurrent(` | **1** | usar para cargas paralelas |
+| TextInputs con `DelayOutput=true` | **133 / 133** | completo |
 | `DeserializationLoadTime` (autoría) | **~10.7 s** | proxy de bloat |
 | `AnalysisLoadTime` (autoría) | **~12.9 s** | proxy de bloat |
 
@@ -65,11 +65,13 @@ Codex aplicó los **quick wins**; la **reestructuración sigue pendiente**. Comp
    **794 `LookUp`**.
 3. **`OnVisible` pesado y 100% secuencial** (sin `Concurrent`): un `LookUp` de borrador + `EditForm`/
    `NewForm` + **~20 `Clear()`** + `ClearCollect` + un `ForAll` de hidratación.
-4. **Hidratación O(n²) en el `ForAll`.** Dentro del `ForAll` sobre los puentes se calcula:
+4. **Hidratación O(n²) en el `ForAll`.** En `19d4409`, dentro del `ForAll` sobre los puentes se calculaba:
    ```powerapps
    TipoIndex: CountRows(Filter(colTabs, TipoKey = _tipo)) + 1
    ```
    …que **lee `colTabs` mientras se está construyendo** → costo cuadrático por nº de sistemas.
+   **Estado posterior:** corregido para calcular `TipoIndex` contra `colPuentesHidratacion`, sin leer
+   la colección destino durante su construcción.
 5. **`LookUp` de borrador probablemente no delegable** (corre en **cada** apertura):
    ```powerapps
    LookUp('Cotizaciones 2026',
@@ -107,9 +109,8 @@ de esa pantalla.)
 ### R3 🟠 — Aligerar `OnVisible`
 - Envolver las cargas **independientes** en `Concurrent(...)` (borrador, puentes, catálogos).
 - Consolidar los **~20 `Clear()`** (o eliminarlos si los `ClearCollect` posteriores ya recrean).
-- **Quitar el O(n²)**: calcular `TipoIndex` sin `CountRows(Filter(colTabs, …))` sobre la colección
-  en construcción (p. ej. un contador por tipo con `With`/`Sequence`, o numerar al final con
-  `RenameColumns`/`AddColumns` + `RowNumber`/índice).
+- **Hecho:** `TipoIndex` ya no usa `CountRows(Filter(colTabs, …))` mientras `colTabs` se construye;
+  ahora cuenta contra `colPuentesHidratacion`.
 
 ### R4 🟠 — Delegación del `LookUp` de borrador
 Hacer el filtro delegable: añadir columna de texto indexada (p. ej. `CreadoPorEmail`) y filtrar por
@@ -121,9 +122,10 @@ Mover los `CountRows`/`LookUp` por renglón a un cálculo **único** (colección
 `AddColumns` al armar los datos), no en `Items`/propiedades de cada fila.
 
 ### R6 🟡 — Ajustes finos
-- `DelayOutput = true` en los **133** text inputs (hoy solo 7) → no recalcular en cada tecla.
-- Activar en ajustes de la app **"Delayed load"** y **"Explicit column selection"** (no aparecen
-  activos en `AppPreviewFlagsMap`).
+- `DelayOutput = true` en los **133** text inputs → no recalcular en cada tecla. **Hecho.**
+- Ajustes de app verificados como activos en `AppPreviewFlagsMap`: `delayloadscreens`,
+  `projectionmapping`, `delaycontrolrendering`, `loadcomponentdefinitionsondemand`,
+  `optimizestartscreenpublishedappload`.
 - Asegurar que los **2 HtmlEditor** solo se rendericen para el sistema **activo** (con R1, gratis).
 - Evitar `Now()`/volátiles en propiedades que recalculan seguido.
 
@@ -132,8 +134,8 @@ Mover los `CountRows`/`LookUp` por renglón a un cálculo **único** (colección
 | Acción | Impacto | Esfuerzo | Cuándo | Estado |
 | --- | --- | --- | --- | --- |
 | **R2** cachear borrador | 🔴 Alto (lag al escribir/cambiar) | Medio | Primero (independiente de R1) | ❌ pendiente |
-| **R6** DelayOutput + settings | 🟠 Medio | Bajo | Quick win inmediato | ✅ DelayOutput hecho (`19d4409`); faltan settings (Delayed load / Explicit column selection) |
-| **R3** OnVisible (Concurrent + O(n²)) | 🟠 Medio (carga) | Bajo-Medio | Quick win | ✅ Concurrent parcial; ❌ falta quitar el O(n²) |
+| **R6** DelayOutput + settings | 🟠 Medio | Bajo | Quick win inmediato | ✅ DelayOutput hecho (`19d4409`); ✅ settings verificados activos |
+| **R3** OnVisible (Concurrent + O(n²)) | 🟠 Medio (carga) | Bajo-Medio | Quick win | ✅ Concurrent parcial; ✅ O(n² de `TipoIndex`) corregido |
 | **R4** delegación | 🟠 Medio (apertura) | Medio | Con cambio de schema | ❌ pendiente |
 | **R1** partir pantalla | 🔴 Alto (carga + lag) | **Alto** | Estructural — planear bien | ❌ pendiente (el mayor salto) |
 | **R5** galerías | 🟠 Medio | Medio | Con R1 | ❌ pendiente |
