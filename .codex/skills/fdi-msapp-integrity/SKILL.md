@@ -21,9 +21,27 @@ Power Apps **Studio** mantiene ambas en sync al **Guardar/Publicar** (y bumpea `
 **stale** → los cambios pueden **no surtir efecto en la app publicada** aunque se vean en Studio.
 Esta skill detecta exactamente eso.
 
-> **Regla de proceso:** el `.msapp` se produce **desde Power Apps Studio** (Guardar/Publicar). No se
-> arma editando `Src/` a mano y re-zipeando. El empaquetado final (ZIP de solución) es de Claude
-> Release vía [[fdi-app-packaging]]; **esta verificación es un paso previo obligatorio**.
+> **Regla de proceso:** el `.msapp` **canónico** (con `Src/` == `Controls/`) se produce **desde Power
+> Apps Studio** (Guardar/Publicar). El empaquetado final (ZIP de solución) es de Claude Release vía
+> [[fdi-app-packaging]]; **esta verificación es un paso previo obligatorio**.
+
+## Rol y alcance (importante)
+
+Esta skill es una **compuerta de validación de Claude Release**, NO un paso del loop de Codex.
+
+- **Codex desarrolla sobre `Src/*.pa.yaml`** y eso está bien: editar la fuente es su trabajo. Codex
+  **no** tiene Power Apps Studio interactivo y `pac canvas (un)pack` **no puede** round-tripear esta
+  app (falla con `PA3002` por el code component PCF). Por eso Codex **no puede producir un `.msapp`
+  canónico** ni "pasar" este check — **no se le exige correrlo**.
+- **El usuario** (quien sí tiene Studio) produce el `.msapp` canónico: abre la app en Studio (lee
+  `Src/`, muestra los cambios de Codex) y **Guarda/Publica** (regenera `Controls/` + bumpea
+  `AppVersion`). Ese `.msapp` es el que se commitea para desplegar.
+- **Claude Release** corre esta verificación **antes de empaquetar**. Un **FAIL sobre un commit de
+  Codex aún no pasado por Studio es ESPERADO** y solo significa: *"falta el guardado por Studio; no
+  empaquetar todavía"*. No es un defecto de Codex.
+
+Flujo: **Codex** edita `Src/` → **usuario** Guarda/Publica en Studio → **Claude Release** valida
+(`fdi-msapp-integrity`) y empaqueta (`fdi-app-packaging`).
 
 ## Cuándo usarla
 

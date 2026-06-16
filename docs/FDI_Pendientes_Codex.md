@@ -3,13 +3,16 @@
 > **Autor:** Claude Release (rol: validar/empaquetar). Índice **vivo** de lo abierto. El detalle de
 > cada tema vive en su documento; aquí solo el estado y la prioridad. Actualizar al cerrar cada ítem.
 
-## Regla de proceso (obligatoria)
+## Regla de proceso (división de roles)
 
-- El `.msapp` se produce **desde Power Apps Studio** (Guardar/Publicar), **no** por round-trip de
-  `Src/*.pa.yaml` + re-zip. Esto mantiene `Controls/` (runtime) en sync con `Src/` y bumpea
-  `AppVersion`.
-- Antes de entregar para empaquetar, **correr la verificación** y confirmar que pasa:
-  `python3 .codex/skills/fdi-msapp-integrity/validate_msapp.py` → **exit 0, sin FAIL**.
+- **Codex** desarrolla sobre `Src/*.pa.yaml` y commitea. No necesita Studio ni correr la
+  verificación de integridad (no tiene Studio interactivo y `pac canvas` no round-trippea esta app
+  por el PCF).
+- **Usuario**: para dejar un `.msapp` **canónico/desplegable**, abre la app en **Power Apps Studio**
+  (lee `Src/`, muestra los cambios de Codex) y **Guarda/Publica** (regenera `Controls/` en sync +
+  bumpea `AppVersion`). Commitea ese `.msapp`.
+- **Claude Release**: corre `fdi-msapp-integrity` (compuerta) y empaqueta con `fdi-app-packaging`.
+  Un FAIL antes del guardado por Studio es esperado (no es defecto de Codex).
 
 ## Pendientes
 
