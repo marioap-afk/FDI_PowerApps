@@ -18,7 +18,7 @@ Derivado de los **diagramas de flujo de los sistemas** ya revisados
 | Padre | `Cotizaciones` | Registro maestro de la cotización. **Decisión:** la lista padre se llama `Cotizaciones` (sin `2026`); la app debe apuntar sus datasources/Patch a este nombre. |
 | Puente | `Sistemas por cotización` | Una fila por sistema agregado a la cotización (permite ≥2 sistemas del mismo tipo). |
 | Detalle | `Sistema <Tipo>` | Campos escalares del formulario de cada sistema. |
-| Tablas hijas | `Sistema Tarimas`, `Sistema Productos`, etc. | Una fila por renglón de una tabla repetible. **Compartidas** entre sistemas. |
+| Tablas hijas | `Hija Tarimas`, `Hija Productos`, etc. | Una fila por renglón de una tabla repetible. **Compartidas** entre sistemas. |
 
 Los campos escalares van en la lista de **detalle**; las **tablas** del diagrama
 (Tarimas, Productos, Colores, Elementos de seguridad, Piezas especiales, Proveedores,
@@ -135,13 +135,13 @@ Cada lista declara abajo **qué bloques** incluye + sus columnas propias.
 | `Sistema Carton Flow` | Detalle | R + C + A-P + propias | `CFL` |
 | `Sistema Mezzanine Limpio` | Detalle | R + C + A-P + propias | `MZL` |
 | `Sistema Otro` | Detalle | R + Title + HTML | `OT` |
-| `Sistema Tarimas` | Hija | H + propias | `SEL,DIN,PBK,DRV,MZL` |
-| `Sistema Productos` | Hija | H + propias | `MEZ,CFL,MZL` |
-| `Sistema Colores` | Hija | H + propias | Todos (colores por pieza) |
-| `Sistema Elementos Seguridad` | Hija | H + propias | Todos (elementos de seguridad) |
-| `Sistema Piezas Especiales` | Hija | H + propias | Todos (piezas especiales) |
-| `Sistema Proveedores Externos` | Hija | H + propias | Todos (proveedores externos) |
-| `Sistema Listado Piezas` | Hija | H + propias | Todos (método *Listado de piezas*) |
+| `Hija Tarimas` | Hija | H + propias | `SEL,DIN,PBK,DRV,MZL` |
+| `Hija Productos` | Hija | H + propias | `MEZ,CFL,MZL` |
+| `Hija Colores` | Hija | H + propias | Todos (colores por pieza) |
+| `Hija Elementos Seguridad` | Hija | H + propias | Todos (elementos de seguridad) |
+| `Hija Piezas Especiales` | Hija | H + propias | Todos (piezas especiales) |
+| `Hija Proveedores Externos` | Hija | H + propias | Todos (proveedores externos) |
+| `Hija Listado Piezas` | Hija | H + propias | Todos (método *Listado de piezas*) |
 
 ## Listas de detalle (definición exacta)
 
@@ -158,7 +158,7 @@ Cada lista declara abajo **qué bloques** incluye + sus columnas propias.
 
 ### `Sistema selectivo` (`SEL`)
 **Columnas = Bloque R + Bloque C + Bloque A-M.** No tiene columnas escalares propias
-(la tarima va en `Sistema Tarimas`; seguridad/piezas especiales/colores en sus hijas).
+(la tarima va en `Hija Tarimas`; seguridad/piezas especiales/colores en sus hijas).
 
 ### `Sistema Dinámico` (`DIN`) y `Sistema Pushback` (`PBK`)
 **Columnas = Bloque R + Bloque C + Bloque A-M + propias:**
@@ -190,7 +190,7 @@ Cada lista declara abajo **qué bloques** incluye + sus columnas propias.
 
 ### `Sistema Cantiléver` (`CAN`)
 **Columnas = Bloque R + Bloque C + Bloque A-M + propias:** *(la carga son campos escalares,
-no una tabla; por eso NO usa `Sistema Productos`).*
+no una tabla; por eso NO usa `Hija Productos`).*
 
 | Columna | Tipo | Nota |
 | --- | --- | --- |
@@ -202,7 +202,7 @@ no una tabla; por eso NO usa `Sistema Productos`).*
 | `Tipo góndola` | Opción | `Góndola sencilla`, `Góndola doble`, `Ambas`, `Por diseño`. |
 
 ### `Sistema Mezzanine` (`MEZ`)
-**Columnas = Bloque R + Bloque C + Bloque A-P + propias:** *(el producto va en `Sistema Productos`).*
+**Columnas = Bloque R + Bloque C + Bloque A-P + propias:** *(el producto va en `Hija Productos`).*
 
 | Columna | Tipo | Nota |
 | --- | --- | --- |
@@ -220,7 +220,7 @@ no una tabla; por eso NO usa `Sistema Productos`).*
 | `Requiere escaleras` | Booleano | Toggle. |
 
 ### `Sistema Carton Flow` (`CFL`)
-**Columnas = Bloque R + Bloque C + Bloque A-P + propias:** *(el producto va en `Sistema Productos`).*
+**Columnas = Bloque R + Bloque C + Bloque A-P + propias:** *(el producto va en `Hija Productos`).*
 
 | Columna | Tipo | Nota |
 | --- | --- | --- |
@@ -232,8 +232,8 @@ no una tabla; por eso NO usa `Sistema Productos`).*
 | `Entrecentros manual` | Número compatible | Si método = `Manual`. |
 
 ### `Sistema Mezzanine Limpio` (`MZL`)
-**Columnas = Bloque R + Bloque C + Bloque A-P + propias:** *(usa `Sistema Productos` en la zona
-modulada y `Sistema Tarimas` en la zona no modulada).*
+**Columnas = Bloque R + Bloque C + Bloque A-P + propias:** *(usa `Hija Productos` en la zona
+modulada y `Hija Tarimas` en la zona no modulada).*
 
 | Columna | Tipo | Nota |
 | --- | --- | --- |
@@ -241,7 +241,7 @@ modulada y `Sistema Tarimas` en la zona no modulada).*
 | `Carga por m2` | Número compatible | Carga por m². |
 | `Es modulado` | Booleano | ¿Será modulado? |
 | `Zona modulada` | Texto | ¿En dónde? (si `Es modulado` = Sí). |
-| `Usa tarimas` | Booleano | ¿Tarimas en la zona no modulada? Habilita `Sistema Tarimas`. |
+| `Usa tarimas` | Booleano | ¿Tarimas en la zona no modulada? Habilita `Hija Tarimas`. |
 | `Requiere elevador` | Booleano | Toggle. |
 | `Especificación elevador` | Texto multilínea | Si requiere elevador. |
 | `Tipo piso` | Opción | `Rejilla Irving`, `MDF`. |
@@ -267,7 +267,7 @@ modulada y `Sistema Tarimas` en la zona no modulada).*
 
 Todas incluyen el **Bloque H** + sus columnas propias.
 
-### `Sistema Tarimas` — `SEL,DIN,PBK,DRV,MZL`
+### `Hija Tarimas` — `SEL,DIN,PBK,DRV,MZL`
 
 | Columna | Tipo | Nota |
 | --- | --- | --- |
@@ -281,7 +281,7 @@ Todas incluyen el **Bloque H** + sus columnas propias.
 | `Excedente frente` | Número compatible | Si `Excedente` = Sí. |
 | `Excedente fondo` | Número compatible | Si `Excedente` = Sí. |
 
-### `Sistema Productos` — `MEZ,CFL,MZL`
+### `Hija Productos` — `MEZ,CFL,MZL`
 
 | Columna | Tipo | Nota |
 | --- | --- | --- |
@@ -292,7 +292,7 @@ Todas incluyen el **Bloque H** + sus columnas propias.
 | `Peso producto` | Número compatible | Peso por pieza. |
 | `Cantidad por nivel` | Número compatible | |
 
-### `Sistema Colores` — todos
+### `Hija Colores` — todos
 
 | Columna | Tipo | Nota |
 | --- | --- | --- |
@@ -300,14 +300,14 @@ Todas incluyen el **Bloque H** + sus columnas propias.
 | `ColorNombre` | Texto | Nombre visible del color. |
 | `ColorKey` | Texto | Clave normalizada (si hay catálogo). |
 
-### `Sistema Elementos Seguridad` — todos
+### `Hija Elementos Seguridad` — todos
 
 | Columna | Tipo | Nota |
 | --- | --- | --- |
 | `Elemento` | Texto | Elemento de seguridad. |
 | `Comentarios` | Texto multilínea | Especificación. |
 
-### `Sistema Piezas Especiales` — todos
+### `Hija Piezas Especiales` — todos
 
 | Columna | Tipo | Nota |
 | --- | --- | --- |
@@ -315,14 +315,14 @@ Todas incluyen el **Bloque H** + sus columnas propias.
 | `Cantidad` | Número compatible | Si se captura cantidad. |
 | `Comentarios` | Texto multilínea | Especificación. |
 
-### `Sistema Proveedores Externos` — todos
+### `Hija Proveedores Externos` — todos
 
 | Columna | Tipo | Nota |
 | --- | --- | --- |
 | `Proveedor` | Texto | Nombre del proveedor. |
 | `Alcance` | Texto multilínea | Qué suministra / qué queda fuera del alcance FDI. |
 
-### `Sistema Listado Piezas` — todos (método *Listado de piezas*)
+### `Hija Listado Piezas` — todos (método *Listado de piezas*)
 
 | Columna | Tipo | Nota |
 | --- | --- | --- |

@@ -217,13 +217,13 @@ $detalle = @(
   @{ Title = "Sistema Otro";             Cols = ($R + @((Col "HTML" "Note"))) }
 )
 $hijas = @(
-  @{ Title = "Sistema Tarimas";              Cols = ($H + @((Col "Tipo tarima" "Text"),(Col "Peso tarima" "Text"),(Col "Alto tarima" "Text"),(Col "Frente tarima" "Text"),(Col "Fondo tarima" "Text"),(Col "Huella tarima" "Text"),(Col "Excedente" "Boolean"),(Col "Excedente frente" "Text"),(Col "Excedente fondo" "Text"))) },
-  @{ Title = "Sistema Productos";            Cols = ($H + @((Col "Tipo producto" "Text"),(Col "Largo producto" "Text"),(Col "Ancho producto" "Text"),(Col "Alto producto" "Text"),(Col "Peso producto" "Text"),(Col "Cantidad por nivel" "Text"))) },
-  @{ Title = "Sistema Colores";              Cols = ($H + @((Col "Pieza" "Text"),(Col "ColorNombre" "Text"),(Col "ColorKey" "Text"))) },
-  @{ Title = "Sistema Elementos Seguridad";  Cols = ($H + @((Col "Elemento" "Text"),(Col "Comentarios" "Note"))) },
-  @{ Title = "Sistema Piezas Especiales";    Cols = ($H + @((Col "Pieza" "Text"),(Col "Cantidad" "Text"),(Col "Comentarios" "Note"))) },
-  @{ Title = "Sistema Proveedores Externos"; Cols = ($H + @((Col "Proveedor" "Text"),(Col "Alcance" "Note"))) },
-  @{ Title = "Sistema Listado Piezas";       Cols = ($H + @((Col "Pieza" "Text"),(Col "Cantidad" "Text"),(Col "Comentarios" "Note"))) }
+  @{ Title = "Hija Tarimas";              Cols = ($H + @((Col "Tipo tarima" "Text"),(Col "Peso tarima" "Text"),(Col "Alto tarima" "Text"),(Col "Frente tarima" "Text"),(Col "Fondo tarima" "Text"),(Col "Huella tarima" "Text"),(Col "Excedente" "Boolean"),(Col "Excedente frente" "Text"),(Col "Excedente fondo" "Text"))) },
+  @{ Title = "Hija Productos";            Cols = ($H + @((Col "Tipo producto" "Text"),(Col "Largo producto" "Text"),(Col "Ancho producto" "Text"),(Col "Alto producto" "Text"),(Col "Peso producto" "Text"),(Col "Cantidad por nivel" "Text"))) },
+  @{ Title = "Hija Colores";              Cols = ($H + @((Col "Pieza" "Text"),(Col "ColorNombre" "Text"),(Col "ColorKey" "Text"))) },
+  @{ Title = "Hija Elementos Seguridad";  Cols = ($H + @((Col "Elemento" "Text"),(Col "Comentarios" "Note"))) },
+  @{ Title = "Hija Piezas Especiales";    Cols = ($H + @((Col "Pieza" "Text"),(Col "Cantidad" "Text"),(Col "Comentarios" "Note"))) },
+  @{ Title = "Hija Proveedores Externos"; Cols = ($H + @((Col "Proveedor" "Text"),(Col "Alcance" "Note"))) },
+  @{ Title = "Hija Listado Piezas";       Cols = ($H + @((Col "Pieza" "Text"),(Col "Cantidad" "Text"),(Col "Comentarios" "Note"))) }
 )
 $all = @($bridge) + $detalle + $hijas
 
