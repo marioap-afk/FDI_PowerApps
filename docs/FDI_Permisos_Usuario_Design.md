@@ -5,6 +5,7 @@
 > `scrGenerarPedido`, `scrCorreo` del `.msapp` actual, y el modelo de roles ya validado en
 > [FDI_Cotizaciones_Flow.md](FDI_Cotizaciones_Flow.md).
 > Cubre las tres piezas pedidas: **lista**, **lógica** y **proceso** de permisos.
+> **Decisiones D1–D7 resueltas con el usuario el 2026-06-16** (ver §5).
 
 ---
 
@@ -64,147 +65,179 @@ restringir quién puede serlo).
    Pasar a **default-deny**.
 4. 🟠 **Matching de rol frágil** por texto exacto del choice `Puesto`. Un typo degrada en silencio.
 5. 🟡 **Dos identidades paralelas** (`Cotizadores.Puesto` y `Vendedores`) sin relación explícita.
-6. 🟡 **Falta el rol "ingeniero"**, protagonista del flujo.
+6. 🟡 **Falta el rol "ingeniero"** y faltan los niveles/áreas reales (coordinador y gerencia por área).
 
 ---
 
 ## 3. Diseño objetivo
 
-### 3.1 Entidades
+### 3.1 Entidades (D2/D3 resueltas)
 
-- **`Cotizadores`** (refinada): registro único de usuarios de la app. Define el **rol**.
-- **`Vendedores`** (se mantiene): entidad de negocio (vendedor ↔ cotización). **No** se fusiona en
-  `Puesto`; un vendedor también debe existir en `Cotizadores` (normalmente Puesto = `Usuario`).
-- **`Permisos`** (NUEVA): matriz **rol → capacidad** como datos, editable por un admin **sin
-  republicar** la app. Es la "lista de permisos" a desarrollar.
+- **`Usuarios`** (NUEVA — maestro único de identidad; reemplaza a `Cotizadores`): registro de
+  **todos** los que abren la app, con **auto-registro** en el primer ingreso (estado `Pendiente`,
+  sin roles). Define **roles** (multi-valor) y el atributo **`EsVendedor`**.
+- **`Permisos`** (NUEVA — matriz **rol → capacidad**): editable por un admin **sin republicar**.
+- **`Vendedores`** (se mantiene **solo** como el vínculo de negocio vendedor ↔ cotización que ya
+  usa `VendedoresLookUp`). **Migrar** a futuro para que apunte a `Usuarios` (tarea P8). La identidad
+  y el rol salen de `Usuarios`, no de `Vendedores`.
+
+> **Vendedor NO es un rol/puesto**, es el atributo `EsVendedor` de `Usuarios` (D3). Un usuario
+> puede tener **varios roles** a la vez (p. ej. Admin **y** Coordinador ventas) → las capacidades
+> son la **unión** de todos sus roles (D5).
 
 ### 3.2 Listas exactas
 
-**`Cotizadores`** (refinar)
+**`Usuarios`** (nueva — maestro de identidad)
 
 | Columna | Tipo | Nota |
 | --- | --- | --- |
-| `Nombre` | Persona | Usuario. Indexar el correo si es posible. |
-| `Puesto` | Choice | Valores controlados: `Administrador`, `Coordinador`, `Ingeniero`, `Usuario`. |
-| `Activo` | Sí/No | Default-deny: `false` ⇒ sin acceso (no caer a "Usuario"). |
+| `Title` | Texto | Nombre completo (de `User().FullName` al auto-registrar). |
+| `Correo` | Texto | `Lower(User().Email)`. Clave de búsqueda; indexar. |
+| `Roles` | Choice (**selección múltiple**) | Valores controlados (ver taxonomía §3.3). Vacío al registrarse. |
+| `EsVendedor` | Sí/No | Sustituye la pertenencia a `Vendedores` para identidad. |
+| `Estado` | Choice | `Pendiente` (auto-registrado, sin permisos), `Activo`, `Inactivo`. |
+| `Comentarios` | Texto multilínea | Notas del admin (opcional). |
 
-**`Permisos`** (nueva — matriz rol→capacidad)
+**`Permisos`** (nueva — matriz rol→capacidad; una fila por rol)
 
 | Columna | Tipo | Nota |
 | --- | --- | --- |
-| `Rol` | Choice | Igual que `Puesto` (`Administrador`/`Coordinador`/`Ingeniero`/`Usuario`). Clave. |
+| `Rol` | Choice | Igual a los valores de `Usuarios.Roles`. Clave. |
 | `PuedeVerTodo` | Sí/No | Ver todas las cotizaciones (no solo las propias). |
 | `PuedeAsignar` | Sí/No | Asignar cotizaciones a un ingeniero. |
 | `PuedeTrabajar` | Sí/No | Capturar/editar sistemas de una cotización asignada. |
-| `PuedeAprobar` | Sí/No | Aprobar/Rechazar la revisión (rol vendedor/coordinador). |
+| `PuedeAprobar` | Sí/No | Aprobar/Rechazar la revisión. |
 | `PuedeEnviarCliente` | Sí/No | Marcar "Enviada a cliente". |
 | `PuedeEditarMaestros` | Sí/No | Editar catálogos (colores, listas, etc.). |
-| `PuedeAdministrar` | Sí/No | Gestionar `Cotizadores`/`Permisos`. |
+| `PuedeAdministrar` | Sí/No | Gestionar `Usuarios`/`Permisos` (admin in-app). |
 
-> Alternativa más simple (ver **D2**): no crear `Permisos` y fijar la matriz en `OnStart`. Pierdes
-> la edición sin republicar.
+### 3.3 Taxonomía de roles y matriz (D5 resuelta)
 
-### 3.3 Matriz rol → capacidad (propuesta inicial)
+**Roles** (dimensión *nivel* × *área*, + operativos):
 
-| Capacidad | Administrador | Coordinador | Ingeniero | Vendedor* | Usuario |
-| --- | :---: | :---: | :---: | :---: | :---: |
-| Ver todas las cotizaciones | ✓ | ✓ | solo asignadas | solo suyas | ✗ |
-| Asignar a ingeniero | ✓ | ✓ | ✗ | ✗ | ✗ |
-| Trabajar/editar sistemas | ✓ | ✓ | ✓ (asignado) | ✗ | ✗ |
-| Enviar a revisión de vendedor | ✓ | ✓ | ✓ | ✗ | ✗ |
-| Aprobar / Rechazar revisión | ✓ | (D5) | ✗ | ✓ (suya) | ✗ |
-| Enviar a cliente | ✓ | ✓ | (D5) | (D5) | ✗ |
-| Editar catálogos / maestros | ✓ | ✗ | ✗ | ✗ | ✗ |
-| Administrar usuarios / roles | ✓ | ✗ | ✗ | ✗ | ✗ |
+- **Admin** — acceso **total**.
+- **Gerencia técnico-comercial**, **Gerencia ventas**, **Gerencia diseño**.
+- **Coordinador técnico-comercial**, **Coordinador ventas**, **Coordinador diseño**.
+- **Ingeniero** — operativo (trabaja sistemas asignados).
+- **Usuario** — sin permisos (auto-registrado, solo pantalla principal hasta que el admin asigne).
+- *(Vendedor = atributo `EsVendedor`, no rol; otorga "ver/aprobar/enviar lo suyo").*
 
-\* **Vendedor** no es un `Puesto`: es la pertenencia a `Vendedores`. Se cruza con el rol (un
-ingeniero puede además ser vendedor de otra cotización). "Ver lo suyo" y "Aprobar lo suyo" se
-resuelven por `VendedoresLookUp.Id = varVendedorActualFDI.ID`, no por la matriz.
+**Matriz propuesta** (✓ = confirmado por el usuario; *prop.* = propuesta inicial ajustable en la
+lista `Permisos`). Capacidades = **unión** de los roles del usuario + lo que dé `EsVendedor`.
 
-### 3.4 Lógica en `OnStart` (propuesta)
+| Capacidad | Admin | Gerencia (área) | Coord. téc-com | Coord. ventas | Coord. diseño | Ingeniero | Vendedor* | Usuario |
+| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| Ver todo | ✓ | ✓ *prop.* | ✓ *prop.* | ✓ *prop.* | ✓ *prop.* | asignadas *prop.* | suyas | ✗ |
+| Asignar a ingeniero | ✓ | *prop.* | ✓ *prop.* | ✗ | ✓ *prop.* | ✗ | ✗ | ✗ |
+| Trabajar/editar sistemas | ✓ | ✗ *prop.* | *prop.* | ✗ | *prop.* | ✓ (asignado) | ✗ | ✗ |
+| Aprobar / Rechazar | ✓ | *prop.* | ✗ | *prop.* | ✗ | ✗ | ✓ (suya) | ✗ |
+| **Enviar a cliente** | **✓** | ✗ | ✗ | **✓** | ✗ | ✗ | **✓** | ✗ |
+| Editar catálogos / maestros | ✓ | *prop.* | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
+| Administrar usuarios / roles | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
+
+\* **Vendedor** se resuelve por `EsVendedor` + `VendedoresLookUp.Id = miId` (ver/aprobar/enviar **lo
+suyo**), no por la matriz. **Enviar a cliente** confirmado: **Vendedor + Coordinador ventas + Admin**.
+**Gerencia ≥ Coordinador de su área** (al menos lo mismo); confirmar sus poderes extra al poblar
+`Permisos`.
+
+> Como la matriz es **datos**, las celdas *prop.* se ajustan en la lista sin tocar la app. Lo único
+> "duro" en código es: Admin = todo, Usuario = nada, y la unión multi-rol.
+
+### 3.4 Lógica en `OnStart` (propuesta, con auto-registro y multi-rol)
 
 ```powerapps
 // 1) Identidad
 Set(varUserEmail, Lower(User().Email));
-Set(varCotizadorFDI,
-    LookUp(Cotizadores, Lower(Nombre.Email) = varUserEmail && Activo = true));
+Set(varUsuarioFDI, LookUp(Usuarios, Lower(Correo) = varUserEmail));
 
-// 2) Rol (default-deny: sin registro activo => "SinAcceso", NO "Usuario")
-Set(varRolFDI, Coalesce(varCotizadorFDI.Puesto.Value, "SinAcceso"));
-Set(varTieneAccesoFDI, Not(IsBlank(varCotizadorFDI)));
+// 2) Auto-registro default-deny: si no existe, crear "Pendiente" sin roles (D2/D4)
+If(IsBlank(varUsuarioFDI),
+    Patch(Usuarios, Defaults(Usuarios),
+        { Title: User().FullName, Correo: varUserEmail,
+          Estado: {Value: "Pendiente"}, EsVendedor: false });
+    Set(varUsuarioFDI, LookUp(Usuarios, Lower(Correo) = varUserEmail))
+);
+Set(varTieneAccesoFDI, !IsBlank(varUsuarioFDI) && varUsuarioFDI.Estado.Value = "Activo");
 
-// 3) Capacidades desde la matriz Permisos (una fila por rol)
-Set(varPermFDI, LookUp(Permisos, Rol.Value = varRolFDI));
+// 3) Roles del usuario (multi) -> capacidades por UNIÓN sobre la matriz Permisos
+ClearCollect(colRolesUsuarioFDI, varUsuarioFDI.Roles);   // tabla de roles del usuario
+Set(varEsAdminFDI, "Admin" in colRolesUsuarioFDI.Value);
 Set(varCaps, {
-    PuedeVerTodo:        Coalesce(varPermFDI.PuedeVerTodo, false),
-    PuedeAsignar:        Coalesce(varPermFDI.PuedeAsignar, false),
-    PuedeTrabajar:       Coalesce(varPermFDI.PuedeTrabajar, false),
-    PuedeAprobar:        Coalesce(varPermFDI.PuedeAprobar, false),
-    PuedeEnviarCliente:  Coalesce(varPermFDI.PuedeEnviarCliente, false),
-    PuedeEditarMaestros: Coalesce(varPermFDI.PuedeEditarMaestros, false),
-    PuedeAdministrar:    Coalesce(varPermFDI.PuedeAdministrar, false)
+    PuedeVerTodo:        varEsAdminFDI || CountRows(Filter(Permisos, Rol.Value in colRolesUsuarioFDI.Value && PuedeVerTodo)) > 0,
+    PuedeAsignar:        varEsAdminFDI || CountRows(Filter(Permisos, Rol.Value in colRolesUsuarioFDI.Value && PuedeAsignar)) > 0,
+    PuedeTrabajar:       varEsAdminFDI || CountRows(Filter(Permisos, Rol.Value in colRolesUsuarioFDI.Value && PuedeTrabajar)) > 0,
+    PuedeAprobar:        varEsAdminFDI || CountRows(Filter(Permisos, Rol.Value in colRolesUsuarioFDI.Value && PuedeAprobar)) > 0,
+    PuedeEnviarCliente:  varEsAdminFDI || CountRows(Filter(Permisos, Rol.Value in colRolesUsuarioFDI.Value && PuedeEnviarCliente)) > 0,
+    PuedeEditarMaestros: varEsAdminFDI || CountRows(Filter(Permisos, Rol.Value in colRolesUsuarioFDI.Value && PuedeEditarMaestros)) > 0,
+    PuedeAdministrar:    varEsAdminFDI || CountRows(Filter(Permisos, Rol.Value in colRolesUsuarioFDI.Value && PuedeAdministrar)) > 0
 });
 
-// 4) Vendedor (ownership de fila; se mantiene)
+// 4) Vendedor (ownership de fila) — desde Usuarios.EsVendedor + el vínculo a cotización
 Set(varVendedorActualFDI,
-    LookUp(Vendedores, Lower(Vendedor.Email) = varUserEmail && Activo = true));
+    If(varUsuarioFDI.EsVendedor, LookUp(Vendedores, Lower(Vendedor.Email) = varUserEmail && Activo = true)));
 ```
 
-Gating en controles: usar `varCaps.PuedeX` (y `varTieneAccesoFDI`) en `Visible` / `DisplayMode` /
-`OnSelect`, no las variables sueltas. Una sola fuente, fácil de auditar.
+> Nota de delegación: `Permisos` y `Usuarios` son pequeñas; cargarlas a colección al inicio evita
+> problemas. El `in` sobre colección local es válido localmente.
+
+Gating en controles: usar **`varCaps.PuedeX`**, `varTieneAccesoFDI` y el ownership de vendedor.
+Una sola fuente, fácil de auditar.
 
 ### 3.5 Dónde cablear cada guarda (mapa de cableado)
 
 | Control / acción | Pantalla | Guarda objetivo |
 | --- | --- | --- |
-| Mosaicos de menú | `scrInicio` | `Visible` por capacidad (p. ej. "Pedidos" si `PuedeVerTodo`; "Catálogos" si `PuedeEditarMaestros`). |
-| `AsignarButton` "Asignar/Iniciar" | `scrMisCotizaciones` | Agregar `&& varCaps.PuedeAsignar` al `DisplayMode` actual (estado). |
-| `AprobaciónButton` / `RechazarButton` | `scrMisCotizaciones` | `Visible/DisplayMode` = vendedor de **esta** cotización **o** `PuedeAprobar`. |
-| Captura/edición de sistemas | `scrFDI` / `scrDiseñoSistema` | `DisplayMode` = `PuedeTrabajar` **y** es el asignado. |
-| Enviar a cliente | (donde aplique) | `PuedeEnviarCliente`. |
-| Edición de catálogos/colores | (maestros) | `PuedeEditarMaestros`. |
-| Filtro de galería | `scrMisCotizaciones` / `scrGenerarPedido` | Mantener `PuedeVerTodo` ? todo : propias **+ respaldo de datos (§3.6)**. |
-| Pantalla "No autorizado" | nueva (D6) | Si `!varTieneAccesoFDI`, redirigir y bloquear el resto. |
+| Acceso a la app | `scrInicio` | Si `!varTieneAccesoFDI` ⇒ solo pantalla principal con aviso "sin permisos, contacta al admin" (D4/D6). |
+| Mosaicos de menú | `scrInicio` | `Visible` por capacidad (Pedidos si `PuedeVerTodo`; Catálogos si `PuedeEditarMaestros`; Admin si `PuedeAdministrar`). |
+| `AsignarButton` | `scrMisCotizaciones` | Agregar `&& varCaps.PuedeAsignar` al `DisplayMode` actual (estado). |
+| `AprobaciónButton`/`RechazarButton` | `scrMisCotizaciones` | Vendedor de **esta** cotización **o** `varCaps.PuedeAprobar`. |
+| Captura/edición de sistemas | `scrFDI`/`scrDiseñoSistema` | `DisplayMode` = `varCaps.PuedeTrabajar` **y** es el asignado. |
+| **Enviar a cliente** | (donde aplique) | `varCaps.PuedeEnviarCliente` (Vendedor/Coord. ventas/Admin). |
+| Edición de catálogos/colores | (maestros) | `varCaps.PuedeEditarMaestros`. |
+| **Pantalla Admin in-app** | nueva `scrAdmin` | `varCaps.PuedeAdministrar` (D7). |
+| Filtro de galería | `scrMisCotizaciones`/`scrGenerarPedido` | `PuedeVerTodo` ? todo : propias **+ respaldo de datos (§3.6)**. |
 
-### 3.6 Seguridad a nivel de datos (clave — ver D1)
+### 3.6 Seguridad a nivel de datos (D1 resuelta — enfoque en capas)
 
-El gating de UI es **necesario pero no suficiente**. Para confidencialidad real:
+**Realidad:** Power Apps usa la **conexión del propio usuario**; el `Filter()` no oculta lo que el
+usuario puede leer directo en SharePoint. Por eso, **enfoque en capas**:
 
-- **Restringir permisos** de las listas: el usuario final no debería tener edición directa a
-  `Cotizaciones 2026` / listas de sistemas salvo vía la app (idealmente la app corre con una
-  identidad/rol con permisos acotados, o se usan permisos a nivel de item).
-- Si una cotización **no debe** ser visible para otros vendedores, el `Filter()` cliente **no basta**:
-  hace falta **permiso a nivel de item** (romper herencia por vendedor) o un origen ya recortado
-  por el servidor. Decидir en **D1**.
-- Mantener el filtro de UI igual (UX), pero entender que es conveniencia, no frontera.
+1. **Ahora (fácil):** gating de UI default-deny + **acotar los permisos directos** de las listas
+   (el usuario común interactúa por la app, no con acceso amplio de edición a `Cotizaciones 2026` y
+   listas de sistemas).
+2. **Solo si hay regla dura** "un vendedor NO debe ver lo de otro": **permisos a nivel de item**
+   (flujo de Power Automate que rompe herencia al crear/asignar y otorga dueño + coordinadores/admin).
+   Costo: medio-alto + límite de ~5,000 scopes únicos por lista + mantenimiento. → **Diferido**
+   (tarea P6) hasta que exista esa necesidad concreta.
+
+**Decisión:** arrancar con la capa 1; **no** invertir en item-level salvo requerimiento explícito.
 
 ---
 
 ## 4. Proceso (gobernanza)
 
-- **Alta de usuario:** un `Administrador` agrega la persona a `Cotizadores` con su `Puesto` y
-  `Activo = true`. Si además vende, agregarla a `Vendedores` (`Activo = true`).
-- **Baja / cambio de rol:** poner `Activo = false` o cambiar `Puesto`. **Surte efecto al reiniciar
-  la app** (los roles se calculan en `OnStart`); documentarlo para el usuario.
-- **Gestión de la matriz `Permisos`:** solo `Administrador`. Editar capacidades por rol sin
-  republicar (si se adopta la lista; D2).
-- **Gestión:** ¿pantalla admin dentro de la app o se administra directo en SharePoint? (**D7**).
-- **Auditoría (opcional):** registrar cambios de rol/capacidad (quién, cuándo) en una lista o en la
-  Bitácora.
+- **Primer ingreso:** la app **auto-registra** al usuario en `Usuarios` con `Estado = Pendiente`,
+  sin roles. Solo ve la **pantalla principal** con el aviso de "sin permisos" (D4/D6).
+- **Otorgar permisos:** un `Admin` (in-app, `scrAdmin`, D7) abre el `Pendiente`, le asigna
+  **uno o varios roles** y `EsVendedor` si aplica, y lo pone `Activo`.
+- **Baja / cambio:** `Estado = Inactivo` o editar `Roles`. **Surte efecto al reiniciar la app**
+  (los roles se calculan en `OnStart`); documentarlo para el usuario.
+- **Matriz `Permisos`:** solo `Admin`; ajustar capacidades por rol sin republicar.
+- **Auditoría (opcional):** registrar cambios de rol/estado (quién, cuándo).
 
 ---
 
-## 5. Decisiones abiertas (resolver antes de implementar)
+## 5. Decisiones (resueltas 2026-06-16)
 
-| # | Decisión | Recomendación |
+| # | Decisión | Resolución |
 | --- | --- | --- |
-| **D1** | **¿Seguridad real a nivel de datos** (permisos de item en SharePoint) **o solo UI?** | **En capas:** gating de UI siempre; si hay confidencialidad entre vendedores, además permiso a nivel de item / origen recortado. No depender solo del `Filter()`. |
-| **D2** | **¿`Permisos` como lista-matriz** editable, o mapping fijo en `OnStart`? | Lista-matriz (lo que pediste: editable sin republicar). |
-| **D3** | **¿Vendedor** se fusiona en `Puesto` o se mantiene lista aparte? | Mantener `Vendedores` aparte (entidad ligada a cotizaciones); documentar la relación. |
-| **D4** | **¿Qué puede un `Usuario`** sin rol asignado? | Default-deny: nada salvo, a lo sumo, ver lo suyo como vendedor. |
-| **D5** | **Casos finos:** ¿el coordinador también aprueba? ¿quién envía a cliente? ¿el ingeniero ve solo lo asignado? | Definir las celdas marcadas (D5) de la matriz §3.3. |
-| **D6** | **¿Pantalla "No autorizado"** para quien no está en `Cotizadores`? | Sí (cierra el default-deny de forma visible). |
-| **D7** | **Gestión de `Cotizadores`/`Permisos`:** ¿pantalla admin in-app o solo SharePoint? | Empezar en SharePoint; pantalla admin como mejora posterior. |
+| **D1** | Seguridad real (item-level) vs solo UI | **En capas:** UI default-deny + acotar acceso directo a las listas **ahora**; permisos por item **diferidos** (P6) salvo regla dura de confidencialidad entre vendedores. *(Recomendación de Claude.)* |
+| **D2** | `Permisos` como lista editable | **Sí**, lista-matriz. Además, **maestro único `Usuarios`** con **auto-registro** para que el admin otorgue permisos después. *(Recomendación de Claude adoptada.)* |
+| **D3** | ¿Vendedor en `Puesto` o aparte? | **Atributo `EsVendedor` en `Usuarios`** (no rol). `Vendedores` queda solo como vínculo a cotización; migrar después (P8). *(Recomendación de Claude.)* |
+| **D4** | Qué puede un usuario sin rol | **Solo la pantalla principal**; requiere que el admin le otorgue permisos. |
+| **D5** | Taxonomía y celdas finas | Multi-rol (unión). Niveles **Coordinador** y **Gerencia** por **área** (técnico-comercial / ventas / diseño) + **Admin** (total) + **Ingeniero** + Usuario. **Enviar a cliente = Vendedor + Coordinador ventas + Admin.** Gerencia ≥ coordinador de su área. |
+| **D6** | Pantalla "No autorizado" | **No** hay pantalla aparte: la **pantalla principal** muestra el aviso y bloquea el resto (se resuelve con D4). |
+| **D7** | Gestión de usuarios/roles | **Pantalla Admin in-app** (`scrAdmin`). |
 
 ---
 
@@ -212,13 +245,14 @@ El gating de UI es **necesario pero no suficiente**. Para confidencialidad real:
 
 | ID | Tarea | Prioridad | Depende de |
 | --- | --- | --- | --- |
-| **P1** | Normalizar `Cotizadores.Puesto` a valores controlados + `Activo`; añadir rol `Ingeniero`. | 🔴 Alta | D3, D5 |
-| **P2** | Refactor de `OnStart` a `varCaps` + `varTieneAccesoFDI` (default-deny); eliminar las variables muertas. | 🔴 Alta | D2, D4 |
-| **P3** | Crear lista `Permisos` (matriz) y cargarla en `OnStart`. | 🔴 Alta | D2 |
-| **P4** | Cablear guardas según §3.5 (menú, asignar, aprobar, maestros, captura). | 🔴 Alta | P2 |
-| **P5** | Pantalla/redirección "No autorizado" si `!varTieneAccesoFDI`. | 🟠 Media | D6 |
-| **P6** | Seguridad a nivel de datos según D1 (permisos de item / origen recortado). | 🟠 Media | D1 |
-| **P7** | Gobernanza: documentar alta/baja y "surte efecto al reiniciar"; auditoría opcional. | 🟡 Baja | D7 |
+| **P1** | Crear lista `Usuarios` (maestro) con `Roles` multi, `EsVendedor`, `Estado`; y lista `Permisos` (matriz). Poblar `Permisos` con la matriz §3.3. | 🔴 Alta | D2,D5 |
+| **P2** | `OnStart`: identidad + **auto-registro** `Pendiente` + `varCaps` por **unión multi-rol** + `varTieneAccesoFDI`. Eliminar variables muertas. | 🔴 Alta | P1 |
+| **P3** | Default-deny en `scrInicio`: si `!varTieneAccesoFDI`, solo home + aviso "sin permisos". | 🔴 Alta | P2,D4,D6 |
+| **P4** | Cablear guardas §3.5 (menú, asignar, aprobar, enviar a cliente, maestros, captura). | 🔴 Alta | P2 |
+| **P5** | **Pantalla Admin in-app** (`scrAdmin`): listar `Pendiente`/usuarios, asignar roles/`EsVendedor`/`Estado`, editar `Permisos`. | 🟠 Media | P1,D7 |
+| **P6** | Seguridad a nivel de item (Power Automate) — **solo si** se confirma confidencialidad entre vendedores. | 🟢 Condicional | D1 |
+| **P7** | Gobernanza: documentar alta/baja y "surte efecto al reiniciar"; auditoría opcional. | 🟡 Baja | — |
+| **P8** | Migrar `Cotizaciones 2026.VendedoresLookUp` para referenciar `Usuarios` (retirar dependencia de `Vendedores`). | 🟡 Baja | P1 |
 
 ---
 
