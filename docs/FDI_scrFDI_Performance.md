@@ -49,7 +49,7 @@ Codex aplicó los **quick wins** y separó la captura por sistema **en `Src/`** 
 | **R6** DelayOutput en entradas | ✅ en `Src/` (❌ en `Controls/`) | `DelayOutput=true`: **7 → 133** en Src; **0** en Controls |
 | **R3** `Concurrent` en OnVisible | ✅ **Parcial** | `Concurrent(`: **0 → 1** (línea 31 de OnVisible) |
 | **R1** partir la pantalla | ⚠️ en `Src/`, **sin compilar** | **9 → 18** pantallas en Src; `Controls/` sigue con 9 y `scrFDI` mega-pantalla |
-| **R2** cachear el borrador | ❌ **Pendiente** | siguen **~689 `LookUp(colXXX_Draft, …)`** campo por campo |
+| **R2** cachear el borrador | ✅ en `Src/` (❌ en `Controls/`) | lecturas de hidratación `LookUp(colXXX_Draft, …, Campo)` reemplazadas por `varDraftActual.Campo`; falta compilar por Studio |
 | **R3** quitar el `CountRows(Filter)` O(n²) | ✅ **Hecho** | `TipoIndex` ya no lee `colTabs` mientras se construye; usa `colPuentesHidratacion` |
 | **R5** galerías | ❌ **Pendiente** | sin cambios |
 
@@ -126,7 +126,7 @@ Se aplicó la opción de **pantalla por sistema**: `scrFDI_SEL`, `scrFDI_DIN`, `
 `scrFDI` navega a la pantalla correspondiente con `locTabSel`; cada pantalla tiene una barra de
 regreso que vuelve a `scrFDI` sin rehidratar toda la cotización.
 
-### R2 🔴 — Cachear el borrador en un registro (1 `LookUp` en vez de ~100)
+### R2 ✅ — Cachear el borrador en un registro (fuente aplicada)
 Al entrar al sistema / cambiar de tab, resolver la fila **una vez**:
 ```powerapps
 Set(varDraftActual, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId))
@@ -135,8 +135,12 @@ y enlazar cada campo a la variable:
 ```powerapps
 Default: =Coalesce(varDraftActual.RequiereElevador, false)   // antes: LookUp(colMEZ_Draft, …, RequiereElevador)
 ```
-Reduce ~100–130 `LookUp` por sistema a **1**. (Con R1, `varDraftActual` es simplemente el borrador
-de esa pantalla.)
+Se aplicó en `Src/scrFDI_SEL.pa.yaml`, `Src/scrFDI_DIN.pa.yaml`, `Src/scrFDI_PBK.pa.yaml`,
+`Src/scrFDI_DRV.pa.yaml`, `Src/scrFDI_CAN.pa.yaml`, `Src/scrFDI_MEZ.pa.yaml`,
+`Src/scrFDI_CFL.pa.yaml`, `Src/scrFDI_MZL.pa.yaml` y `Src/scrFDI_OT.pa.yaml`.
+
+Se reemplazaron las lecturas de hidratación por `varDraftActual.Campo`. Los `LookUp` usados como
+destino de `Patch(...)` permanecen intactos para no cambiar la lógica de guardado.
 
 ### R3 🟠 — Aligerar `OnVisible`
 - Envolver las cargas **independientes** en `Concurrent(...)` (borrador, puentes, catálogos).
@@ -165,7 +169,7 @@ Mover los `CountRows`/`LookUp` por renglón a un cálculo **único** (colección
 
 | Acción | Impacto | Esfuerzo | Cuándo | Estado |
 | --- | --- | --- | --- | --- |
-| **R2** cachear borrador | 🔴 Alto (lag al escribir/cambiar) | Medio | Siguiente | ❌ pendiente |
+| **R2** cachear borrador | 🔴 Alto (lag al escribir/cambiar) | Medio | Siguiente | ✅ fuente aplicada; falta compilar por Studio |
 | **R6** DelayOutput + settings | 🟠 Medio | Bajo | Quick win inmediato | ✅ DelayOutput hecho (`19d4409`); ✅ settings verificados activos |
 | **R3** OnVisible (Concurrent + O(n²)) | 🟠 Medio (carga) | Bajo-Medio | Quick win | ✅ Concurrent parcial; ✅ O(n² de `TipoIndex`) corregido |
 | **R4** delegación | 🟠 Medio (apertura) | Medio | Con cambio de schema | ❌ pendiente |
