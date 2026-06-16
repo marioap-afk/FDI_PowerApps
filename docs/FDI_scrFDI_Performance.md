@@ -5,22 +5,57 @@
 > Hermano de [FDI_MisCotizaciones_Performance.md](FDI_MisCotizaciones_Performance.md), pero para la
 > pantalla de captura. **Causa de fondo: la pantalla es estructuralmente demasiado grande.**
 
-## Estado (tras R1)
+## ⚠️ CRÍTICO — el `.msapp` está internamente inconsistente (`Src/` ≠ `Controls/`)
 
-Codex aplicó los **quick wins** y separó la captura por sistema. Comparado contra el baseline medido en este documento:
+> **Detectado por Claude Release al empaquetar `d5691a2` (2026-06-16). Afecta a TODOS los cambios
+> recientes de Codex, no solo al split. Bloquea el despliegue confiable hasta resolverse.**
 
-| Ítem | Estado | Evidencia |
+Un `.msapp` válido (exportado por Studio) mantiene en sync sus dos representaciones: `Src/*.pa.yaml`
+(código fuente) y `Controls/*.json` (representación compilada que consume el runtime). **En este
+`.msapp` no coinciden:**
+
+| Señal | `Src/` (lo que editó Codex) | `Controls/` (lo compilado) |
 | --- | --- | --- |
-| **R6** DelayOutput en entradas | ✅ **Hecho** | `DelayOutput=true`: **7 → 133** text inputs |
+| Pantallas | **18** (9 + las 9 `scrFDI_XXX`) | **9** (las nuevas **no existen**) |
+| `scrFDI` | 133 controles (split) | ~2,344 controles (**mega-pantalla vieja**) |
+| `DelayOutput=true` | 133 | **0** |
+| People picker correo | `Destinatario`/`CC` (fix) | aún `MyPeople` (viejo) |
+| `Header.LastSaved` / `AppVersion` | — | **congelados en 05:30 / 06:35** desde `9a1d298` |
+
+**Causa raíz:** Codex edita **solo `Src/*.pa.yaml` y re-zipea**, sin regenerar `Controls/`, `Header`
+ni `AppVersion`. Es el mismo motivo del `AppVersion` congelado que aparece en cada reporte de
+empaquetado. **No se está guardando por Power Apps Studio.**
+
+**Impacto:** según qué representación tome Power Apps como autoritativa al importar/reproducir, los
+cambios de Codex (**split R1, DelayOutput R6, fix de correo, TipoIndex**) **podrían no surtir efecto
+en la app publicada** aunque sí se vean al abrir en Studio (que lee `Src/`). El `.msapp` es, en el
+mejor caso, no canónico.
+
+**Qué hacer (Codex):** regenerar el `.msapp` **desde Power Apps Studio** — abrir la app (Studio lee
+`Src/`), **Guardar/Publicar** (regenera `Controls/` + `Header` + bumpea `AppVersion`) y exportar/commitear
+ese `.msapp`. El flujo actual de round-trip YAML produce `.msapp` inconsistentes.
+
+**Prueba rápida (usuario):** importar este paquete y **reproducir** (no editar) la app. Si `scrFDI`
+aparece **partido por sistema** → `Src/` es autoritativo (basta con que Codex re-guarde para limpiar).
+Si `scrFDI` sigue siendo la **mega-pantalla** → `Controls/` es autoritativo y **los cambios no están
+vivos**.
+
+## Estado (tras R1) — *según `Src/`; ver advertencia crítica arriba*
+
+Codex aplicó los **quick wins** y separó la captura por sistema **en `Src/`** (no compilado en `Controls/`):
+
+| Ítem | Estado (en `Src/`) | Evidencia |
+| --- | --- | --- |
+| **R6** DelayOutput en entradas | ✅ en `Src/` (❌ en `Controls/`) | `DelayOutput=true`: **7 → 133** en Src; **0** en Controls |
 | **R3** `Concurrent` en OnVisible | ✅ **Parcial** | `Concurrent(`: **0 → 1** (línea 31 de OnVisible) |
-| **R1** partir la pantalla | ✅ **Hecho** | **9 → 18** pantallas; `scrFDI` **1,412 → 133** controles |
+| **R1** partir la pantalla | ⚠️ en `Src/`, **sin compilar** | **9 → 18** pantallas en Src; `Controls/` sigue con 9 y `scrFDI` mega-pantalla |
 | **R2** cachear el borrador | ❌ **Pendiente** | siguen **~689 `LookUp(colXXX_Draft, …)`** campo por campo |
 | **R3** quitar el `CountRows(Filter)` O(n²) | ✅ **Hecho** | `TipoIndex` ya no lee `colTabs` mientras se construye; usa `colPuentesHidratacion` |
 | **R5** galerías | ❌ **Pendiente** | sin cambios |
 
-> **Lectura:** la carga de `scrFDI` ya no instancia los nueve sistemas a la vez. El siguiente cuello
-> fuerte es **R2**: cachear el borrador activo para eliminar cientos de `LookUp` repetidos dentro de
-> la pantalla de captura de cada sistema.
+> **Lectura:** en `Src/`, la carga de `scrFDI` ya no instancia los nueve sistemas a la vez. Pero
+> **mientras `Controls/` no se regenere desde Studio, esa mejora puede no estar viva en runtime**
+> (ver advertencia crítica). El siguiente cuello, una vez resuelto eso, es **R2**.
 
 ## 1. Diagnóstico medido (números reales de `scrFDI`)
 
