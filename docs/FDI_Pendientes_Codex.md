@@ -18,6 +18,7 @@
 
 | # | Pendiente | Prioridad | Detalle | Estado |
 | --- | --- | --- | --- | --- |
+| 0b | **BLOQUEANTE — data source duplicado `Sistema selectivo` (404)**: la app tiene `Sistema selectivo` (minúscula, GUID `e3e8a735…`, **lista inexistente → 404**) y `Sistema Selectivo` (Mayúscula, real). `cmpCarddrp` y otros leen la minúscula → dropdowns en error → el submit no llega a `OnSuccess` → **el botón Enviar no navega**. Fix: usuario quita el data source muerto en Studio; Codex re-apunta `'Sistema selectivo'`→`'Sistema Selectivo'` en `cmpCarddrp`, `App`, `scrFDI` y los 9 `scrFDI_XXX`. | 🔴 **Bloqueante** | [FDI_DataSource_Bug_Report.md](FDI_DataSource_Bug_Report.md) | ❌ abierto |
 | 0 | **BLOQUEANTE — claves duplicadas en `Src/scrFDI_OT.pa.yaml`** (tras el split): `LayoutMinHeight`/`LayoutMinWidth` quedaron duplicadas en un `GroupContainer`, lo que impedía abrir Studio con `PA1001 YamlInvalidSyntax`. Se dejó una sola vez cada propiedad con mínimo `=16`, y se revisaron las pantallas `scrFDI_*.pa.yaml` para confirmar que no hubiera otro duplicado igual. | 🔴 **Bloqueante** | error de import a Studio (líneas 104–107) | ✅ fuente corregida; falta Guardar/Publicar en Studio |
 | 1 | **Regenerar el `.msapp` desde Studio** (Guardar/Publicar). Hoy `Src/` tiene el split (18 pantallas) pero `Controls/` sigue en la versión vieja (9). Hasta resolverlo, el split / DelayOutput / fix de correo **pueden no estar vivos en runtime** y el último paquete **no es desplegable**. | 🔴 Crítica | [FDI_scrFDI_Performance.md](FDI_scrFDI_Performance.md) §⚠️ CRÍTICO | ❌ abierto |
 | 2 | **`scrCorreoPlantilla`**: sigue usando la colección vieja `MyPeople`; alinear a `Destinatario`/`CC` con esquema proyectado (como ya se hizo en `scrCorreo`). | 🟠 Media | [FDI_Correo_Bug_Report.md](FDI_Correo_Bug_Report.md) §3 / tabla §5 (ítem 4) | ✅ fuente actualizada; falta Guardar/Publicar en Studio |
@@ -28,13 +29,12 @@
 | 7 | **Permisos de usuario** — implementar el RBAC (lista `Usuarios` con auto-registro, matriz `Permisos`, `varCaps` multi-rol, gating, pantalla admin in-app). Backlog P1–P8. | 🟠 Media | [FDI_Permisos_Usuario_Design.md](FDI_Permisos_Usuario_Design.md) §6 | ❌ abierto (decisiones D1–D7 cerradas) |
 | 8 | **Trazabilidad de versión** — bumpear `<Version>`/`AppVersion` por export (se resuelve solo si #1 se hace por Studio). | 🟡 Baja | reportes de empaquetado | ⏳ |
 
-## Decisión de rendimiento (2026-06-16)
+## Decisión de rendimiento (2026-06-16) — RESUELTA
 
-El split (R1) **no mejoró mucho** el rendimiento percibido y **bajó la estética**. Diagnóstico: el
-cuello real es **R2** (los ~689 `LookUp(colXXX_Draft,…)` de hidratación), que **sigue pendiente**.
-**Decisión:** hacer **R2 primero** sobre el estado actual (con el split), **medir con el Monitor de
-Power Apps** (antes/después), y **recién entonces decidir** si se mantiene el split o se revierte a
-una sola pantalla. El split queda **en pausa de decisión** (no revertir ni pulir aún).
+Se hizo **R2** (cache `varDraftActual`) sobre el estado con split y se **midió con Monitor**: el
+usuario reporta la captura **"mucho más rápida"** y el trace muestra `Navigate(scrFDI→scrFDI_MZL)`
+ágil (≈180 ms) con el split **vivo en runtime**. **Decisión:** **mantener el split + R2** (ya no se
+revierte). R5/R4 quedan como mejoras incrementales opcionales.
 
 ## Cerrados recientemente (referencia)
 
