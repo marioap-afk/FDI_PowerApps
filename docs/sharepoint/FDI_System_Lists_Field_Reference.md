@@ -40,19 +40,22 @@ Listado de piezas) van en **listas hijas**. `PayloadSistemaJson` queda **opciona
 
 Cada lista declara abajo **qué bloques** incluye + sus columnas propias.
 
-### Bloque R — Relación (en cada lista de detalle y cada lista hija)
+### Bloque R — Relación (en cada lista de detalle)
 
 | Columna | Tipo | Req. | Indexar | Nota |
 | --- | --- | --- | --- | --- |
 | `CotizaciónID` | Lookup a `Cotizaciones` | Sí | Sí | Relación con la cotización padre **existente**. |
 | `SistemaCotizaciónID` | Lookup a `Sistemas por cotización` | Sí | Sí | Instancia exacta del sistema (clave si hay ≥2 del mismo tipo). |
 | `Folio` | Texto | Sí | Sí | Copia del folio para búsqueda/soporte. |
-| `TipoKey` | Texto | Sí | Sí | `SEL,DIN,PBK,DRV,CAN,MEZ,CFL,MZL,OT`. |
 | `NombreSistema` | Texto | Sí | No | Nombre visible del tab (p. ej. `Selectivo 1`). |
 
 > Compatibilidad: la lista existente `Sistema selectivo` usa `SistemasID` y `Sistema Otro`
 > usa `SistemaID` para el lookup al puente. En listas nuevas usar `SistemaCotizaciónID`;
 > en las existentes, documentar el alias y no apuntar a columnas inexistentes.
+
+> **`TipoKey` se omite en las listas de detalle**: sería constante (la lista ya define el tipo).
+> Sí va en el **Bloque H** (listas hijas compartidas, donde varía) y en el **puente** (`Sistemas
+> por cotización`, que mezcla sistemas de distintos tipos).
 
 ### Bloque C — Comunes del sistema (en todas las listas de detalle)
 
@@ -345,7 +348,7 @@ captura en pantalla; SharePoint recibe datos solo en el guardado final.
 | Lista | Columnas a indexar |
 | --- | --- |
 | `Sistemas por cotización` | `CotizaciónID`, `Folio`, `TipoKey` |
-| Listas `Sistema <Tipo>` | `CotizaciónID`, `SistemaCotizaciónID`, `Folio`, `TipoKey` |
+| Listas `Sistema <Tipo>` | `CotizaciónID`, `SistemaCotizaciónID`, `Folio` |
 | Listas hijas | `CotizaciónID`, `SistemaCotizaciónID`, `TipoKey`, `Folio` |
 
 El índice más importante es `SistemaCotizaciónID` en las hijas: sin él no se distinguen

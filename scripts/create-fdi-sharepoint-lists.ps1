@@ -107,7 +107,6 @@ $R = @(
   (Col "CotizaciónID" "Lookup" $null $ParentList $true $true),
   (Col "SistemaCotizaciónID" "Lookup" $null $BridgeList $true $true),
   (Col "Folio" "Text" $null $null $true $true),
-  (Col "TipoKey" "Text" $null $null $true $true),
   (Col "NombreSistema" "Text" $null $null $false $true)
 )
 $ACAB = @("Pintado", "Galvanizado en frío", "Galvanizado en caliente", "Pregalvanizado")
