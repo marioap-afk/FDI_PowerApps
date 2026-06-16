@@ -183,7 +183,7 @@ $mez = @(
 ) + $carrito + @( (Col "Requiere escaleras" "Boolean") )
 $cfl = @(
   (Col "Frentes buscados" "Text"), (Col "Fondos buscados" "Text"), (Col "Niveles buscados" "Text"),
-  (Col "Tipo rodamiento" "Choice" @("Rodillo 3/4", "Rodajas")),
+  (Col "Tipo rodamiento" "Choice" @("Rodillo 3/4", "Rodajas", "Por diseño")),
   (Col "Método cálculo entrecentros" "Choice" $ENTR), (Col "Entrecentros manual" "Text")
 )
 $mzl = @(

@@ -12,7 +12,8 @@ canvas app.
 > - "Tarima" → **"Producto" (tabla, un renglon por producto)**: tipo abierto,
 >   largo/ancho/alto, peso por pieza, cantidad por nivel (igual que mezzanine).
 > - "Configuracion del rack" conserva frentes/fondos/niveles buscados y entrecentros,
->   pero el **rodamiento tiene solo 2 tipos**: **Rodillo de 3/4** y **Rodajas**.
+>   pero el **rodamiento tiene 3 tipos**: **Rodillo de 3/4**, **Rodajas** y **Por diseño**
+>   (este último depende de la medida/peso de la caja y la operación).
 >   **Sin "rodamiento de alto impacto"** (es de carga pesada; carton flow es ligero).
 > - **Sin montacargas**: area/pasillos usa **ancho de pasillo de pickeo**; los criterios
 >   de niveles quitan "¿altura maxima de montacargas?" (limita la **altura de nave**).
@@ -78,13 +79,14 @@ Columnas requeridas para activar persistencia de detalle (comunes con los demas)
 | `CAR4` Alto del producto | Producto | Text input numerico (columna) | En tabla de productos | `PayloadSistemaJson.Productos[].Alto` | `colCFL_Productos` | Numero recomendado. | Columna de la tabla. |
 | `CAR5` Peso por pieza | Producto | Text input numerico (columna) | En tabla de productos | `PayloadSistemaJson.Productos[].Peso` | `colCFL_Productos` | Numero recomendado. | Columna de la tabla. |
 | `CAR6` Cantidad por nivel | Producto | Text input numerico (columna) | En tabla de productos | `PayloadSistemaJson.Productos[].CantidadPorNivel` | `colCFL_Productos` | Numero recomendado. | Columna de la tabla. |
-| `CONF` Sección: Configuración del rack (carton flow) | Configuración del rack | Grupo de campos | Método = `Diseño` | `PayloadSistemaJson.ConfiguracionRack` | `colCFL_Draft` | Visible solo en diseno. | Frentes/fondos/niveles + rodamiento (2 tipos) + entrecentros. |
+| `CONF` Sección: Configuración del rack (carton flow) | Configuración del rack | Grupo de campos | Método = `Diseño` | `PayloadSistemaJson.ConfiguracionRack` | `colCFL_Draft` | Visible solo en diseno. | Frentes/fondos/niveles + rodamiento (3 tipos) + entrecentros. |
 | `CONF1` Frentes buscados | Configuración del rack | Text input numerico | Método = `Diseño` | `PayloadSistemaJson.FrentesBuscados` | `colCFL_Draft` | Numero recomendado. | Sin columna directa. |
 | `CONF2` Fondos buscados | Configuración del rack | Text input numerico | Método = `Diseño` | `PayloadSistemaJson.FondosBuscados` | `colCFL_Draft` | Numero recomendado. | Sin columna directa. |
 | `CONF3` Niveles buscados | Configuración del rack | Text input numerico | Método = `Diseño` | `PayloadSistemaJson.NivelesBuscados` | `colCFL_Draft` | Numero recomendado. | Sin columna directa. |
-| `CONF4` ¿Qué tipo de rodamiento usar? | Configuración del rack | Dropdown | Método = `Diseño` | `PayloadSistemaJson.TipoRodamiento` | `colCFL_Draft` | Debe elegir una opcion. | Solo 2 opciones (no alto impacto). |
+| `CONF4` ¿Qué tipo de rodamiento usar? | Configuración del rack | Dropdown | Método = `Diseño` | `PayloadSistemaJson.TipoRodamiento` | `colCFL_Draft` | Debe elegir una opcion. | 3 opciones (no alto impacto). |
 | `CONF4A` Rodillo de 3/4 | Configuración del rack | Opcion de dropdown | Selector de rodamiento | `PayloadSistemaJson.TipoRodamiento` | `colCFL_Draft` | Opcion valida. | Opcion fija. |
 | `CONF4B` Rodajas | Configuración del rack | Opcion de dropdown | Selector de rodamiento | `PayloadSistemaJson.TipoRodamiento` | `colCFL_Draft` | Opcion valida. | Opcion fija. |
+| `CONF4C` Por diseño | Configuración del rack | Opcion de dropdown | Selector de rodamiento | `PayloadSistemaJson.TipoRodamiento` | `colCFL_Draft` | Opcion valida. | Lo determina la medida/peso de la caja y la operación. |
 | `CONF5` Método de cálculo de entrecentros | Configuración del rack | Dropdown | Método = `Diseño` | `PayloadSistemaJson.MetodoCalculoEntrecentros` | `colCFL_Draft` | Opciones `Manual` y `Por cálculo`. | Decision como selector. |
 | `CONF5A` Insertar número | Configuración del rack | Text input numerico | `CONF5` = `Manual` | `PayloadSistemaJson.EntrecentrosManual` | `colCFL_Draft` | Requerido si manual. | Sin columna directa. |
 | `CONF5B` Por cálculo (entrecentros) | Configuración del rack | Opcion de dropdown | `CONF5` = `Por cálculo` | `PayloadSistemaJson.MetodoCalculoEntrecentros` | `colCFL_Draft` | Opcion valida. | Sin campo adicional. |

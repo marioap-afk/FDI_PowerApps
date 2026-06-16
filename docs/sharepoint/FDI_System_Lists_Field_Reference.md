@@ -227,7 +227,7 @@ no una tabla; por eso NO usa `Sistema Productos`).*
 | `Frentes buscados` | Número compatible | Configuración del rack. |
 | `Fondos buscados` | Número compatible | Configuración del rack. |
 | `Niveles buscados` | Número compatible | Configuración del rack. |
-| `Tipo rodamiento` | Opción | **Solo `Rodillo 3/4` y `Rodajas`** (sin alto impacto). |
+| `Tipo rodamiento` | Opción | `Rodillo 3/4`, `Rodajas`, `Por diseño` (sin alto impacto; `Por diseño` lo determina la medida/peso de la caja y la operación). |
 | `Método cálculo entrecentros` | Opción | `Manual`, `Por cálculo`. |
 | `Entrecentros manual` | Número compatible | Si método = `Manual`. |
 

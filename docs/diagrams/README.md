@@ -37,7 +37,7 @@ diseno funcional y visual de la aplicacion Power Apps FDI.
 - `diseno-sistema-carton-flow.mmd`: estructura propuesta para la captura de un
   sistema carton flow (como el dinamico pero para pickeo manual, sin montacargas).
   "Tarima" → "Producto" como tabla; conserva frentes/fondos/niveles buscados y
-  entrecentros, pero el rodamiento solo tiene 2 tipos (Rodillo de 3/4 y Rodajas) y
+  entrecentros, pero el rodamiento tiene 3 tipos (Rodillo de 3/4, Rodajas y Por diseño) y
   no lleva alto impacto; area con pasillo de pickeo. Destinado a una tab nueva.
 - `diseno-sistema-mezzanine-limpio.mmd`: estructura propuesta para la captura de un
   sistema mezzanine limpio (estructura de puras columnas, multi-piso, mixto). Pregunta

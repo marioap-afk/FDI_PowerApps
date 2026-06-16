@@ -25,6 +25,7 @@ flowchart TB
     CONF4{"¿Qué tipo de rodamiento usar?"}
     CONF4A["Rodillo de 3/4"]
     CONF4B["Rodajas"]
+    CONF4C["Por diseño"]
     CONF5{"Método de cálculo de entrecentros"}
     CONF5A["Insertar número"]
     CONF5B["Por cálculo (entrecentros)"]
@@ -84,9 +85,9 @@ flowchart TB
  CAR --> CARTBL
  CARTBL --> CAR1 & CAR2 & CAR3 & CAR4 & CAR5 & CAR6
 
- %% Configuración del rack (carton flow): solo 2 rodamientos + entrecentros, sin alto impacto
+ %% Configuración del rack (carton flow): 3 rodamientos + entrecentros, sin alto impacto
  CONF --> CONF1 & CONF2 & CONF3 & CONF4 & CONF5
- CONF4 --> CONF4A & CONF4B
+ CONF4 --> CONF4A & CONF4B & CONF4C
  CONF5 -- Manual --> CONF5A
  CONF5 -- Por cálculo --> CONF5B
 
