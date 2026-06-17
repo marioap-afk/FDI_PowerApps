@@ -16,12 +16,12 @@
 
 ## Estado actual (2026-06-17)
 
-- **Empaquetado BLOQUEADO** por **0i**: el reskin (`0b0d755`, 1.0.0.20) ya tiene **0 Label `Radius*`**,
-  pero el binario sigue siendo **`pac canvas pack` (forward-slash), sin validar por Studio**. Falta
-  **abrirlo en Studio sin PA2108** y exportar (backslash). Último build empaquetable sano garantizado
-  = **`a97e7eb` (1.0.0.17, pre-reskin)** — regenerable con `git checkout a97e7eb` + packer.
-- Builds de reskin **no desplegar** hasta export real de Studio: `2ee102a` (1.0.0.18, PA2108),
-  `6ed8d89` (1.0.0.19, fix incompleto), `0b0d755` (1.0.0.20, Label OK pero pac-pack sin validar).
+- **Reskin ya ABRE en Studio** (1.0.0.20 corre) ✅ — PA2108 resuelto. Nuevos bloqueos del reskin:
+  **0j** (crash al agregar un sistema) y **0k** (48 errores App Checker por `%…RESERVED%`). El usuario
+  prepara **1.0.0.21** con estos fixes (export en su codespace `solutions/last/FDI_1_0_0_21.zip`).
+- **0h (Sistema Otro)**: **arreglado por el usuario** ✅ — confirmar data source re-bindeado en el export.
+- Último build empaquetable sano garantizado = **`a97e7eb` (1.0.0.17, pre-reskin)** — regenerable con
+  `git checkout a97e7eb` + packer. Builds de reskin previos (`2ee102a`/`6ed8d89`/`0b0d755`) **no desplegar**.
 - `solutions/` **purgado**: se borraron todos los ZIP intermedios (regenerables desde su commit).
   Solo queda el **PCF** `FDI_PCFHtmlEditor_unmanaged_1.5.2`. `[Content_Types].xml` de referencia
   ahora vive en `.codex/skills/fdi-app-packaging/Content_Types.xml` (ya no depende de ZIPs sueltos).
@@ -32,6 +32,8 @@
 
 | # | Pendiente | Prioridad | Detalle | Estado |
 | --- | --- | --- | --- | --- |
+| 0j | **BLOQUEANTE — crash al agregar un sistema** (reskin). En `scrFDI`, clic en "+" de una tarjeta agrega el sistema (la pestaña aparece) pero el **área de contenido queda en blanco/rota**. Camino: card `OnSelect` (≈L4366) `UpdateContext({locTabSel: ThisItem}); Switch(TipoKey, Navigate(scrFDI_XXX, {locTabSel: ThisItem}))` → destino lee `locTabSel.SistemaId` en `OnVisible`. Sospecha: contenedores `GroupContainer@1.5.0 Variant:AutoLayout` con `Height: =Parent.Height` anidados en padre AutoLayout → colapsan a 0 (`cntFDISistemaSEL` y equivalentes / panel de contenido de scrFDI). **No** es el Label de los RESERVED (ese está `Visible:=false`). Reproducir con Monitor para el control/fórmula exacto. | 🔴 **Bloqueante** | screenshots del usuario | ❌ abierto |
+| 0k | **Enums malformados `%Enum.RESERVED%.Valor` → 48 errores App Checker**. En 1.0.0.20 son **6 tokens** en `scrFDI`, todos en el Label **`lblErroresFDIResumen`** (`Visible:=false`, por eso no crashea). Cada línea dispara ~8 errores (`ErrBadToken` por `%`, `ErrInvalidDot` por `.RESERVED`, `ErrOperatorExpected`) → ~48 en 1.0.0.21. **Fix:** reescribir `%<Enum>.RESERVED%.<Valor>` → `<Enum>.<Valor>` (p. ej. `=%Align.RESERVED%.Left` → `=Align.Left`; `Role: =%TextRole.RESERVED%.Default` → `=TextRole.Default`). **Barrer TODOS** los `%*.RESERVED%` de `Src/`. **NO** tocar los `RESERVED` de `References/Templates.json`/`Themes.json` (internos legítimos). | 🟠 Media | App Checker (48); 6 en Src 1.0.0.20 | ❌ abierto |
 | 0i | **BLOQUEANTE — el reskin debe abrir en Studio sin `PA2108`**. El reskin aplicó `Radius*` por esquina a `Label@2.5.1` (no las soporta). **Progreso:** `6ed8d89` (1.0.0.19) quitó solo 8/192 (Studio reporta por lotes); el **sweep `0b0d755` (1.0.0.20) ya dejó 0 Label `Radius*`** ✅. **Falta lo decisivo:** el binario **sigue siendo `pac canvas pack` (rutas con `/`), sin validar por Studio** → no hay garantía de que abra. `GroupContainer`(494)/`Button`(276) son válidos; **`Image@2.2.3`(20) sin verificar** (si no soporta `Radius*`, será el próximo lote PA2108). **Acción:** abrir 1.0.0.20 en Power Apps Studio; si abre **sin PA2108**, Guardar/Publicar y exportar (binario con `\`) → entonces se empaqueta. Si lanza PA2108 (p. ej. en Image), barrer también. | 🔴 **Bloqueante** | PA2108 (sesión 9af22165…) | ⏳ Label OK (0/192); falta export real de Studio (1.0.0.20 es pac-pack) |
 | 0h | **GUID viejo de la lista "Sistema Otro" → 404 en app + flujo** (misma clase que 0b). La lista `Sistema Otro` se recreó (GUID nuevo); el viejo `80069fdc-2de1-4c95-a88b-02770ca25959` quedó fijado → `GetTable failed 404 "List not found"`. Vive en **4 lugares funcionales**: (1) flujo `Workflows/Creacin_FDI…json`, acción **`Get_sistemas_ot`**; (2) `CanvasApps/mapc_fdi_412ec.meta.xml` (`"Sistema Otro":{"tableName":"80069fdc…"}`); (3) `Other/Customizations.xml` (idem); (4) **dentro del `.msapp`**: `References/DataSources.json` + `Properties.json`. El usuario ya re-apuntó la acción del flujo **por nombre en el portal**, pero **no sobrevive al re-import** hasta actualizar la fuente. **Fix:** en **Studio** quitar y re-agregar el data source `Sistema Otro` (re-bindea al GUID vivo dentro del `.msapp`) **y** re-exportar el flujo (actualiza el JSON). El **GUID nuevo** se saca de la lista viva en SharePoint (el export de metadata del repo es viejo, aún trae el `80069fdc`). | 🔴 Alta | [FDI_DataSource_Bug_Report.md](FDI_DataSource_Bug_Report.md) (misma clase) | ⏳ arreglado en portal; falta fuente (app + flujo) |
 | 9 | **Controles para adjuntar archivos en los sistemas (no existen aún)**: añadir captura de archivos por sistema/pieza — p. ej. **layout/imagen**, **diseño del cliente**, etc. Definir: destino de almacenamiento (biblioteca SharePoint vs adjuntos de lista), alcance (por sistema o por pieza), tipos permitidos, y persistencia en el payload/flujo + plantilla. | 🟠 Media | feature nuevo — dominio de Codex | ❌ abierto |
