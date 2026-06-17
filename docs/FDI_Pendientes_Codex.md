@@ -19,7 +19,8 @@
 - **Reskin ya ABRE en Studio** (1.0.0.20 corre) ✅ — PA2108 resuelto. Nuevos bloqueos del reskin:
   **0j** (crash al agregar un sistema) y **0k** (48 errores App Checker por `%…RESERVED%`). El usuario
   prepara **1.0.0.21** con estos fixes (export en su codespace `solutions/last/FDI_1_0_0_21.zip`).
-- **0h (Sistema Otro)**: **arreglado por el usuario** ✅ — confirmar data source re-bindeado en el export.
+- **0h (Sistema Otro)**: **flujo arreglado** ✅, pero la **app NO** — el `.msapp` 1.0.0.21 aún trae el GUID muerto `80069fdc…` en `DataSources.json`/`Properties.json`, usado en 3 fórmulas vivas de `scrFDI` (LookUp L578/L1545, Filter+Remove L856) → **OT 404 en la app**. Falta re-bindear el data source en Studio.
+- **0j/0k (1.0.0.21, `7b0cbf5`)**: RESERVED=0 ✅ y Radius=0 ✅ verificados; **empaquetado** `FDI_unmanaged_2026-06-17_7b0cbf5.zip`. Sigue pac-pack → falta que el usuario **pruebe el crash de agregar sistema** y, si OK, exporte el canónico desde Studio.
 - Último build empaquetable sano garantizado = **`a97e7eb` (1.0.0.17, pre-reskin)** — regenerable con
   `git checkout a97e7eb` + packer. Builds de reskin previos (`2ee102a`/`6ed8d89`/`0b0d755`) **no desplegar**.
 - `solutions/` **purgado**: se borraron todos los ZIP intermedios (regenerables desde su commit).
