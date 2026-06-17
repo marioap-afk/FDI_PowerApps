@@ -1,0 +1,85 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+#
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+#
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+ComponentDefinitions:
+  cmpCardTgl:
+    DefinitionType: CanvasComponent
+    AccessAppScope: true
+    CustomProperties:
+      Default:
+        PropertyKind: Input
+        DisplayName: Default
+        Description: Propiedad por default del toggle
+        DataType: Boolean
+        Default: =
+      OnCheck:
+        PropertyKind: Event
+        DisplayName: OnCheck
+        Description: Propiedad personalizada
+        ReturnType: None
+        Default: =
+      OnUncheck:
+        PropertyKind: Event
+        DisplayName: OnUncheck
+        Description: Propiedad personalizada
+        ReturnType: None
+        Default: =
+      Título:
+        PropertyKind: Input
+        DisplayName: Título
+        Description: Propiedad personalizada
+        DataType: Text
+        Default: ="Título"
+      Value:
+        PropertyKind: Output
+        DisplayName: Value
+        Description: Propiedad a actualizar en la colección
+        DataType: Boolean
+    Properties:
+      Height: =varTheme.FieldHeight
+      Value: =tglCardTgl.Checked
+    Children:
+      - cntCardTgl:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            DropShadow: =DropShadow.None
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+            PaddingBottom: =4
+            PaddingLeft: =4
+            PaddingRight: =4
+            PaddingTop: =4
+            Width: =Parent.Width
+          Children:
+            - lblCardTgl:
+                Control: ModernText@1.0.0
+                Properties:
+                  FontWeight: =varTheme.LabelEspesor
+                  Height: =Self.Size*1.5
+                  LayoutMinHeight: =16
+                  LayoutMinWidth: =16
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =varTheme.Label
+                  Text: =cmpCardTgl.Título
+            - tglCardTgl:
+                Control: Toggle@1.1.5
+                Properties:
+                  AccessibleLabel: ="tgl Card Tgl"
+                  Checked: =cmpCardTgl.Default
+                  FontSize: =varTheme.Body
+                  Label: =If(Self.Checked = true, "Sí","No")
+                  LayoutMinHeight: =16
+                  LayoutMinWidth: =16
+                  OnCheck: =cmpCardTgl.OnCheck()
+                  OnUncheck: =cmpCardTgl.OnUncheck()

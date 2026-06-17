@@ -1,0 +1,2900 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+#
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+#
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  scrFDI_MEZ:
+    Properties:
+      Fill: =ColorValue(varTheme.FondoHex)
+      LoadingSpinnerColor: =RGBA(0, 120, 212, 1)
+      OnVisible: |-
+        =Set(varVista, "Sistemas");
+        If(
+            IsBlank(locTabSel) && CountRows(Filter(colTabs, TipoKey = "MEZ")) > 0,
+            UpdateContext({locTabSel: First(Filter(colTabs, TipoKey = "MEZ"))})
+        );
+        Set(varDraftActual, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId))
+    Children:
+      - cntFDISistemaMEZ:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =ColorValue(varTheme.FondoHex)
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =12
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingBottom: =If(scrFDI_MEZ.Size = ScreenSize.Small, 8, 16)
+            PaddingLeft: =If(scrFDI_MEZ.Size = ScreenSize.Small, 8, 16)
+            PaddingRight: =If(scrFDI_MEZ.Size = ScreenSize.Small, 8, 16)
+            PaddingTop: =If(scrFDI_MEZ.Size = ScreenSize.Small, 8, 16)
+            Width: =Parent.Width
+          Children:
+            - cntFDISistemaBarMEZ:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  BorderColor: =ColorValue(varTheme.BordeSuaveHex)
+                  BorderThickness: =1
+                  DropShadow: =varTheme.Sombra
+                  Fill: =ColorValue(varTheme.SuperficieHex)
+                  RadiusBottomLeft: =varTheme.CardRadius
+                  RadiusBottomRight: =varTheme.CardRadius
+                  RadiusTopLeft: =varTheme.CardRadius
+                  RadiusTopRight: =varTheme.CardRadius
+                  FillPortions: =0
+                  Height: =If(scrFDI_MEZ.Size = ScreenSize.Small, 52, 60)
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =8
+                  LayoutMinHeight: =44
+                  LayoutMinWidth: =0
+                  PaddingBottom: =6
+                  PaddingLeft: =If(scrFDI_MEZ.Size = ScreenSize.Small, 8, 12)
+                  PaddingRight: =If(scrFDI_MEZ.Size = ScreenSize.Small, 8, 12)
+                  PaddingTop: =6
+                Children:
+                  - icoFDISistemaVolverMEZ:
+                      Control: Classic/Icon@2.5.0
+                      Properties:
+                        AccessibleLabel: ="Volver"
+                        AlignInContainer: =AlignInContainer.Center
+                        BorderColor: =RGBA(0, 0, 0, 0)
+                        Color: =ColorValue(varTheme.PrimarioHex)
+                        DisabledBorderColor: =RGBA(245, 245, 245, 1)
+                        DisabledColor: =RGBA(225, 223, 221, 1)
+                        DisabledFill: =RGBA(0, 0, 0, 0)
+                        Height: =If(scrFDI_MEZ.Size = ScreenSize.Small, 36, 40)
+                        HoverBorderColor: =RGBA(0, 0, 0, 0)
+                        HoverColor: =RGBA(16, 110, 190, 1)
+                        HoverFill: =RGBA(0, 0, 0, 0)
+                        Icon: =Icon.BackArrow
+                        OnSelect: |-
+                          =Set(varFDIRetornarSistemas, true);
+                          Navigate(scrFDI, ScreenTransition.None, {locTabSel: locTabSel})
+                        PressedBorderColor: =RGBA(0, 0, 0, 0)
+                        PressedColor: =RGBA(16, 110, 190, 1)
+                        PressedFill: =RGBA(0, 0, 0, 0)
+                        TabIndex: =0
+                        Tooltip: ="Volver"
+                        Width: =If(scrFDI_MEZ.Size = ScreenSize.Small, 36, 40)
+                  - lblFDISistemaTituloMEZ:
+                      Control: Label@2.5.1
+                      Properties:
+                        BorderColor: =RGBA(0, 0, 0, 0)
+                        Color: =ColorValue(varTheme.TextoHex)
+                        DisabledColor: =RGBA(161, 159, 157, 1)
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Semibold
+                        Height: =Parent.Height - 12
+                        LayoutMinWidth: =0
+                        Size: =If(scrFDI_MEZ.Size = ScreenSize.Small, varTheme.Label, varTheme.H3)
+                        Text: =Coalesce(locTabSel.NombreSistema, "Mezzanine")
+                        Width: =Max(0, Parent.Width - icoFDISistemaVolverMEZ.Width - 24)
+                        Wrap: =false
+            - cntMEZ:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  LayoutOverflowY: =LayoutOverflow.Scroll
+                  Visible: =CountRows(colTabs) > 0 && Coalesce(locTabSel.TipoKey, "") = "MEZ"
+                  Width: =Parent.Width
+                  X: =40
+                  Y: =40
+                Children:
+                  - cmpCarddrpTipoCotización_MEZ:
+                      Control: CanvasComponent
+                      ComponentName: cmpCarddrp
+                      Properties:
+                        DefaultSelectedItem: |-
+                          =With(
+                              {_valor: varDraftActual.MetodoCaptura},
+                              If(
+                                  IsBlank(_valor),
+                                  Blank(),
+                                  LookUp(cmpCarddrpTipoCotización_MEZ.Items, Value = _valor)
+                              )
+                          )
+                        Height: =60
+                        Items: |-
+                          =Table(
+                              {Value: "Diseño"},
+                              {Value: "Listado de piezas"},
+                              {Value: "Planos/diseño de cliente"},
+                              {Value: "Cotización o pedido anterior"}
+                          )
+                        OnChange: |-
+                          =Patch(
+                              colMEZ_Draft,
+                              LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId),
+                              {
+                                  MetodoCaptura: Self.Selected.Value,
+                                  TipoDiseño: Self.Selected.Value
+                              }
+                          )
+                        Título: ="Método de captura"
+                  - cntListadoDePiezasMEZ:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        BorderColor: =ColorValue(varTheme.BordeSuaveHex)
+                        BorderThickness: =1
+                        DropShadow: =varTheme.Sombra
+                        Fill: =ColorValue(varTheme.SuperficieHex)
+                        RadiusBottomLeft: =varTheme.CardRadius
+                        RadiusBottomRight: =varTheme.CardRadius
+                        RadiusTopLeft: =varTheme.CardRadius
+                        RadiusTopRight: =varTheme.CardRadius
+                        FillPortions: =0
+                        Height: =cntListadoDePiezasBotonesMEZ.Height+cntListadoDePiezasHeaderMEZ.Height+galListadoDePiezasMEZ.Height+32
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =10
+                        LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                        PaddingBottom: =16
+                        PaddingLeft: =16
+                        PaddingRight: =16
+                        PaddingTop: =16
+                        Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Listado de piezas"
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =40
+                      Children:
+                        - cntListadoDePiezasBotonesMEZ:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              FillPortions: =0
+                              Height: =42
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =16
+                              PaddingLeft: =2
+                              PaddingRight: =2
+                            Children:
+                              - lblListadoDePiezasMEZ:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    BorderColor: =RGBA(0, 0, 0, 0)
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =2
+                                    Color: =ColorValue(varTheme.TextoHex)
+                                    DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                                    DisabledColor: =RGBA(161, 159, 157, 1)
+                                    FocusedBorderThickness: =4
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =32
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =16
+                                    Size: =16
+                                    TabIndex: =0
+                                    Text: ="Listado de piezas"
+                                    Width: =Parent.Width - btnAgregarPiezaMEZ.Width - 24
+                              - btnAgregarPiezaMEZ:
+                                  Control: Button@0.0.45
+                                  Properties:
+                                    AccessibleLabel: ="btn Agregar Pieza MEZ"
+                                    Appearance: ='ButtonCanvas.Appearance'.Secondary
+                                    Height: =36
+                                    Icon: ="Add"
+                                    Layout: ='ButtonCanvas.Layout'.IconBefore
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =16
+                                    OnSelect: |-
+                                      =Collect(
+                                          colListadoPiezas,
+                                          {
+                                              RowId: GUID(),
+                                              SistemaId: locTabSel.SistemaId,
+                                              Pieza: "",
+                                              Comentarios: ""
+                                          }
+                                      );
+                                    Text: ="Agregar"
+                                    Width: =120
+                        - cntListadoDePiezasHeaderMEZ:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              BorderColor: =ColorValue(varTheme.BordeHex)
+                              BorderThickness: =1
+                              DropShadow: =DropShadow.None
+                              Fill: =ColorValue(varTheme.HeaderTablaHex)
+                              FillPortions: =0
+                              Height: =varTheme.HeaderHeight
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutGap: =16
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =16
+                              PaddingLeft: =16
+                              PaddingRight: =16
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                            Children:
+                              - lblPiezaHeaderMEZ:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    BorderColor: =RGBA(0, 0, 0, 0)
+                                    BorderStyle: =BorderStyle.None
+                                    Color: =ColorValue(varTheme.TextoHex)
+                                    DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                                    DisabledColor: =RGBA(161, 159, 157, 1)
+                                    FocusedBorderThickness: =4
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =Parent.Height
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =16
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =11
+                                    TabIndex: =0
+                                    Text: ="Pieza"
+                                    Width: =Max(260, Min(420, Parent.Width * 0.32))
+                              - lblComentarioHeaderMEZ:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    BorderColor: =RGBA(0, 0, 0, 0)
+                                    BorderStyle: =BorderStyle.None
+                                    Color: =ColorValue(varTheme.TextoHex)
+                                    DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                                    DisabledColor: =RGBA(161, 159, 157, 1)
+                                    FocusedBorderThickness: =4
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =Parent.Height
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =16
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =11
+                                    TabIndex: =0
+                                    Text: ="Comentario"
+                                    Width: =Max(360, Parent.Width - lblPiezaHeaderMEZ.Width - lblAccionHeaderMEZ.Width - 64)
+                              - lblAccionHeaderMEZ:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Center
+                                    BorderColor: =RGBA(0, 0, 0, 0)
+                                    BorderStyle: =BorderStyle.None
+                                    Color: =ColorValue(varTheme.TextoHex)
+                                    DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                                    DisabledColor: =RGBA(161, 159, 157, 1)
+                                    FocusedBorderThickness: =4
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =Parent.Height
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =16
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =11
+                                    TabIndex: =0
+                                    Text: ="Acción"
+                                    Width: =64
+                        - galListadoDePiezasMEZ:
+                            Control: Gallery@2.15.0
+                            Variant: BrowseLayout_Vertical_TwoTextVariant_ver5.0
+                            Properties:
+                              AccessibleLabel: ="gal Listado De Piezas MEZ"
+                              BorderColor: =ColorValue(varTheme.BordeSuaveHex)
+                              BorderThickness: =1
+                              FillPortions: =0
+                              Height: =If(CountRows(Self.AllItems)=0,0,Min(galListadoDePiezasMEZ.TemplateHeight*CountRows(Self.AllItems),420))
+                              Items: |-
+                                =Filter(
+                                    colListadoPiezas,
+                                    SistemaId = locTabSel.SistemaId
+                                )
+                              LayoutMinHeight: =16
+                              Selectable: =false
+                              TabIndex: =0
+                              TemplateSize: =varTheme.RowHeight
+                            Children:
+                              - BorrarPiezaButton_MEZ:
+                                  Control: Button@0.0.45
+                                  Properties:
+                                    AccessibleLabel: ="Borrar Pieza Button"
+                                    Align: =Align.Center
+                                    Appearance: ='ButtonCanvas.Appearance'.Transparent
+                                    Height: =36
+                                    Icon: ="Delete"
+                                    OnSelect: =Remove(colListadoPiezas, ThisItem)
+                                    Text: =""
+                                    Width: =44
+                                    X: =Parent.TemplateWidth - Self.Width - 16
+                                    Y: =12
+                              - ComentarioInput_MEZ:
+                                  Control: Classic/TextInput@2.3.2
+                                  Properties:
+                                    AccessibleLabel: ="Comentario Input"
+                                    BorderColor: =ColorValue(varTheme.BordeHex)
+                                    BorderThickness: =1
+                                    Color: =ColorValue(varTheme.TextoHex)
+                                    Default: =ThisItem.Pieza
+                                    DelayOutput: =true
+                                    DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                                    DisabledColor: =RGBA(161, 159, 157, 1)
+                                    DisabledFill: =RGBA(242, 242, 241, 0)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =36
+                                    HoverBorderColor: =ColorValue(varTheme.PrimarioHex)
+                                    HoverColor: =ColorValue(varTheme.TextoHex)
+                                    HoverFill: =ColorValue(varTheme.SuperficieHex)
+                                    OnChange: |-
+                                      =Patch(
+                                          colListadoPiezas,
+                                          ThisItem,
+                                          {
+                                              Pieza: Self.Text
+                                          }
+                                      )
+                                    PressedBorderColor: =ColorValue(varTheme.PrimarioHex)
+                                    PressedColor: =ColorValue(varTheme.TextoHex)
+                                    PressedFill: =ColorValue(varTheme.SuperficieHex)
+                                    RadiusBottomLeft: =varTheme.ControlRadius
+                                    RadiusBottomRight: =varTheme.ControlRadius
+                                    RadiusTopLeft: =varTheme.ControlRadius
+                                    RadiusTopRight: =varTheme.ControlRadius
+                                    Width: =Max(260, Min(420, Parent.TemplateWidth * 0.32))
+                                    X: =16
+                                    Y: =12
+                              - PiezaInput_MEZ:
+                                  Control: Classic/TextInput@2.3.2
+                                  Properties:
+                                    AccessibleLabel: ="Pieza Input"
+                                    BorderColor: =ColorValue(varTheme.BordeHex)
+                                    BorderThickness: =1
+                                    Color: =ColorValue(varTheme.TextoHex)
+                                    Default: =ThisItem.Comentarios
+                                    DelayOutput: =true
+                                    DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                                    DisabledColor: =RGBA(161, 159, 157, 1)
+                                    DisabledFill: =RGBA(242, 242, 241, 0)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =36
+                                    HoverBorderColor: =ColorValue(varTheme.PrimarioHex)
+                                    HoverColor: =ColorValue(varTheme.TextoHex)
+                                    HoverFill: =ColorValue(varTheme.SuperficieHex)
+                                    Mode: =TextMode.MultiLine
+                                    OnChange: |-
+                                      =Patch(
+                                          colListadoPiezas,
+                                          ThisItem,
+                                          {
+                                              Comentarios: Self.Text
+                                          }
+                                      )
+                                    PressedBorderColor: =ColorValue(varTheme.PrimarioHex)
+                                    PressedColor: =ColorValue(varTheme.TextoHex)
+                                    PressedFill: =ColorValue(varTheme.SuperficieHex)
+                                    RadiusBottomLeft: =varTheme.ControlRadius
+                                    RadiusBottomRight: =varTheme.ControlRadius
+                                    RadiusTopLeft: =varTheme.ControlRadius
+                                    RadiusTopRight: =varTheme.ControlRadius
+                                    Width: =Max(360, Parent.TemplateWidth - ComentarioInput_MEZ.Width - BorrarPiezaButton_MEZ.Width - 64)
+                                    X: =ComentarioInput_MEZ.X + ComentarioInput_MEZ.Width + 16
+                                    Y: =12
+                              - ComentarioLabel_MEZ:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    BorderColor: =RGBA(0, 0, 0, 1)
+                                    Color: =ColorValue(varTheme.TextoSuaveHex)
+                                    DisabledColor: =RGBA(161, 159, 157, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =18
+                                    OnSelect: =Select(Parent)
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =10
+                                    Text: ="Comentario"
+                                    Visible: =false
+                                    Width: =PiezaInput_MEZ.Width
+                                    X: =PiezaInput_MEZ.X
+                                    Y: =8
+                              - PiezaLabel_MEZ:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    BorderColor: =RGBA(0, 0, 0, 1)
+                                    Color: =ColorValue(varTheme.TextoSuaveHex)
+                                    DisabledColor: =RGBA(161, 159, 157, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =18
+                                    OnSelect: =Select(Parent)
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =10
+                                    Text: ="Pieza"
+                                    Visible: =false
+                                    Width: =ComentarioInput_MEZ.Width
+                                    X: =ComentarioInput_MEZ.X
+                                    Y: =8
+                              - Separator2_MEZ:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    BorderColor: =RGBA(0, 0, 0, 0)
+                                    Fill: =RGBA(237, 235, 233, 1)
+                                    Height: =1
+                                    OnSelect: =Select(Parent)
+                                    Width: =Parent.TemplateWidth
+                                    Y: =Parent.TemplateHeight - Self.Height
+                  - cntDiseñoMEZ:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: |-
+                          =If(
+                              cmpCarddrpTipoCotización_MEZ.Selected.Value = "Planos/diseño de cliente",
+                              cntSectionCargaProductoMEZ.Height +
+                              cntProductosMEZ.Height +
+                              32,
+                              Max(
+                                  760,
+                                  cntSectionCargaProductoMEZ.Height +
+                                  cntProductosMEZ.Height +
+                                  cntSectionConfigEntrepisoMEZ.Height +
+                                  cmpTxtAlturaRecomendadaEntrepisoMEZ.Height +
+                                  cmpTxtCantidadEntrepisosMEZ.Height +
+                                  cmpCardTglElevadorMEZ.Height +
+                                  If(cmpTxtElevadorSpecMEZ.Visible, cmpTxtElevadorSpecMEZ.Height, 0) +
+                                  cmpCarddrpTipoPisoMEZ.Height +
+                                  cmpCardTglCarritoMEZ.Height +
+                                  If(cmpTxtMedidasCarritoMEZ.Visible, cmpTxtMedidasCarritoMEZ.Height, 0) +
+                                  If(cmpTxtNumeroRuedasMEZ.Visible, cmpTxtNumeroRuedasMEZ.Height, 0) +
+                                  If(cmpTxtTipoRuedaMEZ.Visible, cmpTxtTipoRuedaMEZ.Height, 0) +
+                                  If(cmpTxtMedidaRuedaMEZ.Visible, cmpTxtMedidaRuedaMEZ.Height, 0) +
+                                  If(cmpTxtPesoCarritoMEZ.Visible, cmpTxtPesoCarritoMEZ.Height, 0) +
+                                  cmpCardTglEscalerasMEZ.Height +
+                                  cntSectionAreaPasillosMEZ.Height +
+                                  cmpTxtAnchoDispMEZ.Height +
+                                  cmpTxtLargoDispMEZ.Height +
+                                  cmpTxtAnchoPasilloPickeoMEZ.Height +
+                                  cntSectionCriteriosNivelesMEZ.Height +
+                                  cmpCardTglAlturaNaveMEZ.Height +
+                                  If(cmpTxtAlturaMaxNaveMEZ.Visible, cmpTxtAlturaMaxNaveMEZ.Height, 0) +
+                                  If(cmpTxtAlturaMinNaveMEZ.Visible, cmpTxtAlturaMinNaveMEZ.Height, 0) +
+                                  cmpCardTglAdjuntarImagenLayoutMEZ.Height +
+                                  If(lblAdjuntarArchivosMEZ.Visible, lblAdjuntarArchivosMEZ.Height, 0) +
+                                  cmpCardTglDefClienteMEZ.Height +
+                                  If(cmpTxtComentariosConfigClienteMEZ.Visible, cmpTxtComentariosConfigClienteMEZ.Height, 0) +
+                                  cntSectionSeguridadMEZ.Height +
+                                  cmpCardTglElementosSeguridadMEZ.Height +
+                                  If(cntElementosSeguridadMEZ.Visible, cntElementosSeguridadMEZ.Height, 0) +
+                                  cntSectionPiezasEspecialesMEZ.Height +
+                                  cmpCardTglPiezasEspecialesMEZ.Height +
+                                  If(cntPiezasEspecialesMEZ.Visible, cntPiezasEspecialesMEZ.Height, 0) +
+                                  32
+                              )
+                          )
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutMinHeight: =16
+                        LayoutMinWidth: =16
+                        Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño" || cmpCarddrpTipoCotización_MEZ.Selected.Value = "Planos/diseño de cliente"
+                      Children:
+                        - cntSectionCargaProductoMEZ:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              FillPortions: =0
+                              Height: =If(scrFDI_MEZ.Size = ScreenSize.Small, 56, 50)
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =8
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =0
+                              PaddingLeft: =5
+                              PaddingRight: =5
+                              PaddingTop: =12
+                              Width: =Parent.Width
+                            Children:
+                              - shpDivCargaProductoMEZ:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    BorderColor: =RGBA(0, 0, 0, 0)
+                                    Fill: =RGBA(210, 208, 206, 1)
+                                    Height: =1
+                                    LayoutMinHeight: =1
+                                    LayoutMinWidth: =0
+                                    Width: =Parent.Width
+                              - lblCargaProductoTituloMEZ:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 0, 0, 0)
+                                    BorderStyle: =BorderStyle.None
+                                    Color: =ColorValue(varTheme.TextoHex)
+                                    DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                                    DisabledColor: =RGBA(161, 159, 157, 1)
+                                    FocusedBorderThickness: =4
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =Max(22, Self.Size * 1.6)
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =0
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =varTheme.Body
+                                    TabIndex: =0
+                                    Text: ="Producto"
+                                    Width: =Parent.Width
+                        - cntProductosMEZ:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              BorderColor: =ColorValue(varTheme.BordeSuaveHex)
+                              BorderThickness: =1
+                              DropShadow: =varTheme.Sombra
+                              Fill: =ColorValue(varTheme.SuperficieHex)
+                              RadiusBottomLeft: =varTheme.CardRadius
+                              RadiusBottomRight: =varTheme.CardRadius
+                              RadiusTopLeft: =varTheme.CardRadius
+                              RadiusTopRight: =varTheme.CardRadius
+                              FillPortions: =0
+                              Height: =cntProductosBtnMEZ.Height + If(cntProductosHeaderMEZ.Visible, cntProductosHeaderMEZ.Height, 0) + galProductosMEZ.Height + 32
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =10
+                              LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =0
+                              LayoutOverflowX: =LayoutOverflow.Scroll
+                              PaddingBottom: =16
+                              PaddingLeft: =16
+                              PaddingRight: =16
+                              PaddingTop: =16
+                              Width: =Parent.Width - 32
+                            Children:
+                              - cntProductosBtnMEZ:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    DropShadow: =DropShadow.None
+                                    FillPortions: =0
+                                    Height: =42
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =0
+                                    PaddingLeft: =2
+                                    PaddingRight: =2
+                                  Children:
+                                    - lblProductosMEZ:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          AutoHeight: =true
+                                          BorderColor: =RGBA(0, 0, 0, 0)
+                                          BorderStyle: =BorderStyle.None
+                                          Color: =ColorValue(varTheme.TextoHex)
+                                          DisabledColor: =RGBA(161, 159, 157, 1)
+                                          FocusedBorderThickness: =4
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          LayoutMinHeight: =16
+                                          LayoutMinWidth: =0
+                                          Size: =varTheme.Body
+                                          TabIndex: =0
+                                          Text: ="Productos"
+                                          Width: =Parent.Width - btnAgregarProductoMEZ.Width - 24
+                                    - btnAgregarProductoMEZ:
+                                        Control: Button@0.0.45
+                                        Properties:
+                                          AccessibleLabel: ="Agregar producto Mezzanine"
+                                          Appearance: ='ButtonCanvas.Appearance'.Secondary
+                                          Height: =36
+                                          Icon: ="Add"
+                                          Layout: ='ButtonCanvas.Layout'.IconBefore
+                                          LayoutMinHeight: =16
+                                          LayoutMinWidth: =16
+                                          OnSelect: |-
+                                            =Collect(
+                                                colMEZ_Productos,
+                                                {
+                                                    RowId: GUID(),
+                                                    SistemaId: locTabSel.SistemaId,
+                                                    TipoProducto: "",
+                                                    LargoProducto: "",
+                                                    AnchoProducto: "",
+                                                    AltoProducto: "",
+                                                    PesoProducto: "",
+                                                    CantidadPorNivel: ""
+                                                }
+                                            );
+                                          Text: ="Agregar"
+                                          Width: =120
+                              - cntProductosHeaderMEZ:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderColor: =ColorValue(varTheme.BordeHex)
+                                    BorderThickness: =1
+                                    DropShadow: =DropShadow.None
+                                    Fill: =ColorValue(varTheme.HeaderTablaHex)
+                                    FillPortions: =0
+                                    Height: =varTheme.HeaderHeight
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =10
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =0
+                                    PaddingLeft: =16
+                                    PaddingRight: =16
+                                    Visible: =scrFDI_MEZ.Size <> ScreenSize.Small
+                                  Children:
+                                    - lblTipoProductoHeaderMEZ:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =Parent.Height
+                                          Size: =11
+                                          Text: ="Tipo"
+                                          Width: =Max(160, Min(260, Parent.Width * 0.2))
+                                    - lblLargoProductoHeaderMEZ:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =Parent.Height
+                                          Size: =11
+                                          Text: ="Largo"
+                                          Width: =105
+                                    - lblAnchoProductoHeaderMEZ:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =Parent.Height
+                                          Size: =11
+                                          Text: ="Ancho"
+                                          Width: =105
+                                    - lblAltoProductoHeaderMEZ:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =Parent.Height
+                                          Size: =11
+                                          Text: ="Alto"
+                                          Width: =105
+                                    - lblPesoProductoHeaderMEZ:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =Parent.Height
+                                          Size: =11
+                                          Text: ="Peso"
+                                          Width: =105
+                                    - lblCantidadProductoHeaderMEZ:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =Parent.Height
+                                          Size: =11
+                                          Text: ="Cant. por nivel"
+                                          Width: =130
+                                    - lblAccionProductoHeaderMEZ:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Align: =Align.Center
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =Parent.Height
+                                          Size: =11
+                                          Text: ="Acción"
+                                          Width: =64
+                              - galProductosMEZ:
+                                  Control: Gallery@2.15.0
+                                  Variant: BrowseLayout_Vertical_TwoTextVariant_ver5.0
+                                  Properties:
+                                    AccessibleLabel: ="gal Productos MEZ"
+                                    BorderColor: =ColorValue(varTheme.BordeSuaveHex)
+                                    BorderThickness: =1
+                                    FillPortions: =0
+                                    Height: =If(CountRows(Self.AllItems)=0,0,Min(galProductosMEZ.TemplateHeight*CountRows(Self.AllItems),420))
+                                    Items: =Filter(colMEZ_Productos, SistemaId = locTabSel.SistemaId)
+                                    LayoutMinHeight: =16
+                                    Selectable: =false
+                                    TabIndex: =0
+                                    TemplateSize: =If(scrFDI_MEZ.Size = ScreenSize.Small, 324, 60)
+                                  Children:
+                                    - sepProductoMEZ:
+                                        Control: Rectangle@2.3.0
+                                        Properties:
+                                          BorderColor: =RGBA(0, 0, 0, 0)
+                                          Fill: =RGBA(237, 235, 233, 1)
+                                          Height: =1
+                                          OnSelect: =Select(Parent)
+                                          Width: =Parent.TemplateWidth
+                                          Y: =Parent.TemplateHeight - Self.Height
+                                    - btnBorrarProductoMEZ:
+                                        Control: Button@0.0.45
+                                        Properties:
+                                          AccessibleLabel: ="Borrar producto Mezzanine"
+                                          Align: =Align.Center
+                                          Appearance: ='ButtonCanvas.Appearance'.Transparent
+                                          Height: =36
+                                          Icon: ="Delete"
+                                          OnSelect: =Remove(colMEZ_Productos, ThisItem)
+                                          Text: =""
+                                          Width: =44
+                                          X: =Parent.TemplateWidth - Self.Width - 16
+                                          Y: =If(scrFDI_MEZ.Size = ScreenSize.Small, Parent.TemplateHeight - Self.Height - 12, 12)
+                                    - lblTipoProductoRowMEZ:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =18
+                                          Size: =10
+                                          Text: ="Tipo"
+                                          Visible: =scrFDI_MEZ.Size = ScreenSize.Small
+                                          Width: =inpTipoProductoMEZ.Width
+                                          X: =inpTipoProductoMEZ.X
+                                    - inpTipoProductoMEZ:
+                                        Control: Classic/TextInput@2.3.2
+                                        Properties:
+                                          AccessibleLabel: ="Tipo producto Mezzanine"
+                                          BorderColor: =ColorValue(varTheme.BordeHex)
+                                          BorderThickness: =1
+                                          Default: =ThisItem.TipoProducto
+                                          DelayOutput: =true
+                                          Font: =Font.'Segoe UI'
+                                          Height: =36
+                                          OnChange: |-
+                                            =Patch(colMEZ_Productos, ThisItem, {TipoProducto: Self.Text})
+                                          Width: =If(scrFDI_MEZ.Size = ScreenSize.Small, Parent.TemplateWidth - 32, Max(160, Min(260, Parent.TemplateWidth * 0.2)))
+                                          X: =16
+                                          Y: =If(scrFDI_MEZ.Size = ScreenSize.Small, 18, 12)
+                                    - lblLargoProductoRowMEZ:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =18
+                                          Size: =10
+                                          Text: ="Largo"
+                                          Visible: =scrFDI_MEZ.Size = ScreenSize.Small
+                                          Width: =inpLargoProductoMEZ.Width
+                                          X: =inpLargoProductoMEZ.X
+                                          Y: =54
+                                    - inpLargoProductoMEZ:
+                                        Control: Classic/TextInput@2.3.2
+                                        Properties:
+                                          AccessibleLabel: ="Largo producto Mezzanine"
+                                          BorderColor: =ColorValue(varTheme.BordeHex)
+                                          BorderThickness: =1
+                                          Default: =ThisItem.LargoProducto
+                                          DelayOutput: =true
+                                          Font: =Font.'Segoe UI'
+                                          Height: =36
+                                          OnChange: |-
+                                            =Patch(colMEZ_Productos, ThisItem, {LargoProducto: Self.Text})
+                                          Width: =If(scrFDI_MEZ.Size = ScreenSize.Small, Parent.TemplateWidth - 32, 105)
+                                          X: =If(scrFDI_MEZ.Size = ScreenSize.Small, 16, inpTipoProductoMEZ.X + inpTipoProductoMEZ.Width + 10)
+                                          Y: =If(scrFDI_MEZ.Size = ScreenSize.Small, 72, 12)
+                                    - lblAnchoProductoRowMEZ:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =18
+                                          Size: =10
+                                          Text: ="Ancho"
+                                          Visible: =scrFDI_MEZ.Size = ScreenSize.Small
+                                          Width: =inpAnchoProductoMEZ.Width
+                                          X: =inpAnchoProductoMEZ.X
+                                          Y: =108
+                                    - inpAnchoProductoMEZ:
+                                        Control: Classic/TextInput@2.3.2
+                                        Properties:
+                                          AccessibleLabel: ="Ancho producto Mezzanine"
+                                          BorderColor: =ColorValue(varTheme.BordeHex)
+                                          BorderThickness: =1
+                                          Default: =ThisItem.AnchoProducto
+                                          DelayOutput: =true
+                                          Font: =Font.'Segoe UI'
+                                          Height: =36
+                                          OnChange: |-
+                                            =Patch(colMEZ_Productos, ThisItem, {AnchoProducto: Self.Text})
+                                          Width: =If(scrFDI_MEZ.Size = ScreenSize.Small, Parent.TemplateWidth - 32, 105)
+                                          X: =If(scrFDI_MEZ.Size = ScreenSize.Small, 16, inpLargoProductoMEZ.X + inpLargoProductoMEZ.Width + 10)
+                                          Y: =If(scrFDI_MEZ.Size = ScreenSize.Small, 126, 12)
+                                    - lblAltoProductoRowMEZ:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =18
+                                          Size: =10
+                                          Text: ="Alto"
+                                          Visible: =scrFDI_MEZ.Size = ScreenSize.Small
+                                          Width: =inpAltoProductoMEZ.Width
+                                          X: =inpAltoProductoMEZ.X
+                                          Y: =162
+                                    - inpAltoProductoMEZ:
+                                        Control: Classic/TextInput@2.3.2
+                                        Properties:
+                                          AccessibleLabel: ="Alto producto Mezzanine"
+                                          BorderColor: =ColorValue(varTheme.BordeHex)
+                                          BorderThickness: =1
+                                          Default: =ThisItem.AltoProducto
+                                          DelayOutput: =true
+                                          Font: =Font.'Segoe UI'
+                                          Height: =36
+                                          OnChange: |-
+                                            =Patch(colMEZ_Productos, ThisItem, {AltoProducto: Self.Text})
+                                          Width: =If(scrFDI_MEZ.Size = ScreenSize.Small, Parent.TemplateWidth - 32, 105)
+                                          X: =If(scrFDI_MEZ.Size = ScreenSize.Small, 16, inpAnchoProductoMEZ.X + inpAnchoProductoMEZ.Width + 10)
+                                          Y: =If(scrFDI_MEZ.Size = ScreenSize.Small, 180, 12)
+                                    - lblPesoProductoRowMEZ:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =18
+                                          Size: =10
+                                          Text: ="Peso"
+                                          Visible: =scrFDI_MEZ.Size = ScreenSize.Small
+                                          Width: =inpPesoProductoMEZ.Width
+                                          X: =inpPesoProductoMEZ.X
+                                          Y: =216
+                                    - inpPesoProductoMEZ:
+                                        Control: Classic/TextInput@2.3.2
+                                        Properties:
+                                          AccessibleLabel: ="Peso producto Mezzanine"
+                                          BorderColor: =ColorValue(varTheme.BordeHex)
+                                          BorderThickness: =1
+                                          Default: =ThisItem.PesoProducto
+                                          DelayOutput: =true
+                                          Font: =Font.'Segoe UI'
+                                          Height: =36
+                                          OnChange: |-
+                                            =Patch(colMEZ_Productos, ThisItem, {PesoProducto: Self.Text})
+                                          Width: =If(scrFDI_MEZ.Size = ScreenSize.Small, (Parent.TemplateWidth - 48) / 2, 105)
+                                          X: =If(scrFDI_MEZ.Size = ScreenSize.Small, 16, inpAltoProductoMEZ.X + inpAltoProductoMEZ.Width + 10)
+                                          Y: =If(scrFDI_MEZ.Size = ScreenSize.Small, 234, 12)
+                                    - lblCantidadProductoRowMEZ:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =18
+                                          Size: =10
+                                          Text: ="Cantidad por nivel"
+                                          Visible: =scrFDI_MEZ.Size = ScreenSize.Small
+                                          Width: =inpCantidadProductoMEZ.Width
+                                          X: =inpCantidadProductoMEZ.X
+                                          Y: =216
+                                    - inpCantidadProductoMEZ:
+                                        Control: Classic/TextInput@2.3.2
+                                        Properties:
+                                          AccessibleLabel: ="Cantidad por nivel Mezzanine"
+                                          BorderColor: =ColorValue(varTheme.BordeHex)
+                                          BorderThickness: =1
+                                          Default: =ThisItem.CantidadPorNivel
+                                          DelayOutput: =true
+                                          Font: =Font.'Segoe UI'
+                                          Height: =36
+                                          OnChange: |-
+                                            =Patch(colMEZ_Productos, ThisItem, {CantidadPorNivel: Self.Text})
+                                          Width: =If(scrFDI_MEZ.Size = ScreenSize.Small, (Parent.TemplateWidth - 48) / 2, 130)
+                                          X: =If(scrFDI_MEZ.Size = ScreenSize.Small, inpPesoProductoMEZ.X + inpPesoProductoMEZ.Width + 16, inpPesoProductoMEZ.X + inpPesoProductoMEZ.Width + 10)
+                                          Y: =If(scrFDI_MEZ.Size = ScreenSize.Small, 234, 12)
+                        - cntSectionConfigEntrepisoMEZ:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              FillPortions: =0
+                              Height: =If(scrFDI_MEZ.Size = ScreenSize.Small, 56, 50)
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =8
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =0
+                              PaddingLeft: =5
+                              PaddingRight: =5
+                              PaddingTop: =12
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño"
+                              Width: =Parent.Width
+                            Children:
+                              - shpDivConfigEntrepisoMEZ:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    BorderColor: =RGBA(0, 0, 0, 0)
+                                    Fill: =RGBA(210, 208, 206, 1)
+                                    Height: =1
+                                    LayoutMinHeight: =1
+                                    LayoutMinWidth: =0
+                                    Width: =Parent.Width
+                              - lblConfigEntrepisoTituloMEZ:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 0, 0, 0)
+                                    BorderStyle: =BorderStyle.None
+                                    Color: =ColorValue(varTheme.TextoHex)
+                                    DisabledColor: =RGBA(161, 159, 157, 1)
+                                    FocusedBorderThickness: =4
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =Max(22, Self.Size * 1.6)
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =0
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =varTheme.Body
+                                    TabIndex: =0
+                                    Text: ="Configuración del entrepiso"
+                                    Width: =Parent.Width
+                        - cmpTxtAlturaRecomendadaEntrepisoMEZ:
+                            Control: CanvasComponent
+                            ComponentName: cmpCardTxt
+                            Properties:
+                              DefaultValue: =Coalesce(varDraftActual.AlturaRecomendadaEntrepiso, "2.4")
+                              Height: =60
+                              OnChange: |-
+                                =Patch(colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {AlturaRecomendadaEntrepiso: Self.Value})
+                              Título: ="Altura recomendada del entrepiso"
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño"
+                              Width: =Parent.Width
+                        - cmpTxtCantidadEntrepisosMEZ:
+                            Control: CanvasComponent
+                            ComponentName: cmpCardTxt
+                            Properties:
+                              DefaultValue: =Coalesce(varDraftActual.CantidadEntrepisos, "")
+                              Height: =60
+                              OnChange: |-
+                                =Patch(colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {CantidadEntrepisos: Self.Value})
+                              Título: ="Cantidad de entrepisos"
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño"
+                              Width: =Parent.Width
+                        - cmpCardTglElevadorMEZ:
+                            Control: CanvasComponent
+                            ComponentName: cmpCardTgl
+                            Properties:
+                              Default: =Coalesce(varDraftActual.RequiereElevador, false)
+                              Height: =60
+                              OnCheck: |-
+                                =Patch(colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {RequiereElevador: true})
+                              OnUncheck: |-
+                                =Patch(colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {RequiereElevador: false})
+                              Título: ="¿Requiere elevador?"
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño"
+                              Width: =Parent.Width
+                        - cmpTxtElevadorSpecMEZ:
+                            Control: CanvasComponent
+                            ComponentName: cmpCardTxt
+                            Properties:
+                              DefaultValue: =Coalesce(varDraftActual.ElevadorSpec, "")
+                              Height: =60
+                              OnChange: |-
+                                =Patch(colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {ElevadorSpec: Self.Value})
+                              Título: ="Capacidad / especificación del elevador"
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño" && cmpCardTglElevadorMEZ.Value = true
+                              Width: =Parent.Width
+                        - cmpCarddrpTipoPisoMEZ:
+                            Control: CanvasComponent
+                            ComponentName: cmpCarddrp
+                            Properties:
+                              DefaultSelectedItem: |-
+                                =With(
+                                    {_row: varDraftActual},
+                                    LookUp(cmpCarddrpTipoPisoMEZ.Items, Value = Coalesce(_row.TipoPiso, "Rejilla Irving"))
+                                )
+                              Height: =60
+                              Items: |-
+                                =Table(
+                                    {Value: "Rejilla Irving"},
+                                    {Value: "MDF"}
+                                )
+                              OnChange: |-
+                                =Patch(colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {TipoPiso: Self.Selected.Value})
+                              Título: ="Tipo de piso"
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño"
+                              Width: =Parent.Width
+                        - cmpCardTglCarritoMEZ:
+                            Control: CanvasComponent
+                            ComponentName: cmpCardTgl
+                            Properties:
+                              Default: =Coalesce(varDraftActual.UsaCarrito, false)
+                              Height: =60
+                              OnCheck: |-
+                                =Patch(colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {UsaCarrito: true})
+                              OnUncheck: |-
+                                =Patch(colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {UsaCarrito: false})
+                              Título: ="¿Se usará carrito para pickear?"
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño"
+                              Width: =Parent.Width
+                        - cmpTxtMedidasCarritoMEZ:
+                            Control: CanvasComponent
+                            ComponentName: cmpCardTxt
+                            Properties:
+                              DefaultValue: =Coalesce(varDraftActual.MedidasCarrito, "")
+                              Height: =60
+                              OnChange: |-
+                                =Patch(colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {MedidasCarrito: Self.Value})
+                              Título: ="Medidas del carrito"
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño" && cmpCardTglCarritoMEZ.Value = true
+                              Width: =Parent.Width
+                        - cmpTxtNumeroRuedasMEZ:
+                            Control: CanvasComponent
+                            ComponentName: cmpCardTxt
+                            Properties:
+                              DefaultValue: =Coalesce(varDraftActual.NumeroRuedas, "")
+                              Height: =60
+                              OnChange: |-
+                                =Patch(colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {NumeroRuedas: Self.Value})
+                              Título: ="Número de ruedas"
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño" && cmpCardTglCarritoMEZ.Value = true
+                              Width: =Parent.Width
+                        - cmpTxtTipoRuedaMEZ:
+                            Control: CanvasComponent
+                            ComponentName: cmpCardTxt
+                            Properties:
+                              DefaultValue: =Coalesce(varDraftActual.TipoRueda, "")
+                              Height: =60
+                              OnChange: |-
+                                =Patch(colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {TipoRueda: Self.Value})
+                              Título: ="Tipo de rueda"
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño" && cmpCardTglCarritoMEZ.Value = true
+                              Width: =Parent.Width
+                        - cmpTxtMedidaRuedaMEZ:
+                            Control: CanvasComponent
+                            ComponentName: cmpCardTxt
+                            Properties:
+                              DefaultValue: =Coalesce(varDraftActual.MedidaRueda, "")
+                              Height: =60
+                              OnChange: |-
+                                =Patch(colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {MedidaRueda: Self.Value})
+                              Título: ="Medida de rueda"
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño" && cmpCardTglCarritoMEZ.Value = true
+                              Width: =Parent.Width
+                        - cmpTxtPesoCarritoMEZ:
+                            Control: CanvasComponent
+                            ComponentName: cmpCardTxt
+                            Properties:
+                              DefaultValue: =Coalesce(varDraftActual.PesoCarrito, "")
+                              Height: =60
+                              OnChange: |-
+                                =Patch(colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {PesoCarrito: Self.Value})
+                              Título: ="Peso del carrito"
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño" && cmpCardTglCarritoMEZ.Value = true
+                              Width: =Parent.Width
+                        - cmpCardTglEscalerasMEZ:
+                            Control: CanvasComponent
+                            ComponentName: cmpCardTgl
+                            Properties:
+                              Default: =Coalesce(varDraftActual.RequiereEscaleras, false)
+                              Height: =60
+                              OnCheck: |-
+                                =Patch(colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {RequiereEscaleras: true})
+                              OnUncheck: |-
+                                =Patch(colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {RequiereEscaleras: false})
+                              Título: ="¿Requiere escaleras?"
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño"
+                              Width: =Parent.Width
+                        - cntSectionAreaPasillosMEZ:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              FillPortions: =0
+                              Height: =If(scrFDI_MEZ.Size = ScreenSize.Small, 56, 50)
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =8
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =0
+                              PaddingLeft: =5
+                              PaddingRight: =5
+                              PaddingTop: =12
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño"
+                              Width: =Parent.Width
+                            Children:
+                              - shpDivAreaPasillosMEZ:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    BorderColor: =RGBA(0, 0, 0, 0)
+                                    Fill: =RGBA(210, 208, 206, 1)
+                                    Height: =1
+                                    LayoutMinHeight: =1
+                                    LayoutMinWidth: =0
+                                    Width: =Parent.Width
+                              - lblAreaPasillosTituloMEZ:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 0, 0, 0)
+                                    BorderStyle: =BorderStyle.None
+                                    Color: =ColorValue(varTheme.TextoHex)
+                                    DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                                    DisabledColor: =RGBA(161, 159, 157, 1)
+                                    FocusedBorderThickness: =4
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =Max(22, Self.Size * 1.6)
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =0
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =varTheme.Body
+                                    TabIndex: =0
+                                    Text: ="Área disponible / pasillos"
+                                    Width: =Parent.Width
+                        - cmpTxtAnchoPasilloPickeoMEZ:
+                            Control: CanvasComponent
+                            ComponentName: cmpCardTxt
+                            Properties:
+                              DefaultValue: =Coalesce(varDraftActual.AnchoPasilloPickeo, "")
+                              Height: =60
+                              OnChange: |-
+                                =Patch(colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {AnchoPasilloPickeo: Self.Value})
+                              Título: ="Ancho de pasillo de pickeo"
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño"
+                              Width: =Parent.Width
+                        - cmpTxtAnchoDispMEZ:
+                            Control: CanvasComponent
+                            ComponentName: cmpCardTxt
+                            Properties:
+                              DefaultValue: |
+                                =Coalesce(varDraftActual.AnchoDisp, "" )
+                              Height: =60
+                              OnChange: |-
+                                =Patch( colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {AnchoDisp: Self.Value} )
+                              Título: ="Ancho disponible"
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño"
+                              Width: =Parent.Width
+                        - cmpTxtLargoDispMEZ:
+                            Control: CanvasComponent
+                            ComponentName: cmpCardTxt
+                            Properties:
+                              DefaultValue: |
+                                =Coalesce(varDraftActual.LargoDisp, "" )
+                              Height: =60
+                              OnChange: |-
+                                =Patch( colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {LargoDisp: Self.Value} )
+                              Título: ="Largo disponible"
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño"
+                              Width: =Parent.Width
+                        - cntSectionCriteriosNivelesMEZ:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              FillPortions: =0
+                              Height: =If(scrFDI_MEZ.Size = ScreenSize.Small, 56, 50)
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =8
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =0
+                              PaddingLeft: =5
+                              PaddingRight: =5
+                              PaddingTop: =12
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño"
+                              Width: =Parent.Width
+                            Children:
+                              - shpDivCriteriosNivelesMEZ:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    BorderColor: =RGBA(0, 0, 0, 0)
+                                    Fill: =RGBA(210, 208, 206, 1)
+                                    Height: =1
+                                    LayoutMinHeight: =1
+                                    LayoutMinWidth: =0
+                                    Width: =Parent.Width
+                              - lblCriteriosNivelesMEZ:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 0, 0, 0)
+                                    BorderStyle: =BorderStyle.None
+                                    Color: =ColorValue(varTheme.TextoHex)
+                                    DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                                    DisabledColor: =RGBA(161, 159, 157, 1)
+                                    FocusedBorderThickness: =4
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =Max(22, Self.Size * 1.6)
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =0
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =varTheme.Body
+                                    TabIndex: =0
+                                    Text: ="Criterios para configuración de niveles"
+                                    Width: =Parent.Width
+                        - cmpCardTglAlturaNaveMEZ:
+                            Control: CanvasComponent
+                            ComponentName: cmpCardTgl
+                            Properties:
+                              Default: |-
+                                =Coalesce(
+                                    varDraftActual.ConsiderarAlturaNave,
+                                    false
+                                )
+                              Height: =60
+                              OnCheck: |-
+                                =Patch(
+                                    colMEZ_Draft,
+                                    LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId),
+                                    {ConsiderarAlturaNave: true}
+                                )
+                              OnUncheck: |-
+                                =Patch(
+                                    colMEZ_Draft,
+                                    LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId),
+                                    {ConsiderarAlturaNave: false}
+                                )
+                              Título: ="¿Considerar altura de nave?"
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño"
+                              Width: =Parent.Width
+                        - cmpTxtAlturaMaxNaveMEZ:
+                            Control: CanvasComponent
+                            ComponentName: cmpCardTxt
+                            Properties:
+                              DefaultValue: |
+                                =Coalesce(varDraftActual.AlturaMaxNave, "" )
+                              Height: =60
+                              OnChange: |-
+                                =Patch( colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {AlturaMaxNave: Self.Value} )
+                              Título: ="Altura máxima de nave"
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño" && cmpCardTglAlturaNaveMEZ.Value = true
+                              Width: =Parent.Width
+                        - cmpTxtAlturaMinNaveMEZ:
+                            Control: CanvasComponent
+                            ComponentName: cmpCardTxt
+                            Properties:
+                              DefaultValue: |
+                                =Coalesce(varDraftActual.AlturaMinNave, "" )
+                              Height: =60
+                              OnChange: |-
+                                =Patch( colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {AlturaMinNave: Self.Value} )
+                              Título: ="Altura mínima de nave"
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño" && cmpCardTglAlturaNaveMEZ.Value = true
+                              Width: =Parent.Width
+                        - cmpCardTglAdjuntarImagenLayoutMEZ:
+                            Control: CanvasComponent
+                            ComponentName: cmpCardTgl
+                            Properties:
+                              Default: |-
+                                =Coalesce(
+                                    varDraftActual.AdjuntarImagenLayout,
+                                    false
+                                )
+                              Height: =60
+                              OnCheck: |-
+                                =Patch(
+                                    colMEZ_Draft,
+                                    LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId),
+                                    {AdjuntarImagenLayout: true}
+                                )
+                              OnUncheck: |-
+                                =Patch(
+                                    colMEZ_Draft,
+                                    LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId),
+                                    {AdjuntarImagenLayout: false}
+                                )
+                              Título: ="¿Adjuntar Imagen/Layout?"
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño"
+                              Width: =Parent.Width
+                        - lblAdjuntarArchivosMEZ:
+                            Control: Label@2.5.1
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 0)
+                              BorderStyle: =BorderStyle.None
+                              Color: =ColorValue(varTheme.TextoSuaveHex)
+                              DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                              DisabledColor: =RGBA(161, 159, 157, 1)
+                              FocusedBorderThickness: =4
+                              Font: =Font.'Segoe UI'
+                              Height: =28
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =0
+                              PaddingBottom: =0
+                              PaddingTop: =0
+                              Size: =varTheme.Body
+                              TabIndex: =0
+                              Text: ="Adjuntar archivos"
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño" && cmpCardTglAdjuntarImagenLayoutMEZ.Value = true
+                              Width: =Parent.Width
+                        - cmpCardTglDefClienteMEZ:
+                            Control: CanvasComponent
+                            ComponentName: cmpCardTgl
+                            Properties:
+                              Default: |-
+                                =Coalesce(
+                                    varDraftActual.ExisteDefCliente,
+                                    false
+                                )
+                              Height: =60
+                              OnCheck: |-
+                                =Patch(
+                                    colMEZ_Draft,
+                                    LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId),
+                                    {ExisteDefCliente: true}
+                                )
+                              OnUncheck: |-
+                                =Patch(
+                                    colMEZ_Draft,
+                                    LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId),
+                                    {ExisteDefCliente: false}
+                                )
+                              Título: ="¿Existe definición por parte del cliente?"
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño"
+                              Width: =Parent.Width
+                        - cmpTxtComentariosConfigClienteMEZ:
+                            Control: CanvasComponent
+                            ComponentName: cmpCardTxt
+                            Properties:
+                              DefaultValue: |
+                                =Coalesce(varDraftActual.ComentariosConfigCliente, "" )
+                              Height: =60
+                              OnChange: |-
+                                =Patch( colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {ComentariosConfigCliente: Self.Value, DefPorCliente: Self.Value} )
+                              Título: ="Comentarios de configuración del cliente"
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño" && cmpCardTglDefClienteMEZ.Value = true
+                              Width: =Parent.Width
+                        - cntSectionSeguridadMEZ:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              FillPortions: =0
+                              Height: =If(scrFDI_MEZ.Size = ScreenSize.Small, 56, 50)
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =8
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =0
+                              PaddingLeft: =5
+                              PaddingRight: =5
+                              PaddingTop: =12
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño"
+                              Width: =Parent.Width
+                            Children:
+                              - shpDivSeguridadMEZ:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    BorderColor: =RGBA(0, 0, 0, 0)
+                                    Fill: =RGBA(210, 208, 206, 1)
+                                    Height: =1
+                                    LayoutMinHeight: =1
+                                    LayoutMinWidth: =0
+                                    Width: =Parent.Width
+                              - lblSectionSeguridadMEZ:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 0, 0, 0)
+                                    BorderStyle: =BorderStyle.None
+                                    Color: =ColorValue(varTheme.TextoHex)
+                                    DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                                    DisabledColor: =RGBA(161, 159, 157, 1)
+                                    FocusedBorderThickness: =4
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =Max(22, Self.Size * 1.6)
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =0
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =varTheme.Body
+                                    TabIndex: =0
+                                    Text: ="Elementos de seguridad"
+                                    Width: =Parent.Width
+                        - cmpCardTglElementosSeguridadMEZ:
+                            Control: CanvasComponent
+                            ComponentName: cmpCardTgl
+                            Properties:
+                              Default: |-
+                                =Coalesce(
+                                    varDraftActual.ElementosSeguridad,
+                                    false
+                                )
+                              Height: =60
+                              OnCheck: |-
+                                =Patch(
+                                    colMEZ_Draft,
+                                    LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId),
+                                    {ElementosSeguridad: true}
+                                )
+                              OnUncheck: |-
+                                =Patch(
+                                    colMEZ_Draft,
+                                    LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId),
+                                    {ElementosSeguridad: false}
+                                )
+                              Título: ="¿Considerar elementos de seguridad?"
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño"
+                        - cntElementosSeguridadMEZ:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              AlignInContainer: =AlignInContainer.SetByContainer
+                              BorderColor: =ColorValue(varTheme.BordeSuaveHex)
+                              BorderThickness: =1
+                              DropShadow: =varTheme.Sombra
+                              Fill: =ColorValue(varTheme.SuperficieHex)
+                              RadiusBottomLeft: =varTheme.CardRadius
+                              RadiusBottomRight: =varTheme.CardRadius
+                              RadiusTopLeft: =varTheme.CardRadius
+                              RadiusTopRight: =varTheme.CardRadius
+                              FillPortions: =0
+                              Height: =cntElementosSeguridadBtnMEZ.Height+cntElementosSeguridadHeaderMEZ.Height+galListadoElementosSeguridadMEZ.Height+32
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =10
+                              LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                              PaddingBottom: =16
+                              PaddingLeft: =16
+                              PaddingRight: =16
+                              PaddingTop: =16
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño" && cmpCardTglElementosSeguridadMEZ.Value = true
+                              Width: =Parent.Width - 32
+                              Y: =199
+                            Children:
+                              - cntElementosSeguridadBtnMEZ:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    DropShadow: =DropShadow.None
+                                    FillPortions: =0
+                                    Height: =40
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =16
+                                  Children:
+                                    - lblElementosSeguridadMEZ:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          BorderColor: =RGBA(0, 0, 0, 0)
+                                          BorderStyle: =BorderStyle.None
+                                          BorderThickness: =2
+                                          Color: =ColorValue(varTheme.TextoHex)
+                                          DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                                          DisabledColor: =RGBA(161, 159, 157, 1)
+                                          FocusedBorderThickness: =4
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =varTheme.BodyEspesor
+                                          LayoutMinHeight: =16
+                                          LayoutMinWidth: =16
+                                          PaddingBottom: =0
+                                          PaddingLeft: =0
+                                          PaddingRight: =0
+                                          PaddingTop: =0
+                                          Size: =varTheme.Label
+                                          TabIndex: =0
+                                          Text: ="Elementos de seguridad"
+                                          Width: =300
+                                    - btnAgregarElementoSeguridadMEZ:
+                                        Control: Button@0.0.45
+                                        Properties:
+                                          AccessibleLabel: ="btn Agregar Elemento Seguridad MEZ"
+                                          Appearance: ='ButtonCanvas.Appearance'.Transparent
+                                          Icon: ="Add"
+                                          LayoutMinHeight: =16
+                                          LayoutMinWidth: =16
+                                          OnSelect: |-
+                                            =Collect(
+                                                colElementoSeguridad,
+                                                {
+                                                    RowId: GUID(),
+                                                    SistemaId: locTabSel.SistemaId,
+                                                    Pieza: "",
+                                                    Comentario: ""
+                                                }
+                                            );
+                                          Text: ="Agregar"
+                              - cntElementosSeguridadHeaderMEZ:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderColor: =ColorValue(varTheme.BordeHex)
+                                    BorderThickness: =1
+                                    DropShadow: =DropShadow.None
+                                    Fill: =ColorValue(varTheme.HeaderTablaHex)
+                                    FillPortions: =0
+                                    Height: =varTheme.HeaderHeight
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =10
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =16
+                                    PaddingLeft: =16
+                                    PaddingRight: =16
+                                    RadiusBottomLeft: =0
+                                    RadiusBottomRight: =0
+                                  Children:
+                                    - lblPiezaElementosHeaderMEZ:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          BorderColor: =RGBA(0, 0, 0, 0)
+                                          BorderStyle: =BorderStyle.None
+                                          Color: =ColorValue(varTheme.TextoHex)
+                                          DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                                          DisabledColor: =RGBA(161, 159, 157, 1)
+                                          FocusedBorderThickness: =4
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =Parent.Height
+                                          LayoutMinHeight: =16
+                                          LayoutMinWidth: =16
+                                          PaddingBottom: =0
+                                          PaddingLeft: =0
+                                          PaddingRight: =0
+                                          PaddingTop: =0
+                                          Size: =11
+                                          TabIndex: =0
+                                          Text: ="Pieza"
+                                          Width: =Max(260, Min(420, Parent.Width * 0.32))
+                                    - lblComentarioElementosHeaderMEZ:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          BorderColor: =RGBA(0, 0, 0, 0)
+                                          BorderStyle: =BorderStyle.None
+                                          Color: =ColorValue(varTheme.TextoHex)
+                                          DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                                          DisabledColor: =RGBA(161, 159, 157, 1)
+                                          FocusedBorderThickness: =4
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =Parent.Height
+                                          LayoutMinHeight: =16
+                                          LayoutMinWidth: =16
+                                          PaddingBottom: =0
+                                          PaddingLeft: =0
+                                          PaddingRight: =0
+                                          PaddingTop: =0
+                                          Size: =11
+                                          TabIndex: =0
+                                          Text: ="Comentario"
+                                          Width: =Max(360, Parent.Width - lblPiezaElementosHeaderMEZ.Width - lblAccionElementosHeaderMEZ.Width - 64)
+                                    - lblAccionElementosHeaderMEZ:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Align: =Align.Center
+                                          BorderColor: =RGBA(0, 0, 0, 0)
+                                          BorderStyle: =BorderStyle.None
+                                          Color: =ColorValue(varTheme.TextoHex)
+                                          DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                                          DisabledColor: =RGBA(161, 159, 157, 1)
+                                          FocusedBorderThickness: =4
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =Parent.Height
+                                          LayoutMinHeight: =16
+                                          LayoutMinWidth: =16
+                                          PaddingBottom: =0
+                                          PaddingLeft: =0
+                                          PaddingRight: =0
+                                          PaddingTop: =0
+                                          Size: =11
+                                          TabIndex: =0
+                                          Text: ="Accion"
+                                          Width: =64
+                              - galListadoElementosSeguridadMEZ:
+                                  Control: Gallery@2.15.0
+                                  Variant: BrowseLayout_Vertical_TwoTextVariant_ver5.0
+                                  Properties:
+                                    AccessibleLabel: ="gal Listado Elementos Seguridad MEZ"
+                                    BorderColor: =ColorValue(varTheme.BordeSuaveHex)
+                                    BorderThickness: =1
+                                    FillPortions: =0
+                                    Height: =If(CountRows(Self.AllItems)=0,0,Min(galListadoElementosSeguridadMEZ.TemplateHeight*CountRows(Self.AllItems),420))
+                                    Items: |-
+                                      =Filter(
+                                          colElementoSeguridad,
+                                          SistemaId = locTabSel.SistemaId
+                                      )
+                                    LayoutMinHeight: =16
+                                    Selectable: =false
+                                    TabIndex: =0
+                                    TemplateSize: =varTheme.RowHeight
+                                  Children:
+                                    - Separator2_3_MEZ:
+                                        Control: Rectangle@2.3.0
+                                        Properties:
+                                          BorderColor: =RGBA(0, 0, 0, 0)
+                                          Fill: =RGBA(237, 235, 233, 1)
+                                          Height: =1
+                                          OnSelect: =Select(Parent)
+                                          Width: =Parent.TemplateWidth
+                                          Y: =Parent.TemplateHeight - Self.Height
+                                    - BorrarPiezaButton_3_MEZ:
+                                        Control: Button@0.0.45
+                                        Properties:
+                                          AccessibleLabel: ="Borrar Pieza Button"
+                                          Align: =Align.Center
+                                          Appearance: ='ButtonCanvas.Appearance'.Transparent
+                                          Height: =36
+                                          Icon: ="Delete"
+                                          OnSelect: =Remove(colElementoSeguridad, ThisItem)
+                                          Text: =""
+                                          Width: =44
+                                          X: =Parent.TemplateWidth - Self.Width - 16
+                                          Y: =12
+                                    - txtComentarioMEZ:
+                                        Control: Classic/TextInput@2.3.2
+                                        Properties:
+                                          AccessibleLabel: ="txt Comentario MEZ"
+                                          BorderColor: =ColorValue(varTheme.BordeHex)
+                                          BorderThickness: =1
+                                          Color: =ColorValue(varTheme.TextoHex)
+                                          Default: =ThisItem.Comentario
+                                          DelayOutput: =true
+                                          DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                                          DisabledColor: =RGBA(161, 159, 157, 1)
+                                          DisabledFill: =RGBA(242, 242, 241, 0)
+                                          Font: =Font.'Segoe UI'
+                                          Height: =36
+                                          HoverBorderColor: =ColorValue(varTheme.PrimarioHex)
+                                          HoverColor: =ColorValue(varTheme.TextoHex)
+                                          HoverFill: =ColorValue(varTheme.SuperficieHex)
+                                          OnChange: |-
+                                            =Patch(
+                                                colElementoSeguridad,
+                                                ThisItem,
+                                                {
+                                                    Comentario: Self.Text
+                                                }
+                                            )
+                                          PressedBorderColor: =ColorValue(varTheme.PrimarioHex)
+                                          PressedColor: =ColorValue(varTheme.TextoHex)
+                                          PressedFill: =ColorValue(varTheme.SuperficieHex)
+                                          RadiusBottomLeft: =varTheme.ControlRadius
+                                          RadiusBottomRight: =varTheme.ControlRadius
+                                          RadiusTopLeft: =varTheme.ControlRadius
+                                          RadiusTopRight: =varTheme.ControlRadius
+                                          Size: =varTheme.Label
+                                          Width: =Max(360, Parent.TemplateWidth - txtPiezaMEZ.Width - BorrarPiezaButton_3_MEZ.Width - 64)
+                                          X: =txtPiezaMEZ.X + txtPiezaMEZ.Width + 16
+                                          Y: =12
+                                    - lblComentarioMEZ:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          BorderColor: =RGBA(0, 0, 0, 1)
+                                          Color: =ColorValue(varTheme.TextoHex)
+                                          DisabledColor: =RGBA(161, 159, 157, 1)
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =18
+                                          OnSelect: =Select(Parent)
+                                          PaddingBottom: =0
+                                          PaddingLeft: =12
+                                          PaddingRight: =0
+                                          PaddingTop: =0
+                                          Size: =10
+                                          Text: ="Comentario:"
+                                          Visible: =false
+                                          Width: =137
+                                          X: =14
+                                          Y: =36
+                                    - txtPiezaMEZ:
+                                        Control: Classic/TextInput@2.3.2
+                                        Properties:
+                                          AccessibleLabel: ="txt Pieza MEZ"
+                                          BorderColor: =ColorValue(varTheme.BordeHex)
+                                          BorderThickness: =1
+                                          Color: =ColorValue(varTheme.TextoHex)
+                                          Default: =ThisItem.Pieza
+                                          DelayOutput: =true
+                                          DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                                          DisabledColor: =RGBA(161, 159, 157, 1)
+                                          DisabledFill: =RGBA(242, 242, 241, 0)
+                                          Font: =Font.'Segoe UI'
+                                          Height: =36
+                                          HoverBorderColor: =ColorValue(varTheme.PrimarioHex)
+                                          HoverColor: =ColorValue(varTheme.TextoHex)
+                                          HoverFill: =ColorValue(varTheme.SuperficieHex)
+                                          OnChange: |-
+                                            =Patch(
+                                                colElementoSeguridad,
+                                                ThisItem,
+                                                {
+                                                    Pieza: Self.Text
+                                                }
+                                            )
+                                          PressedBorderColor: =ColorValue(varTheme.PrimarioHex)
+                                          PressedColor: =ColorValue(varTheme.TextoHex)
+                                          PressedFill: =ColorValue(varTheme.SuperficieHex)
+                                          RadiusBottomLeft: =varTheme.ControlRadius
+                                          RadiusBottomRight: =varTheme.ControlRadius
+                                          RadiusTopLeft: =varTheme.ControlRadius
+                                          RadiusTopRight: =varTheme.ControlRadius
+                                          Size: =varTheme.Label
+                                          Width: =Max(260, Min(420, Parent.TemplateWidth * 0.32))
+                                          X: =16
+                                          Y: =12
+                                    - lblPiezaMEZ:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          BorderColor: =RGBA(0, 0, 0, 1)
+                                          Color: =ColorValue(varTheme.TextoHex)
+                                          DisabledColor: =RGBA(161, 159, 157, 1)
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =18
+                                          OnSelect: =Select(Parent)
+                                          PaddingBottom: =0
+                                          PaddingLeft: =12
+                                          PaddingRight: =0
+                                          PaddingTop: =0
+                                          Size: =10
+                                          Text: ="Pieza:"
+                                          Visible: =false
+                                          Width: =137
+                                          X: =14
+                        - cntSectionPiezasEspecialesMEZ:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              FillPortions: =0
+                              Height: =If(scrFDI_MEZ.Size = ScreenSize.Small, 56, 50)
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =8
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =0
+                              PaddingLeft: =5
+                              PaddingRight: =5
+                              PaddingTop: =12
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño"
+                              Width: =Parent.Width
+                            Children:
+                              - shpDivPiezasEspecialesMEZ:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    BorderColor: =RGBA(0, 0, 0, 0)
+                                    Fill: =RGBA(210, 208, 206, 1)
+                                    Height: =1
+                                    LayoutMinHeight: =1
+                                    LayoutMinWidth: =0
+                                    Width: =Parent.Width
+                              - lblSectionPiezasEspecialesMEZ:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 0, 0, 0)
+                                    BorderStyle: =BorderStyle.None
+                                    Color: =ColorValue(varTheme.TextoHex)
+                                    DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                                    DisabledColor: =RGBA(161, 159, 157, 1)
+                                    FocusedBorderThickness: =4
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =Max(22, Self.Size * 1.6)
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =0
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =varTheme.Body
+                                    TabIndex: =0
+                                    Text: ="Piezas especiales"
+                                    Width: =Parent.Width
+                        - cmpCardTglPiezasEspecialesMEZ:
+                            Control: CanvasComponent
+                            ComponentName: cmpCardTgl
+                            Properties:
+                              Default: |-
+                                =Coalesce(
+                                    varDraftActual.TienePiezasEspeciales,
+                                    false
+                                )
+                              Height: =60
+                              OnCheck: |-
+                                =Patch(
+                                    colMEZ_Draft,
+                                    LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId),
+                                    {TienePiezasEspeciales: true}
+                                )
+                              OnUncheck: |-
+                                =Patch(
+                                    colMEZ_Draft,
+                                    LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId),
+                                    {TienePiezasEspeciales: false}
+                                )
+                              Título: ="¿Considerar piezas especiales?"
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño"
+                              Width: =Parent.Width
+                        - cntPiezasEspecialesMEZ:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              AlignInContainer: =AlignInContainer.SetByContainer
+                              BorderColor: =ColorValue(varTheme.BordeSuaveHex)
+                              BorderThickness: =1
+                              DropShadow: =varTheme.Sombra
+                              Fill: =ColorValue(varTheme.SuperficieHex)
+                              RadiusBottomLeft: =varTheme.CardRadius
+                              RadiusBottomRight: =varTheme.CardRadius
+                              RadiusTopLeft: =varTheme.CardRadius
+                              RadiusTopRight: =varTheme.CardRadius
+                              FillPortions: =0
+                              Height: =cntPiezasEspecialesBtnMEZ.Height+cntPiezasEspecialesHeaderMEZ.Height+galPiezasEspecialesMEZ.Height+32
+                              LayoutAlignItems: =LayoutAlignItems.Stretch
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =10
+                              LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =0
+                              PaddingBottom: =16
+                              PaddingLeft: =If(scrFDI_MEZ.Size = ScreenSize.Small, 10, 16)
+                              PaddingRight: =If(scrFDI_MEZ.Size = ScreenSize.Small, 10, 16)
+                              PaddingTop: =16
+                              Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Diseño" && cmpCardTglPiezasEspecialesMEZ.Value = true
+                              Width: =Parent.Width - 32
+                            Children:
+                              - cntPiezasEspecialesBtnMEZ:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    DropShadow: =DropShadow.None
+                                    FillPortions: =0
+                                    Height: =40
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =0
+                                  Children:
+                                    - lblPiezasEspecialesMEZ:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          BorderColor: =RGBA(0, 0, 0, 0)
+                                          BorderStyle: =BorderStyle.None
+                                          Color: =ColorValue(varTheme.TextoHex)
+                                          DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                                          DisabledColor: =RGBA(161, 159, 157, 1)
+                                          FocusedBorderThickness: =4
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          LayoutMinHeight: =16
+                                          LayoutMinWidth: =0
+                                          PaddingBottom: =0
+                                          PaddingLeft: =0
+                                          PaddingRight: =0
+                                          PaddingTop: =0
+                                          Size: =varTheme.Label
+                                          TabIndex: =0
+                                          Text: ="Piezas especiales"
+                                          Width: =Parent.Width - btnAgregarPiezaEspecialMEZ.Width - 16
+                                    - btnAgregarPiezaEspecialMEZ:
+                                        Control: Button@0.0.45
+                                        Properties:
+                                          AccessibleLabel: ="btn Agregar Pieza Especial MEZ"
+                                          Appearance: ='ButtonCanvas.Appearance'.Transparent
+                                          Icon: ="Add"
+                                          LayoutMinHeight: =16
+                                          LayoutMinWidth: =0
+                                          OnSelect: |-
+                                            =Collect(
+                                                colPiezasEspeciales,
+                                                {
+                                                    RowId: GUID(),
+                                                    SistemaId: locTabSel.SistemaId,
+                                                    Pieza: "",
+                                                    Comentario: ""
+                                                }
+                                            );
+                                          Text: ="Agregar"
+                                          Width: =120
+                              - cntPiezasEspecialesHeaderMEZ:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    BorderColor: =ColorValue(varTheme.BordeHex)
+                                    BorderThickness: =1
+                                    DropShadow: =DropShadow.None
+                                    Fill: =ColorValue(varTheme.HeaderTablaHex)
+                                    FillPortions: =0
+                                    Height: =varTheme.HeaderHeight
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =16
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =0
+                                    PaddingLeft: =16
+                                    PaddingRight: =16
+                                  Children:
+                                    - lblPiezaEspecialHeaderMEZ:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Color: =ColorValue(varTheme.TextoHex)
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =Parent.Height
+                                          LayoutMinHeight: =16
+                                          LayoutMinWidth: =0
+                                          PaddingBottom: =0
+                                          PaddingLeft: =0
+                                          PaddingRight: =0
+                                          PaddingTop: =0
+                                          Size: =11
+                                          TabIndex: =0
+                                          Text: ="Pieza"
+                                          Width: =Max(220, Min(420, Parent.Width * 0.35))
+                                    - lblComentarioPiezaEspecialHeaderMEZ:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Color: =ColorValue(varTheme.TextoHex)
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =Parent.Height
+                                          LayoutMinHeight: =16
+                                          LayoutMinWidth: =0
+                                          PaddingBottom: =0
+                                          PaddingLeft: =0
+                                          PaddingRight: =0
+                                          PaddingTop: =0
+                                          Size: =11
+                                          TabIndex: =0
+                                          Text: ="Comentario"
+                                          Width: =Max(260, Parent.Width - lblPiezaEspecialHeaderMEZ.Width - lblAccionPiezaEspecialHeaderMEZ.Width - 64)
+                                    - lblAccionPiezaEspecialHeaderMEZ:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Align: =Align.Center
+                                          Color: =ColorValue(varTheme.TextoHex)
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =Parent.Height
+                                          LayoutMinHeight: =16
+                                          LayoutMinWidth: =0
+                                          PaddingBottom: =0
+                                          PaddingLeft: =0
+                                          PaddingRight: =0
+                                          PaddingTop: =0
+                                          Size: =11
+                                          TabIndex: =0
+                                          Text: ="Acción"
+                                          Width: =64
+                              - galPiezasEspecialesMEZ:
+                                  Control: Gallery@2.15.0
+                                  Variant: BrowseLayout_Vertical_TwoTextVariant_ver5.0
+                                  Properties:
+                                    AccessibleLabel: ="gal Piezas Especiales MEZ"
+                                    BorderColor: =ColorValue(varTheme.BordeSuaveHex)
+                                    BorderThickness: =1
+                                    FillPortions: =0
+                                    Height: =If(CountRows(Self.AllItems)=0,0,Min(galPiezasEspecialesMEZ.TemplateHeight*CountRows(Self.AllItems),420))
+                                    Items: |-
+                                      =Filter(
+                                          colPiezasEspeciales,
+                                          SistemaId = locTabSel.SistemaId
+                                      )
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =0
+                                    Selectable: =false
+                                    TabIndex: =0
+                                    TemplateSize: =If(scrFDI_MEZ.Size = ScreenSize.Small, 108, 60)
+                                  Children:
+                                    - btnBorrarPiezaEspecialMEZ:
+                                        Control: Button@0.0.45
+                                        Properties:
+                                          AccessibleLabel: ="Borrar Pieza Especial"
+                                          Align: =Align.Center
+                                          Appearance: ='ButtonCanvas.Appearance'.Transparent
+                                          Height: =36
+                                          Icon: ="Delete"
+                                          OnSelect: =Remove(colPiezasEspeciales, ThisItem)
+                                          Text: =""
+                                          Width: =44
+                                          X: =Parent.TemplateWidth - Self.Width - 16
+                                          Y: =12
+                                    - txtPiezaEspecialMEZ:
+                                        Control: Classic/TextInput@2.3.2
+                                        Properties:
+                                          AccessibleLabel: ="txt Pieza Especial MEZ"
+                                          BorderColor: =ColorValue(varTheme.BordeHex)
+                                          BorderThickness: =1
+                                          Color: =ColorValue(varTheme.TextoHex)
+                                          Default: =ThisItem.Pieza
+                                          DelayOutput: =true
+                                          Font: =Font.'Segoe UI'
+                                          Height: =36
+                                          OnChange: |-
+                                            =Patch(
+                                                colPiezasEspeciales,
+                                                ThisItem,
+                                                {Pieza: Self.Text}
+                                            )
+                                          RadiusBottomLeft: =varTheme.ControlRadius
+                                          RadiusBottomRight: =varTheme.ControlRadius
+                                          RadiusTopLeft: =varTheme.ControlRadius
+                                          RadiusTopRight: =varTheme.ControlRadius
+                                          Width: =If(scrFDI_MEZ.Size = ScreenSize.Small, Parent.TemplateWidth - btnBorrarPiezaEspecialMEZ.Width - 48, Max(220, Min(420, Parent.TemplateWidth * 0.35)))
+                                          X: =16
+                                          Y: =12
+                                    - txtComentarioPiezaEspecialMEZ:
+                                        Control: Classic/TextInput@2.3.2
+                                        Properties:
+                                          AccessibleLabel: ="txt Comentario Pieza Especial MEZ"
+                                          BorderColor: =ColorValue(varTheme.BordeHex)
+                                          BorderThickness: =1
+                                          Color: =ColorValue(varTheme.TextoHex)
+                                          Default: =ThisItem.Comentario
+                                          DelayOutput: =true
+                                          Font: =Font.'Segoe UI'
+                                          Height: =36
+                                          Mode: =TextMode.MultiLine
+                                          OnChange: |-
+                                            =Patch(
+                                                colPiezasEspeciales,
+                                                ThisItem,
+                                                {Comentario: Self.Text}
+                                            )
+                                          RadiusBottomLeft: =varTheme.ControlRadius
+                                          RadiusBottomRight: =varTheme.ControlRadius
+                                          RadiusTopLeft: =varTheme.ControlRadius
+                                          RadiusTopRight: =varTheme.ControlRadius
+                                          Width: =If(scrFDI_MEZ.Size = ScreenSize.Small, Parent.TemplateWidth - 32, Max(260, Parent.TemplateWidth - txtPiezaEspecialMEZ.Width - btnBorrarPiezaEspecialMEZ.Width - 64))
+                                          X: =If(scrFDI_MEZ.Size = ScreenSize.Small, 16, txtPiezaEspecialMEZ.X + txtPiezaEspecialMEZ.Width + 16)
+                                          Y: =If(scrFDI_MEZ.Size = ScreenSize.Small, 58, 12)
+                                    - sepPiezaEspecialMEZ:
+                                        Control: Rectangle@2.3.0
+                                        Properties:
+                                          BorderColor: =RGBA(0, 0, 0, 0)
+                                          Fill: =RGBA(237, 235, 233, 1)
+                                          Height: =1
+                                          OnSelect: =Select(Parent)
+                                          Width: =Parent.TemplateWidth
+                                          Y: =Parent.TemplateHeight - Self.Height
+                  - cmpTxtFolioCotizacionAnteriorMEZ:
+                      Control: CanvasComponent
+                      ComponentName: cmpCardTxt
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Stretch
+                        DefaultValue: |
+                          =Coalesce(varDraftActual.FolioCotizacionAnterior, "" )
+                        Height: =60
+                        OnChange: |-
+                          =Patch( colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {FolioCotizacionAnterior: Self.Value} )
+                        Título: ="Folio de cotización anterior"
+                        Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Cotización o pedido anterior"
+                        Width: =Parent.Width
+                  - cmpTxtFolioPedidoAnteriorMEZ:
+                      Control: CanvasComponent
+                      ComponentName: cmpCardTxt
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Stretch
+                        DefaultValue: |
+                          =Coalesce(varDraftActual.FolioPedidoAnterior, "" )
+                        Height: =60
+                        OnChange: |-
+                          =Patch( colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {FolioPedidoAnterior: Self.Value} )
+                        Título: ="Folio de pedido anterior"
+                        Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Cotización o pedido anterior"
+                        Width: =Parent.Width
+                  - cmpTxtComentariosReferenciaMEZ:
+                      Control: CanvasComponent
+                      ComponentName: cmpCardTxt
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Stretch
+                        DefaultValue: |
+                          =Coalesce(varDraftActual.ComentariosReferencia, "" )
+                        Height: =60
+                        OnChange: |-
+                          =Patch( colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {ComentariosReferencia: Self.Value} )
+                        Título: ="Comentarios / alcance de la referencia"
+                        Visible: =cmpCarddrpTipoCotización_MEZ.Selected.Value = "Cotización o pedido anterior"
+                        Width: =Parent.Width
+                  - cmpCarddrpAcabadoMEZ:
+                      Control: CanvasComponent
+                      ComponentName: cmpCarddrp
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Stretch
+                        DefaultSelectedItem: |-
+                          =With(
+                              {_row: varDraftActual},
+                              LookUp(cmpCarddrpAcabadoMEZ.Items, Value = Coalesce(_row.Acabado, "Pintado"))
+                          )
+                        Height: =60
+                        Items: |-
+                          =Table(
+                              {Value: "Pintado"},
+                              {Value: "Galvanizado en frío"},
+                              {Value: "Galvanizado en caliente"},
+                              {Value: "Pregalvanizado"}
+                          )
+                        OnChange: |-
+                          =With(
+                              {
+                                  _acabado: Coalesce(Self.Selected.Value, ""),
+                                  _esGalv: !IsBlank(Self.Selected.Value) && Lower(Self.Selected.Value) <> "pintado"
+                              },
+                              Patch(
+                                  colMEZ_Draft,
+                                  LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId),
+                                  {
+                                      Acabado: _acabado,
+                                      GalvList: _esGalv,
+                                      TipoGalv: If(_esGalv, _acabado, ""),
+                                      PpkgGalv: If(
+                                          Lower(_acabado) = "galvanizado en frío" || Lower(_acabado) = "galvanizado en frio" || Lower(_acabado) = "galvanizado en caliente",
+                                          varDraftActual.PpkgGalv,
+                                          ""
+                                      )
+                                  }
+                              )
+                          )
+                        Título: ="Acabado"
+                        Width: =Parent.Width
+                  - cmpCardTxtPPkgGalvMEZ:
+                      Control: CanvasComponent
+                      ComponentName: cmpCardTxt
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Stretch
+                        DefaultValue: |
+                          =Coalesce(varDraftActual.PpkgGalv, "" )
+                        Height: =60
+                        OnChange: |-
+                          =Patch( colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {PpkgGalv: Self.Value} )
+                        Título: ="Precio por kilogramo"
+                        Visible: |-
+                          =With(
+                              {_acabado: Coalesce(varDraftActual.Acabado, "")},
+                              Lower(_acabado) = "galvanizado en frío" || Lower(_acabado) = "galvanizado en frio" || Lower(_acabado) = "galvanizado en caliente"
+                          )
+                        Width: =Parent.Width
+                  - ColoresContainer_MEZ:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        BorderColor: =ColorValue(varTheme.BordeSuaveHex)
+                        BorderThickness: =1
+                        DropShadow: =varTheme.Sombra
+                        Fill: =ColorValue(varTheme.SuperficieHex)
+                        RadiusBottomLeft: =varTheme.CardRadius
+                        RadiusBottomRight: =varTheme.CardRadius
+                        RadiusTopLeft: =varTheme.CardRadius
+                        RadiusTopRight: =varTheme.CardRadius
+                        FillPortions: |
+                          =0
+                        Height: =ListadoDeColoresBotonesContainer_MEZ.Height+ListadoDeColoresHeader_MEZ.Height+ListadoDeColoresGallery_MEZ.Height+32
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =10
+                        LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                        PaddingBottom: =16
+                        PaddingLeft: =16
+                        PaddingRight: =16
+                        PaddingTop: =16
+                        Width: =Parent.Width - 32
+                      Children:
+                        - ListadoDeColoresBotonesContainer_MEZ:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              FillPortions: =0
+                              Height: =40
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =16
+                            Children:
+                              - ListadoDeColoresLabel_MEZ:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    BorderColor: =RGBA(0, 0, 0, 0)
+                                    BorderStyle: =BorderStyle.None
+                                    BorderThickness: =2
+                                    Color: =ColorValue(varTheme.TextoHex)
+                                    DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                                    DisabledColor: =RGBA(161, 159, 157, 1)
+                                    FocusedBorderThickness: =4
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =16
+                                    TabIndex: =0
+                                    Text: ="Colores"
+                              - AgregarPiezaButton_1_MEZ:
+                                  Control: Button@0.0.45
+                                  Properties:
+                                    AccessibleLabel: ="Agregar Pieza Button"
+                                    Appearance: ='ButtonCanvas.Appearance'.Transparent
+                                    Icon: ="Add"
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =16
+                                    OnSelect: |-
+                                      =Collect(
+                                          colListadoColores,
+                                          {
+                                              RowId: GUID(),
+                                              SistemaId: locTabSel.SistemaId,
+                                              Pieza: "",
+                                              Color: ""
+                                          }
+                                      );
+                                    Text: ="Agregar"
+                        - ListadoDeColoresHeader_MEZ:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              BorderColor: =ColorValue(varTheme.BordeHex)
+                              BorderThickness: =1
+                              DropShadow: =DropShadow.None
+                              Fill: =ColorValue(varTheme.HeaderTablaHex)
+                              FillPortions: =0
+                              Height: =varTheme.HeaderHeight
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutGap: =10
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =16
+                              PaddingLeft: =16
+                              PaddingRight: =16
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                            Children:
+                              - lblPiezaColoresHeaderMEZ:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    BorderColor: =RGBA(0, 0, 0, 0)
+                                    BorderStyle: =BorderStyle.None
+                                    Color: =ColorValue(varTheme.TextoHex)
+                                    DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                                    DisabledColor: =RGBA(161, 159, 157, 1)
+                                    FocusedBorderThickness: =4
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =Parent.Height
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =16
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =11
+                                    TabIndex: =0
+                                    Text: ="Pieza"
+                                    Width: =Max(260, Min(420, Parent.Width * 0.32))
+                              - lblColorColoresHeaderMEZ:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    BorderColor: =RGBA(0, 0, 0, 0)
+                                    BorderStyle: =BorderStyle.None
+                                    Color: =ColorValue(varTheme.TextoHex)
+                                    DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                                    DisabledColor: =RGBA(161, 159, 157, 1)
+                                    FocusedBorderThickness: =4
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =Parent.Height
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =16
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =11
+                                    TabIndex: =0
+                                    Text: ="Color"
+                                    Width: =Max(260, Parent.Width - lblPiezaColoresHeaderMEZ.Width - lblAccionColoresHeaderMEZ.Width - 64)
+                              - lblAccionColoresHeaderMEZ:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Center
+                                    BorderColor: =RGBA(0, 0, 0, 0)
+                                    BorderStyle: =BorderStyle.None
+                                    Color: =ColorValue(varTheme.TextoHex)
+                                    DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                                    DisabledColor: =RGBA(161, 159, 157, 1)
+                                    FocusedBorderThickness: =4
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =Parent.Height
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =16
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =11
+                                    TabIndex: =0
+                                    Text: ="Accion"
+                                    Width: =64
+                        - ListadoDeColoresGallery_MEZ:
+                            Control: Gallery@2.15.0
+                            Variant: BrowseLayout_Vertical_TwoTextVariant_ver5.0
+                            Properties:
+                              AccessibleLabel: ="Listado De Colores Gallery"
+                              BorderColor: =ColorValue(varTheme.BordeSuaveHex)
+                              BorderThickness: =1
+                              FillPortions: =0
+                              Height: =If(CountRows(Self.AllItems)=0,0,Min(ListadoDeColoresGallery_MEZ.TemplateHeight*CountRows(Self.AllItems),420))
+                              Items: |-
+                                =Filter(
+                                    colListadoColores,
+                                    SistemaId = locTabSel.SistemaId
+                                )
+                              LayoutMinHeight: =16
+                              Selectable: =false
+                              TabIndex: =0
+                              TemplateSize: =varTheme.RowHeight
+                            Children:
+                              - BorrarPiezaButton_1_MEZ:
+                                  Control: Button@0.0.45
+                                  Properties:
+                                    AccessibleLabel: ="Borrar Pieza Button"
+                                    Align: =Align.Center
+                                    Appearance: ='ButtonCanvas.Appearance'.Transparent
+                                    Height: =36
+                                    Icon: ="Delete"
+                                    OnSelect: =Remove(colListadoColores, ThisItem)
+                                    Text: =""
+                                    Width: =44
+                                    X: =Parent.TemplateWidth - Self.Width - 16
+                                    Y: =12
+                              - ComentarioInput_1_MEZ:
+                                  Control: Classic/TextInput@2.3.2
+                                  Properties:
+                                    AccessibleLabel: ="Comentario Input"
+                                    BorderColor: =ColorValue(varTheme.BordeHex)
+                                    BorderThickness: =1
+                                    Color: =ColorValue(varTheme.TextoHex)
+                                    Default: =ThisItem.Pieza
+                                    DelayOutput: =true
+                                    DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                                    DisabledColor: =RGBA(161, 159, 157, 1)
+                                    DisabledFill: =RGBA(242, 242, 241, 0)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =36
+                                    HoverBorderColor: =ColorValue(varTheme.PrimarioHex)
+                                    HoverColor: =ColorValue(varTheme.TextoHex)
+                                    HoverFill: =ColorValue(varTheme.SuperficieHex)
+                                    OnChange: |-
+                                      =Patch(
+                                          colListadoColores,
+                                          ThisItem,
+                                          {
+                                              Pieza: Self.Text
+                                          }
+                                      )
+                                    PressedBorderColor: =ColorValue(varTheme.PrimarioHex)
+                                    PressedColor: =ColorValue(varTheme.TextoHex)
+                                    PressedFill: =ColorValue(varTheme.SuperficieHex)
+                                    RadiusBottomLeft: =varTheme.ControlRadius
+                                    RadiusBottomRight: =varTheme.ControlRadius
+                                    RadiusTopLeft: =varTheme.ControlRadius
+                                    RadiusTopRight: =varTheme.ControlRadius
+                                    Width: =Max(260, Min(420, Parent.TemplateWidth * 0.32))
+                                    X: =16
+                                    Y: =12
+                              - ComboboxCanvas1_MEZ:
+                                  Control: ComboBox@0.0.51
+                                  Properties:
+                                    AccessibleLabel: ="Combobox Canvas"
+                                    DefaultSelectedItems: =If(IsBlank(ThisItem.Color), Blank(), Filter(colColores, Nombre = ThisItem.Color))
+                                    Height: =36
+                                    Items: =colColores
+                                    OnChange: |-
+                                      =Patch(
+                                          colListadoColores,
+                                          ThisItem,
+                                          {
+                                              Color: Self.Selected.Nombre
+                                          }
+                                      )
+                                    Width: =Max(260, Parent.TemplateWidth - ComentarioInput_1_MEZ.Width - BorrarPiezaButton_1_MEZ.Width - 64)
+                                    X: =ComentarioInput_1_MEZ.X + ComentarioInput_1_MEZ.Width + 16
+                                    Y: =12
+                                  Children:
+                                    - Nombre1_MEZ:
+                                        Control: ComboBoxDataField@1.5.0
+                                        Variant: textualColumn
+                                        IsLocked: true
+                                        Properties:
+                                          FieldDisplayName: ="Nombre"
+                                          FieldName: ="Nombre"
+                                          FieldType: ="s"
+                                          Order: =1
+                              - ColorLabel_MEZ:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    BorderColor: =RGBA(0, 0, 0, 1)
+                                    DisabledColor: =RGBA(161, 159, 157, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =18
+                                    OnSelect: =Select(Parent)
+                                    PaddingBottom: =0
+                                    PaddingLeft: =12
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =10
+                                    Text: ="Color:"
+                                    Visible: =false
+                                    Width: =137
+                                    X: =PiezaLabel_1_MEZ.X
+                                    Y: =37
+                              - PiezaLabel_1_MEZ:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    BorderColor: =RGBA(0, 0, 0, 1)
+                                    Color: =ColorValue(varTheme.TextoHex)
+                                    DisabledColor: =RGBA(161, 159, 157, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =18
+                                    OnSelect: =Select(Parent)
+                                    PaddingBottom: =0
+                                    PaddingLeft: =12
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =10
+                                    Text: |
+                                      ="Pieza:"
+                                    Visible: =false
+                                    Width: =137
+                                    X: =14
+                              - Separator2_1_MEZ:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    BorderColor: =RGBA(0, 0, 0, 0)
+                                    Fill: =RGBA(237, 235, 233, 1)
+                                    Height: =1
+                                    OnSelect: =Select(Parent)
+                                    Width: =Parent.TemplateWidth
+                                    Y: =Parent.TemplateHeight - Self.Height
+                  - cmpCardTglInsMEZ:
+                      Control: CanvasComponent
+                      ComponentName: cmpCardTgl
+                      Properties:
+                        Default: |-
+                          =Coalesce(
+                              varDraftActual.Ins,
+                              false
+                          )
+                        Height: =60
+                        OnCheck: |
+                          =Patch(
+                              colMEZ_Draft,
+                              LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId),
+                              {Ins: true}
+                          )
+                        OnUncheck: |-
+                          =Patch(
+                              colMEZ_Draft,
+                              LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId),
+                              {Ins: false}
+                          )
+                        Título: ="¿Requiere instalación?"
+                  - cmpTxtCostoInstalacionMEZ:
+                      Control: CanvasComponent
+                      ComponentName: cmpCardTxt
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Stretch
+                        DefaultValue: |
+                          =Coalesce(varDraftActual.CostoInstalacion, "" )
+                        Height: =60
+                        OnChange: |-
+                          =Patch( colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {CostoInstalacion: Self.Value} )
+                        Título: ="Costo de instalación"
+                        Visible: =cmpCardTglInsMEZ.Value = true
+                        Width: =Parent.Width
+                  - cmpTxtComentariosInstalacionMEZ:
+                      Control: CanvasComponent
+                      ComponentName: cmpCardTxt
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Stretch
+                        DefaultValue: |
+                          =Coalesce(varDraftActual.ComentariosInstalacion, "" )
+                        Height: =60
+                        OnChange: |-
+                          =Patch( colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {ComentariosInstalacion: Self.Value} )
+                        Título: ="Comentarios de instalación"
+                        Visible: =cmpCardTglInsMEZ.Value = true
+                        Width: =Parent.Width
+                  - cmpCardTglMemoriaMEZ:
+                      Control: CanvasComponent
+                      ComponentName: cmpCardTgl
+                      Properties:
+                        Default: |-
+                          =Coalesce(
+                              varDraftActual.MemCalc,
+                              false
+                          )
+                        Height: =60
+                        OnCheck: |
+                          =Patch(
+                              colMEZ_Draft,
+                              LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId),
+                              {MemCalc: true}
+                          )
+                        OnUncheck: |-
+                          =Patch(
+                              colMEZ_Draft,
+                              LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId),
+                              {MemCalc: false}
+                          )
+                        Título: ="¿Requiere memoria de cálculo?"
+                  - cmpTxtCostoMemCalculoMEZ:
+                      Control: CanvasComponent
+                      ComponentName: cmpCardTxt
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Stretch
+                        DefaultValue: |
+                          =Coalesce(varDraftActual.CostoMemCalculo, "" )
+                        Height: =60
+                        OnChange: |-
+                          =Patch( colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {CostoMemCalculo: Self.Value} )
+                        Título: ="Costo de memoria de cálculo"
+                        Visible: =cmpCardTglMemoriaMEZ.Value = true
+                        Width: =Parent.Width
+                  - cmpCardTglUnirseEstructuraMEZ:
+                      Control: CanvasComponent
+                      ComponentName: cmpCardTgl
+                      Properties:
+                        Default: |-
+                          =Coalesce(
+                              varDraftActual.EstProv,
+                              false
+                          )
+                        Height: =60
+                        OnCheck: |-
+                          =Patch(
+                              colMEZ_Draft,
+                              LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId),
+                              {EstProv: true}
+                          )
+                        OnUncheck: |-
+                          =Patch(
+                              colMEZ_Draft,
+                              LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId),
+                              {EstProv: false}
+                          )
+                        Título: ="¿Unirse a estructura del cliente?"
+                  - cmpTxtComentariosEstructuraMEZ:
+                      Control: CanvasComponent
+                      ComponentName: cmpCardTxt
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Stretch
+                        DefaultValue: |
+                          =Coalesce(varDraftActual.ComentariosEstructura, "" )
+                        Height: =60
+                        OnChange: |-
+                          =Patch( colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {ComentariosEstructura: Self.Value} )
+                        Título: ="Comentarios / requisitos"
+                        Visible: =cmpCardTglUnirseEstructuraMEZ.Value = true
+                        Width: =Parent.Width
+                  - cmpCardTglProveedoresExternosMEZ:
+                      Control: CanvasComponent
+                      ComponentName: cmpCardTgl
+                      Properties:
+                        Default: |-
+                          =Coalesce(
+                              varDraftActual.ProvExternos,
+                              false
+                          )
+                        Height: =60
+                        OnCheck: |-
+                          =Patch(
+                              colMEZ_Draft,
+                              LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId),
+                              {ProvExternos: true}
+                          )
+                        OnUncheck: |-
+                          =Patch(
+                              colMEZ_Draft,
+                              LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId),
+                              {ProvExternos: false}
+                          )
+                        Título: ="¿Se consideran proveedores externos?"
+                  - cntProveedoresExternosMEZ:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        BorderColor: =ColorValue(varTheme.BordeSuaveHex)
+                        BorderThickness: =1
+                        DropShadow: =varTheme.Sombra
+                        Fill: =ColorValue(varTheme.SuperficieHex)
+                        RadiusBottomLeft: =varTheme.CardRadius
+                        RadiusBottomRight: =varTheme.CardRadius
+                        RadiusTopLeft: =varTheme.CardRadius
+                        RadiusTopRight: =varTheme.CardRadius
+                        FillPortions: =0
+                        Height: =cntProveedoresExternosBtnMEZ.Height+cntProveedoresExternosHeaderMEZ.Height+galProveedoresExternosMEZ.Height+32
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =10
+                        LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                        LayoutMinHeight: =16
+                        LayoutMinWidth: =0
+                        PaddingBottom: =16
+                        PaddingLeft: =If(scrFDI_MEZ.Size = ScreenSize.Small, 10, 16)
+                        PaddingRight: =If(scrFDI_MEZ.Size = ScreenSize.Small, 10, 16)
+                        PaddingTop: =16
+                        Visible: =cmpCardTglProveedoresExternosMEZ.Value = true
+                        Width: =Parent.Width - 32
+                      Children:
+                        - cntProveedoresExternosBtnMEZ:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              FillPortions: =0
+                              Height: =40
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =0
+                            Children:
+                              - lblProveedoresExternosMEZ:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    BorderColor: =RGBA(0, 0, 0, 0)
+                                    BorderStyle: =BorderStyle.None
+                                    Color: =ColorValue(varTheme.TextoHex)
+                                    DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                                    DisabledColor: =RGBA(161, 159, 157, 1)
+                                    FocusedBorderThickness: =4
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =0
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =varTheme.Label
+                                    TabIndex: =0
+                                    Text: ="Proveedores externos"
+                                    Width: =Parent.Width - btnAgregarProveedorExternoMEZ.Width - 16
+                              - btnAgregarProveedorExternoMEZ:
+                                  Control: Button@0.0.45
+                                  Properties:
+                                    AccessibleLabel: ="btn Agregar Proveedor Externo MEZ"
+                                    Appearance: ='ButtonCanvas.Appearance'.Transparent
+                                    Icon: ="Add"
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =0
+                                    OnSelect: |-
+                                      =Collect(
+                                          colProveedoresExternos,
+                                          {
+                                              RowId: GUID(),
+                                              SistemaId: locTabSel.SistemaId,
+                                              Proveedor: "",
+                                              Alcance: ""
+                                          }
+                                      );
+                                    Text: ="Agregar"
+                                    Width: =120
+                        - cntProveedoresExternosHeaderMEZ:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              BorderColor: =ColorValue(varTheme.BordeHex)
+                              BorderThickness: =1
+                              DropShadow: =DropShadow.None
+                              Fill: =ColorValue(varTheme.HeaderTablaHex)
+                              FillPortions: =0
+                              Height: =varTheme.HeaderHeight
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutGap: =16
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =0
+                              PaddingLeft: =16
+                              PaddingRight: =16
+                            Children:
+                              - lblProveedorExternoHeaderMEZ:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =ColorValue(varTheme.TextoHex)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =Parent.Height
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =0
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =11
+                                    TabIndex: =0
+                                    Text: ="Proveedor"
+                                    Width: =Max(220, Min(420, Parent.Width * 0.35))
+                              - lblAlcanceProveedorHeaderMEZ:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =ColorValue(varTheme.TextoHex)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =Parent.Height
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =0
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =11
+                                    TabIndex: =0
+                                    Text: ="Alcance"
+                                    Width: =Max(260, Parent.Width - lblProveedorExternoHeaderMEZ.Width - lblAccionProveedorHeaderMEZ.Width - 64)
+                              - lblAccionProveedorHeaderMEZ:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Center
+                                    Color: =ColorValue(varTheme.TextoHex)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =Parent.Height
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =0
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =11
+                                    TabIndex: =0
+                                    Text: ="Acción"
+                                    Width: =64
+                        - galProveedoresExternosMEZ:
+                            Control: Gallery@2.15.0
+                            Variant: BrowseLayout_Vertical_TwoTextVariant_ver5.0
+                            Properties:
+                              AccessibleLabel: ="gal Proveedores Externos MEZ"
+                              BorderColor: =ColorValue(varTheme.BordeSuaveHex)
+                              BorderThickness: =1
+                              FillPortions: =0
+                              Height: =If(CountRows(Self.AllItems)=0,0,Min(galProveedoresExternosMEZ.TemplateHeight*CountRows(Self.AllItems),420))
+                              Items: |-
+                                =Filter(
+                                    colProveedoresExternos,
+                                    SistemaId = locTabSel.SistemaId
+                                )
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =0
+                              Selectable: =false
+                              TabIndex: =0
+                              TemplateSize: =If(scrFDI_MEZ.Size = ScreenSize.Small, 108, 60)
+                            Children:
+                              - btnBorrarProveedorExternoMEZ:
+                                  Control: Button@0.0.45
+                                  Properties:
+                                    AccessibleLabel: ="Borrar Proveedor Externo"
+                                    Align: =Align.Center
+                                    Appearance: ='ButtonCanvas.Appearance'.Transparent
+                                    Height: =36
+                                    Icon: ="Delete"
+                                    OnSelect: =Remove(colProveedoresExternos, ThisItem)
+                                    Text: =""
+                                    Width: =44
+                                    X: =Parent.TemplateWidth - Self.Width - 16
+                                    Y: =12
+                              - txtProveedorExternoMEZ:
+                                  Control: Classic/TextInput@2.3.2
+                                  Properties:
+                                    AccessibleLabel: ="txt Proveedor Externo MEZ"
+                                    BorderColor: =ColorValue(varTheme.BordeHex)
+                                    BorderThickness: =1
+                                    Color: =ColorValue(varTheme.TextoHex)
+                                    Default: =ThisItem.Proveedor
+                                    DelayOutput: =true
+                                    Font: =Font.'Segoe UI'
+                                    Height: =36
+                                    OnChange: |-
+                                      =Patch(
+                                          colProveedoresExternos,
+                                          ThisItem,
+                                          {Proveedor: Self.Text}
+                                      )
+                                    RadiusBottomLeft: =varTheme.ControlRadius
+                                    RadiusBottomRight: =varTheme.ControlRadius
+                                    RadiusTopLeft: =varTheme.ControlRadius
+                                    RadiusTopRight: =varTheme.ControlRadius
+                                    Width: =If(scrFDI_MEZ.Size = ScreenSize.Small, Parent.TemplateWidth - btnBorrarProveedorExternoMEZ.Width - 48, Max(220, Min(420, Parent.TemplateWidth * 0.35)))
+                                    X: =16
+                                    Y: =12
+                              - txtAlcanceProveedorExternoMEZ:
+                                  Control: Classic/TextInput@2.3.2
+                                  Properties:
+                                    AccessibleLabel: ="txt Alcance Proveedor Externo MEZ"
+                                    BorderColor: =ColorValue(varTheme.BordeHex)
+                                    BorderThickness: =1
+                                    Color: =ColorValue(varTheme.TextoHex)
+                                    Default: =ThisItem.Alcance
+                                    DelayOutput: =true
+                                    Font: =Font.'Segoe UI'
+                                    Height: =36
+                                    Mode: =TextMode.MultiLine
+                                    OnChange: |-
+                                      =Patch(
+                                          colProveedoresExternos,
+                                          ThisItem,
+                                          {Alcance: Self.Text}
+                                      )
+                                    RadiusBottomLeft: =varTheme.ControlRadius
+                                    RadiusBottomRight: =varTheme.ControlRadius
+                                    RadiusTopLeft: =varTheme.ControlRadius
+                                    RadiusTopRight: =varTheme.ControlRadius
+                                    Width: =If(scrFDI_MEZ.Size = ScreenSize.Small, Parent.TemplateWidth - 32, Max(260, Parent.TemplateWidth - txtProveedorExternoMEZ.Width - btnBorrarProveedorExternoMEZ.Width - 64))
+                                    X: =If(scrFDI_MEZ.Size = ScreenSize.Small, 16, txtProveedorExternoMEZ.X + txtProveedorExternoMEZ.Width + 16)
+                                    Y: =If(scrFDI_MEZ.Size = ScreenSize.Small, 58, 12)
+                              - sepProveedorExternoMEZ:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    BorderColor: =RGBA(0, 0, 0, 0)
+                                    Fill: =RGBA(237, 235, 233, 1)
+                                    Height: =1
+                                    OnSelect: =Select(Parent)
+                                    Width: =Parent.TemplateWidth
+                                    Y: =Parent.TemplateHeight - Self.Height
+                  - cmpTxtConsideracionesGeneralesMEZ:
+                      Control: CanvasComponent
+                      ComponentName: cmpCardTxt
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Stretch
+                        DefaultValue: |
+                          =Coalesce(varDraftActual.ConsEsp, "" )
+                        Height: =60
+                        OnChange: |-
+                          =Patch( colMEZ_Draft, LookUp(colMEZ_Draft, SistemaId = locTabSel.SistemaId), {ConsEsp: Self.Value} )
+                        Título: ="Comentarios generales del sistema"
+                        Width: =Parent.Width

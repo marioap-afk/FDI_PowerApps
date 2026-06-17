@@ -1,0 +1,123 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+#
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+#
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  scrFDI_OT:
+    Properties:
+      Fill: =ColorValue(varTheme.FondoHex)
+      LoadingSpinnerColor: =RGBA(0, 120, 212, 1)
+      OnVisible: |-
+        =Set(varVista, "Sistemas");
+        If(
+            IsBlank(locTabSel) && CountRows(Filter(colTabs, TipoKey = "OT")) > 0,
+            UpdateContext({locTabSel: First(Filter(colTabs, TipoKey = "OT"))})
+        );
+        Set(varDraftActual, LookUp(colOT_Draft, SistemaId = locTabSel.SistemaId))
+    Children:
+      - cntFDISistemaOT:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =ColorValue(varTheme.FondoHex)
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =12
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingBottom: =If(scrFDI_OT.Size = ScreenSize.Small, 8, 16)
+            PaddingLeft: =If(scrFDI_OT.Size = ScreenSize.Small, 8, 16)
+            PaddingRight: =If(scrFDI_OT.Size = ScreenSize.Small, 8, 16)
+            PaddingTop: =If(scrFDI_OT.Size = ScreenSize.Small, 8, 16)
+            Width: =Parent.Width
+          Children:
+            - cntFDISistemaBarOT:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  BorderColor: =ColorValue(varTheme.BordeSuaveHex)
+                  BorderThickness: =1
+                  DropShadow: =varTheme.Sombra
+                  Fill: =ColorValue(varTheme.SuperficieHex)
+                  RadiusBottomLeft: =varTheme.CardRadius
+                  RadiusBottomRight: =varTheme.CardRadius
+                  RadiusTopLeft: =varTheme.CardRadius
+                  RadiusTopRight: =varTheme.CardRadius
+                  FillPortions: =0
+                  Height: =If(scrFDI_OT.Size = ScreenSize.Small, 52, 60)
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =8
+                  LayoutMinHeight: =44
+                  LayoutMinWidth: =0
+                  PaddingBottom: =6
+                  PaddingLeft: =If(scrFDI_OT.Size = ScreenSize.Small, 8, 12)
+                  PaddingRight: =If(scrFDI_OT.Size = ScreenSize.Small, 8, 12)
+                  PaddingTop: =6
+                Children:
+                  - icoFDISistemaVolverOT:
+                      Control: Classic/Icon@2.5.0
+                      Properties:
+                        AccessibleLabel: ="Volver"
+                        AlignInContainer: =AlignInContainer.Center
+                        BorderColor: =RGBA(0, 0, 0, 0)
+                        Color: =ColorValue(varTheme.PrimarioHex)
+                        DisabledBorderColor: =RGBA(245, 245, 245, 1)
+                        DisabledColor: =RGBA(225, 223, 221, 1)
+                        DisabledFill: =RGBA(0, 0, 0, 0)
+                        Height: =If(scrFDI_OT.Size = ScreenSize.Small, 36, 40)
+                        HoverBorderColor: =RGBA(0, 0, 0, 0)
+                        HoverColor: =RGBA(16, 110, 190, 1)
+                        HoverFill: =RGBA(0, 0, 0, 0)
+                        Icon: =Icon.BackArrow
+                        OnSelect: |-
+                          =Set(varFDIRetornarSistemas, true);
+                          Navigate(scrFDI, ScreenTransition.None, {locTabSel: locTabSel})
+                        PressedBorderColor: =RGBA(0, 0, 0, 0)
+                        PressedColor: =RGBA(16, 110, 190, 1)
+                        PressedFill: =RGBA(0, 0, 0, 0)
+                        TabIndex: =0
+                        Tooltip: ="Volver"
+                        Width: =If(scrFDI_OT.Size = ScreenSize.Small, 36, 40)
+                  - lblFDISistemaTituloOT:
+                      Control: Label@2.5.1
+                      Properties:
+                        BorderColor: =RGBA(0, 0, 0, 0)
+                        Color: =ColorValue(varTheme.TextoHex)
+                        DisabledColor: =RGBA(161, 159, 157, 1)
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Semibold
+                        Height: =Parent.Height - 12
+                        LayoutMinWidth: =0
+                        Size: =If(scrFDI_OT.Size = ScreenSize.Small, varTheme.Label, varTheme.H3)
+                        Text: =Coalesce(locTabSel.NombreSistema, "Otro")
+                        Width: =Max(0, Parent.Width - icoFDISistemaVolverOT.Width - 24)
+                        Wrap: =false
+            - cntOT:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutMinHeight: =16
+                  LayoutMinWidth: =16
+                  PaddingBottom: =8
+                  PaddingLeft: =8
+                  PaddingRight: =8
+                  PaddingTop: =8
+                  Visible: =CountRows(colTabs) > 0 && Coalesce(locTabSel.TipoKey, "") = "OT"
+                  Width: =Parent.Width
+                Children:
+                  - HtmlEditor2:
+                      Control: CodeComponent
+                      ComponentName: fdi_FDI.HtmlEditor
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Stretch
+                        DefaultHtml: =Coalesce(varDraftActual.HTMLCol, "" )
+                        FillPortions: =1
+                        Height: =If(scrFDI_OT.Size = ScreenSize.Small, Max(320, Min(460, App.Height * 0.45)), Max(360, Min(560, App.Height * 0.5)))
+                        OnChange: |-
+                          =Patch( colOT_Draft, LookUp(colOT_Draft, SistemaId = locTabSel.SistemaId), {HTMLCol: Self.HtmlText} )

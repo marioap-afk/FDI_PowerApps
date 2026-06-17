@@ -1,0 +1,40 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+#
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+#
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+ComponentDefinitions:
+  cmplbllabel:
+    DefinitionType: CanvasComponent
+    AccessAppScope: true
+    CustomProperties:
+      AlineaciónHorizontal:
+        PropertyKind: Input
+        DisplayName: Alineación horizontal
+        Description: Utilizar Align.Left, Align.Center o Align.Right
+        DataType: Text
+        Default: =Align.Left
+      Texto:
+        PropertyKind: Input
+        DisplayName: Texto
+        Description: Propiedad personalizada
+        DataType: Text
+        Default: ="Texto"
+    Properties:
+      Height: =varTheme.Label+14
+      Width: =100
+    Children:
+      - lbllabel:
+          Control: Text@0.0.51
+          Properties:
+            Align: =cmplbllabel.AlineaciónHorizontal
+            Font: =
+            Height: =Parent.Height
+            Size: =varTheme.Label
+            Text: =cmplbllabel.Texto
+            VerticalAlign: =VerticalAlign.Middle
+            Weight: =varTheme.LabelEspesor
+            Width: =Parent.Width
