@@ -98,8 +98,11 @@ El repo puede estar en uno de dos formatos. Inspeccionar `Other/Customizations.x
 ## 4. `[Content_Types].xml`
 
 Defaults `xml`/`json`/`msapp` (+ `js`/`css`/`resx` solo si hay `Controls/` embebidos)
-y `<Override>` para `/CanvasApps/mapc_fdi_412ec_BackgroundImageUri`. Reutilizar el del
-export bueno de referencia (`FDI_unmanaged_2026-06-09.zip`).
+y `<Override>` para `/CanvasApps/mapc_fdi_412ec_BackgroundImageUri`. Usar el de
+referencia **commiteado** en `.codex/skills/fdi-app-packaging/Content_Types.xml`
+(formato pac: BOM + `text/xml`; cubre las 8 partes de la solución). Los ZIP de
+`solutions/` **no** se commitean y pueden no existir, así que **no** dependas de ellos
+para el `[Content_Types].xml`.
 
 ## 5. Generar el ZIP unmanaged
 
