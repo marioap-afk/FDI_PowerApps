@@ -49,3 +49,5 @@ El script es de solo lectura. No usa `Remove-PnPList`, `Remove-PnPField`, `Set-P
 - `FDI_System_Lists_Field_Reference.md`: modelo normalizado de listas
   SharePoint, campos por lista y tipos de dato recomendados para cargar o crear
   la persistencia de los sistemas de `scrFDI`.
+- `FDI_RBAC_Lists_Field_Reference.md`: listas y campos de control de acceso por
+  roles (`Usuarios`, `Permisos`), con la matriz de permisos como datos semilla.
