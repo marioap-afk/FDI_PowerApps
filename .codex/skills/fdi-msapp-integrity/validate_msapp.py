@@ -34,12 +34,22 @@ def load(msapp_path):
     raw = open(msapp_path, "rb").read()
     return raw, zipfile.ZipFile(io.BytesIO(raw))
 
+def norm_path(name):
+    return name.replace("\\", "/")
+
+def read_member(zf, name):
+    try:
+        return zf.read(name)
+    except KeyError:
+        return zf.read(name.replace("/", "\\"))
+
 def src_screens(zf):
     """{nombre_pantalla: nº de 'Control:' } desde Src/*.pa.yaml (1 archivo por pantalla)."""
     out = {}
     for n in zf.namelist():
-        if n.startswith("Src/") and n.endswith(".pa.yaml"):
-            base = os.path.basename(n)[:-len(".pa.yaml")]
+        norm = norm_path(n)
+        if norm.startswith("Src/") and norm.endswith(".pa.yaml"):
+            base = os.path.basename(norm)[:-len(".pa.yaml")]
             if base.startswith("scr"):
                 txt = zf.read(n).decode("utf-8", "replace")
                 out[base] = len(re.findall(r'(?m)^\s*Control: ', txt))
@@ -49,7 +59,8 @@ def controls_screens(zf):
     """{nombre_pantalla: nº de instancias de control} desde Controls/*.json (TopParent=screen)."""
     out = {}
     for n in zf.namelist():
-        if n.startswith("Controls/") and n.endswith(".json"):
+        norm = norm_path(n)
+        if norm.startswith("Controls/") and norm.endswith(".json"):
             try: d = json.loads(zf.read(n))
             except Exception: continue
             tp = d.get("TopParent", {}) if isinstance(d, dict) else {}
@@ -75,9 +86,10 @@ def src_yaml_issues(zf):
     if yaml is None:
         return [("(PyYAML no disponible)", "no se pudo validar la sintaxis de Src/")]
     for n in zf.namelist():
-        if not (n.startswith("Src/") and n.endswith(".pa.yaml")):
+        norm = norm_path(n)
+        if not (norm.startswith("Src/") and norm.endswith(".pa.yaml")):
             continue
-        base = os.path.basename(n)
+        base = os.path.basename(norm)
         try:
             node = yaml.compose(io.StringIO(zf.read(n).decode("utf-8", "replace")), Loader=yaml.SafeLoader)
         except Exception as e:
@@ -99,7 +111,8 @@ def main():
     msapp = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_MSAPP
     print("="*64); print(f"FDI .msapp integrity — {os.path.basename(msapp)}"); print("="*64)
     raw, zf = load(msapp)
-    names = zf.namelist()
+    raw_names = zf.namelist()
+    names = [norm_path(n) for n in raw_names]
 
     # --- 0) CRÍTICO: Src/*.pa.yaml válido (lo que abre Power Apps Studio) ---
     print("\n[0] Validez de Src/*.pa.yaml (lo que abre Studio)")
@@ -112,12 +125,13 @@ def main():
     # --- 1) Todos los JSON internos parsean + Header coherente ---
     print("\n[1] Estructura interna")
     bad = []
-    for n in names:
-        if n.lower().endswith(".json"):
+    for n in raw_names:
+        norm = norm_path(n)
+        if norm.lower().endswith(".json"):
             try: json.loads(zf.read(n))
-            except Exception as e: bad.append(f"{n}: {e}")
+            except Exception as e: bad.append(f"{norm}: {e}")
     (ok if not bad else fail)(f"{sum(n.lower().endswith('.json') for n in names)} json internos parsean" if not bad else f"json inválidos: {bad[:2]}")
-    hdr = json.loads(zf.read("Header.json")) if "Header.json" in names else {}
+    hdr = json.loads(read_member(zf, "Header.json")) if "Header.json" in names else {}
     (ok if hdr.get("DocVersion") and hdr.get("MSAppStructureVersion") else fail)(
         f"Header DocVersion={hdr.get('DocVersion')} StructVer={hdr.get('MSAppStructureVersion')}")
 
@@ -148,7 +162,7 @@ def main():
 
     # --- 5) Registro de templates (used ⊆ registrados; PCF/first-party exentos) ---
     print("\n[5] Registro de templates")
-    tmpl = json.loads(zf.read("References/Templates.json"))
+    tmpl = json.loads(read_member(zf, "References/Templates.json"))
     reg = set()
     for k in ("UsedTemplates", "ComponentTemplates", "PcfTemplates"):
         for e in tmpl.get(k, []):
@@ -164,8 +178,9 @@ def main():
             for v in node.values(): walk(v)
         elif isinstance(node, list):
             for v in node: walk(v)
-    for n in names:
-        if (n.startswith("Controls/") or n.startswith("Components/")) and n.endswith(".json"):
+    for n in raw_names:
+        norm = norm_path(n)
+        if (norm.startswith("Controls/") or norm.startswith("Components/")) and norm.endswith(".json"):
             walk(json.loads(zf.read(n)))
     miss = sorted(k for k, e in used.items() if k not in reg and not e)
     (ok if not miss else fail)(f"{len(used)} templates usados, todos registrados (PCF/first-party exentos)"
