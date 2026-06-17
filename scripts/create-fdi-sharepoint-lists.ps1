@@ -90,6 +90,7 @@ function Ensure-Field($listTitle, $col) {
     "Boolean" { Add-PnPField -List $listTitle -DisplayName $col.D -InternalName $internal -Type Boolean | Out-Null }
     "Number"  { Add-PnPField -List $listTitle -DisplayName $col.D -InternalName $internal -Type Number  -AddToDefaultView | Out-Null }
     "Choice"  { Add-PnPField -List $listTitle -DisplayName $col.D -InternalName $internal -Type Choice -Choices $col.Choices -AddToDefaultView | Out-Null }
+    "MultiChoice" { Add-PnPField -List $listTitle -DisplayName $col.D -InternalName $internal -Type MultiChoice -Choices $col.Choices -AddToDefaultView | Out-Null }
     "Lookup"  {
       $t = Get-PnPList -Identity $col.Target -ErrorAction SilentlyContinue
       if (-not $t) { Write-Warning "  Lookup '$($col.D)' omitido: la lista destino '$($col.Target)' no existe."; return }
@@ -225,7 +226,40 @@ $hijas = @(
   @{ Title = "Hija Proveedores Externos"; Cols = ($H + @((Col "Proveedor" "Text"),(Col "Alcance" "Note"))) },
   @{ Title = "Hija Listado Piezas";       Cols = ($H + @((Col "Pieza" "Text"),(Col "Cantidad" "Text"),(Col "Comentarios" "Note"))) }
 )
-$all = @($bridge) + $detalle + $hijas
+# ---------- RBAC: permisos de usuario (ver docs/FDI_Permisos_Usuario_Design.md §3.2/§3.3) ----------
+# Roles (taxonomía §3.3). 'Vendedor' NO es rol: es el atributo EsVendedor en Usuarios.
+$ROLES = @(
+  "Admin",
+  "Gerencia técnico-comercial", "Gerencia ventas", "Gerencia diseño",
+  "Coordinador técnico-comercial", "Coordinador ventas", "Coordinador diseño",
+  "Ingeniero", "Usuario"
+)
+$ESTADO_USR = @("Pendiente", "Activo", "Inactivo")  # default 'Pendiente' lo pone la app al auto-registrar
+# 'Title' (texto, default de SharePoint) = nombre completo del usuario; no se declara aquí.
+$usuarios = @(
+  (Col "Correo" "Text" $null $null $true $true),       # Lower(User().Email); clave de búsqueda, indexada
+  (Col "Roles" "MultiChoice" $ROLES),                  # multi-rol; vacío al registrarse
+  (Col "EsVendedor" "Boolean"),
+  (Col "Estado" "Choice" $ESTADO_USR),
+  (Col "Comentarios" "Note")
+)
+# 'Permisos' = matriz rol -> capacidad (una fila por rol). 'Rol' = clave (Choice = $ROLES).
+$permisos = @(
+  (Col "Rol" "Choice" $ROLES $null $true $true),
+  (Col "PuedeVerTodo" "Boolean"),
+  (Col "PuedeAsignar" "Boolean"),
+  (Col "PuedeTrabajar" "Boolean"),
+  (Col "PuedeAprobar" "Boolean"),
+  (Col "PuedeEnviarCliente" "Boolean"),
+  (Col "PuedeEditarMaestros" "Boolean"),
+  (Col "PuedeAdministrar" "Boolean")
+)
+$rbac = @(
+  @{ Title = "Usuarios"; Cols = $usuarios },
+  @{ Title = "Permisos"; Cols = $permisos }
+)
+
+$all = @($bridge) + $detalle + $hijas + $rbac
 
 # ---------- ejecución ----------
 Write-Host "Conectando a $Url ..." -ForegroundColor Cyan

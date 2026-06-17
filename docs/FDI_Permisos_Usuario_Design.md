@@ -111,6 +111,12 @@ restringir quién puede serlo).
 | `PuedeEditarMaestros` | Sí/No | Editar catálogos (colores, listas, etc.). |
 | `PuedeAdministrar` | Sí/No | Gestionar `Usuarios`/`Permisos` (admin in-app). |
 
+> **Provisión (P1):** estas dos listas ya están definidas en `scripts/create-fdi-sharepoint-lists.ps1`
+> (grupo `$rbac`: `Usuarios` + `Permisos`). Internal names = display names (sin acentos/espacios).
+> `Usuarios.Roles` es **MultiChoice** con la taxonomía §3.3; `Estado` por defecto `Pendiente` lo pone
+> la app al auto-registrar (P2). Correr el script (con `-DryRun` primero) crea las listas; luego se
+> **puebla `Permisos`** con la matriz §3.3. `-DropExisting` **no** borra `Usuarios`/`Permisos`.
+
 ### 3.3 Taxonomía de roles y matriz (D5 resuelta)
 
 **Roles** (dimensión *nivel* × *área*, + operativos):
