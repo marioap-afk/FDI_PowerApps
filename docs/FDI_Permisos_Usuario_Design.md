@@ -15,7 +15,7 @@
 
 - **`Cotizadores`** — Persona `Nombre` + Choice **`Puesto`** → define el rol del usuario.
 - **`Vendedores`** — Persona `Vendedor` + `Activo` → define si el usuario es vendedor (entidad
-  de negocio ligada a `Cotizaciones 2026.VendedoresLookUp`).
+  de negocio ligada a `Cotizaciones.VendedoresLookUp`).
 
 **Toda la lógica está en `App.OnStart`** (se calcula una sola vez al abrir la app):
 
@@ -57,7 +57,7 @@ restringir quién puede serlo).
 ## 2. Problemas a resolver
 
 1. 🔴 **El filtrado por rol es cosmético, no seguridad.** Es un `Filter()` cliente sobre la lista.
-   Un usuario con acceso a `Cotizaciones 2026` puede leer/editar todo por otra vía. La seguridad
+   Un usuario con acceso a `Cotizaciones` puede leer/editar todo por otra vía. La seguridad
    real vive en la capa de datos (ver §3.6 / D1).
 2. 🔴 **Capacidades declaradas pero sin cablear** (`asignar`, `editar maestros`, `admin`,
    `coordinador`): falsa sensación de RBAC y deriva. Hay que **cablearlas o eliminarlas**.
@@ -209,7 +209,7 @@ Una sola fuente, fácil de auditar.
 usuario puede leer directo en SharePoint. Por eso, **enfoque en capas**:
 
 1. **Ahora (fácil):** gating de UI default-deny + **acotar los permisos directos** de las listas
-   (el usuario común interactúa por la app, no con acceso amplio de edición a `Cotizaciones 2026` y
+   (el usuario común interactúa por la app, no con acceso amplio de edición a `Cotizaciones` y
    listas de sistemas).
 2. **Solo si hay regla dura** "un vendedor NO debe ver lo de otro": **permisos a nivel de item**
    (flujo de Power Automate que rompe herencia al crear/asignar y otorga dueño + coordinadores/admin).
@@ -258,7 +258,7 @@ usuario puede leer directo en SharePoint. Por eso, **enfoque en capas**:
 | **P5** | **Pantalla Admin in-app** (`scrAdmin`): listar `Pendiente`/usuarios, asignar roles/`EsVendedor`/`Estado`, editar `Permisos`. | 🟠 Media | P1,D7 |
 | **P6** | Seguridad a nivel de item (Power Automate) — **solo si** se confirma confidencialidad entre vendedores. | 🟢 Condicional | D1 |
 | **P7** | Gobernanza: documentar alta/baja y "surte efecto al reiniciar"; auditoría opcional. | 🟡 Baja | — |
-| **P8** | Migrar `Cotizaciones 2026.VendedoresLookUp` para referenciar `Usuarios` (retirar dependencia de `Vendedores`). | 🟡 Baja | P1 |
+| **P8** | Migrar `Cotizaciones.VendedoresLookUp` para referenciar `Usuarios` (retirar dependencia de `Vendedores`). | 🟡 Baja | P1 |
 
 ---
 

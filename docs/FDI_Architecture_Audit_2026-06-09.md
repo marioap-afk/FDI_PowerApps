@@ -20,11 +20,11 @@ Fecha: 2026-06-09. Alcance: solucion exportada local y Canvas App desempaquetada
 | `scrContactosClientes` | 94 | 802 | `Clientes`, `Contactos` |
 | `scrCorreo` | 36 | 418 | `Cotizadores` |
 | `scrDise_oSistema` | 41 | 284 | - |
-| `scrFDI` | 208 | 3119 | `Bitácora cotizaciones`, `Ciudades_List`, `Clientes`, `Contactos`, `Cotizaciones 2026`, `Estados_List`, `Folios cotizaciones`, `Países_List`, `Sistema Otro`, `Sistema selectivo`, `Sistemas por cotización` |
-| `scrGenerarFolio` | 57 | 472 | `Contactos`, `Cotizaciones 2026`, `Folios cotizaciones` |
-| `scrGenerarPedido` | 62 | 473 | `Cotizaciones 2026` |
+| `scrFDI` | 208 | 3119 | `Bitácora cotizaciones`, `Ciudades_List`, `Clientes`, `Contactos`, `Cotizaciones`, `Estados_List`, `Folios cotizaciones`, `Países_List`, `Sistema Otro`, `Sistema selectivo`, `Sistemas por cotización` |
+| `scrGenerarFolio` | 57 | 472 | `Contactos`, `Cotizaciones`, `Folios cotizaciones` |
+| `scrGenerarPedido` | 62 | 473 | `Cotizaciones` |
 | `scrInicio` | 39 | 418 | - |
-| `scrMisCotizaciones` | 404 | 3811 | `Archivos temporales`, `Bitácora cotizaciones`, `Carpeta cotizaciones`, `Cotizaciones 2026`, `Cotizadores`, `Solicitudes en cotizaciones`, `Vendedores` |
+| `scrMisCotizaciones` | 404 | 3811 | `Archivos temporales`, `Bitácora cotizaciones`, `Carpeta cotizaciones`, `Cotizaciones`, `Cotizadores`, `Solicitudes en cotizaciones`, `Vendedores` |
 
 ### Componentes
 | Componente | Controles | Usos |
@@ -100,7 +100,7 @@ Fecha: 2026-06-09. Alcance: solucion exportada local y Canvas App desempaquetada
 | `Ciudades_List` | SharePointList | True | 32 | https://montillacom.sharepoint.com/sites/Pruebas/Lists/Ciudades_List/AllItems.aspx |
 | `Clientes` | SharePointList | True | 33 | https://montillacom.sharepoint.com/sites/Pruebas/Lists/Clientes/AllItems.aspx |
 | `Contactos` | SharePointList | True | 33 | https://montillacom.sharepoint.com/sites/Pruebas/Lists/Contactos/AllItems.aspx |
-| `Cotizaciones 2026` | SharePointList | True | 67 | https://montillacom.sharepoint.com/sites/Pruebas/Lists/Cotizaciones 2026/AllItems.aspx |
+| `Cotizaciones` | SharePointList | True | 67 | https://montillacom.sharepoint.com/sites/Pruebas/Lists/Cotizaciones/AllItems.aspx |
 | `Cotizadores` | SharePointList | True | 33 | https://montillacom.sharepoint.com/sites/Pruebas/Lists/Cotizadores/AllItems.aspx |
 | `Estados_List` | SharePointList | True | 30 | https://montillacom.sharepoint.com/sites/Pruebas/Lists/Estados_List/AllItems.aspx |
 | `Folios cotizaciones` | SharePointList | True | 29 | https://montillacom.sharepoint.com/sites/Pruebas/Lists/FoliosCotizaciones/AllItems.aspx |
@@ -166,10 +166,10 @@ Hotspots por llamadas Power Fx rastreadas:
 Targets con mas `Patch`:
 - `colSEL_Draft`: 18
 - `colTheme`: 17
-- `Cotizaciones 2026`: 10
+- `Cotizaciones`: 10
 - `Bitácora cotizaciones`: 10
 - `colListadoTarimas`: 6
-- `\r\n        'Cotizaciones 2026`: 5
+- `\r\n        'Cotizaciones`: 5
 - `Folios cotizaciones`: 4
 - `Solicitudes en cotizaciones`: 4
 - `Carpeta cotizaciones`: 3
@@ -212,7 +212,7 @@ Formulas duplicadas frecuentes (muestra):
 ## Fase 5 - SharePoint
 | Fuente | Indices recomendados |
 | --- | --- |
-| `Cotizaciones 2026` | `ID`, `Folio`, `Estatus`, `Created`, `Modified`, `ClienteLookUp`, `CotizadorLookUp` |
+| `Cotizaciones` | `ID`, `Folio`, `Estatus`, `Created`, `Modified`, `ClienteLookUp`, `CotizadorLookUp` |
 | `Sistema selectivo` | `ID`, `Title`, `Modified` |
 | `Países_List` | `ID`, `Title`, `Modified` |
 | `Folios cotizaciones` | `ID`, `Title`, `Modified` |

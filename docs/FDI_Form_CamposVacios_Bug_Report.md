@@ -51,7 +51,7 @@ En `scrFDI` conviven las dos formas y solo una es la correcta para cada control:
 | Control | Usa | ¿Correcto? |
 | --- | --- | --- |
 | `ClienteComboBox` (`Items=Filter(Clientes,…)`) | `Selected.**ID**` | ✅ (la columna SP es `ID`) — su autollenado de Dirección funciona |
-| `ContactoLookUpComboBox` (`Items=Choices('Cotizaciones 2026'.ContactoLookUp)`) | `Selected.**Id**` (líneas 2396 y 2472) | ❌ resuelve null en runtime |
+| `ContactoLookUpComboBox` (`Items=Choices('Cotizaciones'.ContactoLookUp)`) | `Selected.**Id**` (líneas 2396 y 2472) | ❌ resuelve null en runtime |
 | `VendedorComboBox` | `Selected.**Id**` (línea 1759) | ⚠️ revisar (solo guarda Id/Value, no autollena otros campos) |
 
 Conteo en `scrFDI`: **`Selected.Id` (minúscula) ×3** vs **`Selected.ID` (Mayúscula) ×4**.

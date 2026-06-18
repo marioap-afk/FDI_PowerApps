@@ -410,11 +410,11 @@ function Get-DeleteClassification {
 
 function New-RecommendedIndexProfiles {
     return @(
-        [pscustomobject]@{ ListTitle = "Cotizaciones 2026"; Column = "Created"; Priority = "P0"; Reason = "Filtro base delegable actual para evitar list view threshold." },
-        [pscustomobject]@{ ListTitle = "Cotizaciones 2026"; Column = "Estado"; Priority = "P0"; Reason = "Filtro funcional frecuente por estado de cotización." },
-        [pscustomobject]@{ ListTitle = "Cotizaciones 2026"; Column = "VendedoresLookUp"; Priority = "P1"; Reason = "Filtro de Mis Cotizaciones por vendedor." },
-        [pscustomobject]@{ ListTitle = "Cotizaciones 2026"; Column = "Folio"; Priority = "P1"; Reason = "Búsqueda y navegación por folio." },
-        [pscustomobject]@{ ListTitle = "Cotizaciones 2026"; Column = "Modified"; Priority = "P2"; Reason = "Filtro alterno para ventana móvil de 18 meses o auditoría reciente." },
+        [pscustomobject]@{ ListTitle = "Cotizaciones"; Column = "Created"; Priority = "P0"; Reason = "Filtro base delegable actual para evitar list view threshold." },
+        [pscustomobject]@{ ListTitle = "Cotizaciones"; Column = "Estado"; Priority = "P0"; Reason = "Filtro funcional frecuente por estado de cotización." },
+        [pscustomobject]@{ ListTitle = "Cotizaciones"; Column = "VendedoresLookUp"; Priority = "P1"; Reason = "Filtro de Mis Cotizaciones por vendedor." },
+        [pscustomobject]@{ ListTitle = "Cotizaciones"; Column = "Folio"; Priority = "P1"; Reason = "Búsqueda y navegación por folio." },
+        [pscustomobject]@{ ListTitle = "Cotizaciones"; Column = "Modified"; Priority = "P2"; Reason = "Filtro alterno para ventana móvil de 18 meses o auditoría reciente." },
         [pscustomobject]@{ ListTitle = "Solicitudes en cotizaciones"; Column = "FolioLookUp"; Priority = "P1"; Reason = "Galerías filtradas por folio seleccionado." },
         [pscustomobject]@{ ListTitle = "Solicitudes en cotizaciones"; Column = "Estado"; Priority = "P2"; Reason = "Seguimiento y vistas por estado de solicitud." },
         [pscustomobject]@{ ListTitle = "Bitácora cotizaciones"; Column = "FolioLookUp"; Priority = "P1"; Reason = "Lectura de bitácora por cotización seleccionada." },

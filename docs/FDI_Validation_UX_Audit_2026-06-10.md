@@ -2,7 +2,7 @@
 
 ## Resumen ejecutivo
 
-Se auditó `scrFDI` y `scrCorreo` desde el `.msapp` actual. `scrFDI` contiene un formulario real, `CotizaciónForm`, contra `Cotizaciones 2026`. `scrCorreo` no contiene Forms/DataCards; envía por `Correo_Teams_Solicitud_Cotización.Run(destinatario, asunto, html, cc)`.
+Se auditó `scrFDI` y `scrCorreo` desde el `.msapp` actual. `scrFDI` contiene un formulario real, `CotizaciónForm`, contra `Cotizaciones`. `scrCorreo` no contiene Forms/DataCards; envía por `Correo_Teams_Solicitud_Cotización.Run(destinatario, asunto, html, cc)`.
 
 No se encontraron DataCards ocultos con `Required=true`. El error genérico venía de `EnviarButton`, que dependía de `CotizaciónForm.Valid` y mostraba "Faltan campos obligatorios" sin identificar el campo. Los riesgos reales estaban en campos requeridos visibles cuyo `Update` puede quedar en `Blank()` aunque el usuario vea parte del formulario lleno, especialmente contacto, correo, teléfono y lookups de envío.
 
@@ -18,7 +18,7 @@ No se encontraron DataCards ocultos con `Required=true`. El error genérico ven�
 
 | Form | DataSource | Item | Mode | Participa | Riesgo |
 | --- | --- | --- | --- | --- | --- |
-| `CotizaciónForm` | `Cotizaciones 2026` | `varCotizacionDraft` | `FormMode.New` / `EditForm` si hay borrador | `SubmitForm(CotizaciónForm)` | Requería validación explícita antes de `SubmitForm`. |
+| `CotizaciónForm` | `Cotizaciones` | `varCotizacionDraft` | `FormMode.New` / `EditForm` si hay borrador | `SubmitForm(CotizaciónForm)` | Requería validación explícita antes de `SubmitForm`. |
 | `scrCorreo` | N/A | N/A | N/A | No tiene Form/DataCards | Solo usa controles de correo y Flow. |
 
 | DataCard | Visible | Required | Update | Riesgo |

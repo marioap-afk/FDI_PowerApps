@@ -40,8 +40,8 @@ Filtro base (líneas 218–222):
 ```powerfx
 baseRol: If(
     puedeVerTodo,
-    Filter('Cotizaciones 2026', Created >= fechaMin && Estado.Value <> "Borrador"),
-    Filter('Cotizaciones 2026', Created >= fechaMin && Estado.Value <> "Borrador" && VendedoresLookUp.Id = vendedorIdActual)
+    Filter('Cotizaciones', Created >= fechaMin && Estado.Value <> "Borrador"),
+    Filter('Cotizaciones', Created >= fechaMin && Estado.Value <> "Borrador" && VendedoresLookUp.Id = vendedorIdActual)
 )
 ```
 
@@ -78,7 +78,7 @@ sobre Choice **sí** delega):
 
 ```powerfx
 Filter(
-    'Cotizaciones 2026',
+    'Cotizaciones',
     Created >= fechaMin && (
         Estado.Value = "Sin asignar" ||
         Estado.Value = "En proceso" ||
@@ -96,10 +96,10 @@ Filter(
 Verificar en Studio que **desaparezca el aviso de delegación** (línea azul) en esa fórmula.
 
 **Opción B — con schema (más limpio y robusto, requiere aviso):** añadir columna **Sí/No
-`EsBorrador`** a `Cotizaciones 2026` (default `false`; `true` solo en borradores) y filtrar:
+`EsBorrador`** a `Cotizaciones` (default `false`; `true` solo en borradores) y filtrar:
 
 ```powerfx
-Filter('Cotizaciones 2026', Created >= fechaMin && EsBorrador = false && …)
+Filter('Cotizaciones', Created >= fechaMin && EsBorrador = false && …)
 ```
 
 `= false` sobre booleano es delegable.

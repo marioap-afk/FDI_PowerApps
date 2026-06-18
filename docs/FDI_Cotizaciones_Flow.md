@@ -37,7 +37,7 @@ en la Bitácora.**
 
 | Lista | Rol | Columnas clave |
 | --- | --- | --- |
-| `Cotizaciones 2026` | La cotización | `Estado`, `Estado desde`, `AsignadoSnapShot`, `VendedoresLookUp`, `Folder path`, `Folio` |
+| `Cotizaciones` | La cotización | `Estado`, `Estado desde`, `AsignadoSnapShot`, `VendedoresLookUp`, `Folder path`, `Folio` |
 | `Bitácora cotizaciones` | Registro de auditoría (1 renglón por evento) | ver sección Bitácora |
 | `Solicitudes en cotizaciones` | Solicitudes de información / actualización | `Estado de solicitud`, `FolioLookUp`, `Tipo de solicitud` |
 | `Carpeta cotizaciones` | Biblioteca de documentos | `En revisión?`, `Estado de revisión`, `Folder path`, `Link to item` |

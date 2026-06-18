@@ -108,7 +108,7 @@ Codex aplicó los **quick wins** y separó la captura por sistema **en `Src/`** 
    la colección destino durante su construcción.
 5. **`LookUp` de borrador probablemente no delegable** (corre en **cada** apertura):
    ```powerapps
-   LookUp('Cotizaciones 2026',
+   LookUp('Cotizaciones',
        Created >= DateAdd(Today(), -18, TimeUnit.Months) &&
        Estado.Value = "Borrador" && 'Created By'.Email = User().Email)
    ```

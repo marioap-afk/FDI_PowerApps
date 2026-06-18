@@ -28,7 +28,7 @@ Columnas requeridas para activar persistencia de detalle (mismas comunes que Din
 
 | Columna requerida | Tipo esperado | Uso |
 | --- | --- | --- |
-| `CotizaciónID` | Lookup a `Cotizaciones 2026` | Relacionar el sistema con la cotizacion. |
+| `CotizaciónID` | Lookup a `Cotizaciones` | Relacionar el sistema con la cotizacion. |
 | `SistemasID` | Lookup a `Sistemas por cotización` | Relacionar el detalle con el registro puente. |
 | `Folio` | Texto | Trazabilidad de cotizacion. |
 | `Title` | Texto | Nombre del sistema en la tab. |
@@ -99,7 +99,7 @@ Columnas requeridas para activar persistencia de detalle (mismas comunes que Din
 | `N2A` Altura máxima de nave | Criterios para configuración de niveles | Text input numerico | `N2` = Sí | `Altura crítica de niveles`; payload max | `colDRV_Draft` | Requerido si toggle Sí. | Resumen a columna. |
 | `N2B` Altura mínima de nave | Criterios para configuración de niveles | Text input numerico | `N2` = Sí | `Altura crítica de niveles`; payload min | `colDRV_Draft` | Requerido si toggle Sí. | Resumen a columna. |
 | `N3` ¿Adjuntar Imagen/Layout? | Criterios para configuración de niveles | Toggle | Método = `Diseño` | Adjuntos de cotizacion; payload indicador | `colDRV_Draft` | Si Sí, usar adjuntos. | No crea columna nueva. |
-| `N3B` Adjuntar archivos | Criterios para configuración de niveles | Adjuntos existentes | `N3` = Sí | Adjuntos de `Cotizaciones 2026` | N/A | Archivo recomendado si toggle Sí. | Se apoya en adjuntos del formulario principal. |
+| `N3B` Adjuntar archivos | Criterios para configuración de niveles | Adjuntos existentes | `N3` = Sí | Adjuntos de `Cotizaciones` | N/A | Archivo recomendado si toggle Sí. | Se apoya en adjuntos del formulario principal. |
 | `N4` ¿Existe definición por parte del cliente? | Criterios para configuración de niveles | Toggle | Método = `Diseño` | `PayloadSistemaJson.ExisteDefCliente` | `colDRV_Draft` | Si Sí, capturar comentarios. | Decision, no text input. |
 | `N4A` Comentarios de configuración del cliente | Criterios para configuración de niveles | Text input | `N4` = Sí | `Definido por el cliente` | `colDRV_Draft` | Requerido si toggle Sí. | Columna requerida. |
 | `SEG` Sección: Elementos de seguridad | Elementos de seguridad | Grupo condicional | Método = `Diseño` | `Elementos de seguridad`; payload detalle | `colElementoSeguridad` | Visible solo en diseno. | Tabla compartida filtrada por `SistemaId`. |
@@ -109,7 +109,7 @@ Columnas requeridas para activar persistencia de detalle (mismas comunes que Din
 | `PE1` ¿Considerar piezas especiales? | Piezas especiales | Toggle | Método = `Diseño` | `PayloadSistemaJson.TienePiezasEspeciales` | `colDRV_Draft` | Si Sí, mostrar tabla. | Decision, no text input. |
 | `PE2` Tabla: Piezas especiales | Piezas especiales | Tabla editable | `PE1` = Sí | `PayloadSistemaJson.PiezasEspeciales` | `colPiezasEspeciales` | Requiere pieza por renglon. | Sin columna directa. |
 | `LP` Tabla: Listado de piezas | Listado de piezas | Tabla editable | Método = `Listado de piezas` | `Piezas de usuario`; `PayloadSistemaJson.Piezas` | `colListadoPiezas` | Requiere pieza por renglon. | Resumen a columna requerida. |
-| `CLI` Adjuntar planos/diseño de cliente | Planos/diseño de cliente | Adjuntos existentes | Método = `Planos/diseño de cliente` | Adjuntos de `Cotizaciones 2026`; payload indicador | N/A | Archivo recomendado. | El cliente provee sus planos; aun así se captura/verifica la Tarima (sección `T`) para corroborar que los perfiles fabricados cumplen. Se apoya en adjuntos del formulario principal. |
+| `CLI` Adjuntar planos/diseño de cliente | Planos/diseño de cliente | Adjuntos existentes | Método = `Planos/diseño de cliente` | Adjuntos de `Cotizaciones`; payload indicador | N/A | Archivo recomendado. | El cliente provee sus planos; aun así se captura/verifica la Tarima (sección `T`) para corroborar que los perfiles fabricados cumplen. Se apoya en adjuntos del formulario principal. |
 | `FOL1` Folio de cotización anterior | Referencia anterior | Text input | Método = `Cotización o pedido anterior` | `Número de pedido o cotización`; payload detalle | `colDRV_Draft` | Opcional si pedido existe. | No excluye pedido. |
 | `FOL2` Folio de pedido anterior | Referencia anterior | Text input | Método = `Cotización o pedido anterior` | `Número de pedido o cotización`; payload detalle | `colDRV_Draft` | Opcional si cotizacion existe. | No excluye cotizacion. |
 | `FOL3` Comentarios / alcance de la referencia | Referencia anterior | Text input | Método = `Cotización o pedido anterior` | `PayloadSistemaJson.ComentariosReferencia` | `colDRV_Draft` | Texto recomendado. | Sin columna directa. |

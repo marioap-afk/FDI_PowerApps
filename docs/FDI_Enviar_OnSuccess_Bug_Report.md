@@ -26,7 +26,7 @@ post-proceso muere a medias → el usuario ve "no funciona".
 
 ## Evidencia (Monitor build `f8bd8ef`)
 
-- `SubmitForm` del form principal → `patchRow Cotizaciones 2026/95` → **HTTP 200** (guardó).
+- `SubmitForm` del form principal → `patchRow Cotizaciones/95` → **HTTP 200** (guardó).
 - **Tras el 200 NO hay ninguna escritura** a `Sistemas por cotización` (tabla `b1ee600e…`) ni a las
   `Hija *` / `Sistema *`, y **no hay `Navigate(scrCorreo)`**. El `OnSuccess` se cortó casi al inicio.
 - (El registro se guardó con `ContactoLookUp: {Id: null}` — coletazo del bug de `Selected.Id`.)

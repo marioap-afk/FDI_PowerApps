@@ -6,7 +6,7 @@ El flujo queda dividido en dos responsabilidades:
 
 - `scrFDI` guarda la solicitud, los sistemas y el detalle repetible en SharePoint.
 - `scrCorreo` envía un correo HTML editable usando el flujo `Correo_Teams_Solicitud_Cotización`.
-- `Creación_FDI` se dispara cuando `Cotizaciones 2026.Estado = "Sin asignar"` y `CarpetaCreada` no es verdadero.
+- `Creación_FDI` se dispara cuando `Cotizaciones.Estado = "Sin asignar"` y `CarpetaCreada` no es verdadero.
 - La generación avanzada del Excel usa una plantilla base y un payload JSON multi-sistema construido desde listas normalizadas.
 
 ## Causa Raíz
@@ -37,7 +37,7 @@ También el correo recibía HTML, pero el flujo lo envolvía en `<p>...</p>`, lo
   - guarda el detalle de `SEL`, `DIN`, `PBK`, `DRV`, `CAN`, `MEZ`, `CFL`, `MZL` y `OT` en sus listas de SharePoint;
   - guarda tablas repetibles en listas hijas por `SistemaCotizaciónID`;
   - mantiene `PayloadSistemaJson` solo como espejo de compatibilidad para registros `SEL` legacy;
-  - actualiza `Cotizaciones 2026.Estado` a `Sin asignar`;
+  - actualiza `Cotizaciones.Estado` a `Sin asignar`;
   - limpia colecciones de captura al terminar.
 
 Las listas y columnas vienen de `docs/sharepoint/FDI_System_Lists_Field_Reference.md`; la app no renombra columnas.
@@ -73,7 +73,7 @@ El parámetro `CuerpoHTML` ahora se pasa al correo como HTML crudo:
 
 Esto permite tablas, vínculos e imágenes embebidas si el control de Power Apps las produce como HTML.
 
-Después de enviar el correo, el mismo flujo publica la notificación Teams. Para conservar el contrato de 4 parámetros desde Power Apps, el flujo obtiene el folio desde el asunto automático, busca `Cotizaciones 2026` con `$filter` por `Folio` y `$top = 1`, publica Teams y marca `Notificado = true` cuando encuentra el registro.
+Después de enviar el correo, el mismo flujo publica la notificación Teams. Para conservar el contrato de 4 parámetros desde Power Apps, el flujo obtiene el folio desde el asunto automático, busca `Cotizaciones` con `$filter` por `Folio` y `$top = 1`, publica Teams y marca `Notificado = true` cuando encuentra el registro.
 
 `Notificación_correo_teams` queda como flujo legado/redundante por ahora. No se elimina, pero el cierre de solicitud ya no depende de su trigger SharePoint.
 
@@ -149,7 +149,7 @@ El script no modifica la plantilla original.
 
 `Creación_FDI` ahora sigue este flujo:
 
-1. Trigger: item creado/modificado en `Cotizaciones 2026`.
+1. Trigger: item creado/modificado en `Cotizaciones`.
 2. Condiciones de trigger: `Estado.Value = "Sin asignar"` y `CarpetaCreada != true`.
 3. Protección interna: continuar solo si `CarpetaCreada != true`.
 4. Crear/validar carpeta de año, carpeta de cotización y subcarpeta `Docs`.
@@ -210,7 +210,7 @@ outputs('Payload_Global_JSON')
 ## Pendientes
 
 - Decidir si los adjuntos del correo deben salir de:
-  - adjuntos del item de `Cotizaciones 2026`;
+  - adjuntos del item de `Cotizaciones`;
   - archivos en carpeta `Docs`;
   - parámetro nuevo del flujo de correo.
 - Implementar adjuntos requiere ampliar el contrato del flujo de correo.
@@ -221,7 +221,7 @@ outputs('Payload_Global_JSON')
 
 El fixture `examples/fdi-sharepoint-records.sample.json` simula:
 
-- una cotización `Cotizaciones 2026`;
+- una cotización `Cotizaciones`;
 - registros en `Sistemas por cotización`;
 - registros de detalle normalizados;
 - registros de listas hijas agrupables por `SistemaCotizaciónID`;
