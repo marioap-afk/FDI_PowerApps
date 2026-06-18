@@ -2,22 +2,22 @@
   "properties": {
     "connectionReferences": {
       "shared_sharepointonline": {
-        "api": {
-          "name": "shared_sharepointonline"
-        },
+        "runtimeSource": "embedded",
         "connection": {
           "connectionReferenceLogicalName": "mapc_sharedsharepointonline_d481e"
         },
-        "runtimeSource": "embedded"
+        "api": {
+          "name": "shared_sharepointonline"
+        }
       },
       "shared_excelonlinebusiness": {
-        "api": {
-          "name": "shared_excelonlinebusiness"
-        },
+        "runtimeSource": "embedded",
         "connection": {
           "connectionReferenceLogicalName": "new_sharedexcelonlinebusiness_acbf1"
         },
-        "runtimeSource": "embedded"
+        "api": {
+          "name": "shared_excelonlinebusiness"
+        }
       }
     },
     "definition": {
@@ -59,10 +59,18 @@
                   "type": "string",
                   "x-ms-content-hint": "TEXT",
                   "x-ms-dynamically-added": true
+                },
+                "text_1": {
+                  "description": "Sesión temporal de adjuntos FDI a procesar",
+                  "title": "SesionFDI",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
                 }
               },
               "required": [
-                "text"
+                "text",
+                "text_1"
               ]
             }
           }
@@ -70,20 +78,8 @@
       },
       "actions": {
         "Condition": {
-          "type": "If",
-          "expression": {
-            "and": [
-              {
-                "equals": [
-                  "@not(coalesce(outputs('CotizacionActual')?['CarpetaCreada'], false))",
-                  true
-                ]
-              }
-            ]
-          },
           "actions": {
             "Try_Anio": {
-              "type": "Scope",
               "actions": {
                 "Get_folder_metadata_using_path": {
                   "type": "OpenApiConnection",
@@ -99,10 +95,10 @@
                     }
                   }
                 }
-              }
+              },
+              "type": "Scope"
             },
             "Catch_Anio": {
-              "type": "Scope",
               "actions": {
                 "Create_new_folder": {
                   "type": "OpenApiConnection",
@@ -125,10 +121,10 @@
                   "TimedOut",
                   "Failed"
                 ]
-              }
+              },
+              "type": "Scope"
             },
             "Try_Cotización": {
-              "type": "Scope",
               "actions": {
                 "Get_folder_metadata_using_path_1": {
                   "type": "OpenApiConnection",
@@ -154,10 +150,10 @@
                   "Succeeded",
                   "Failed"
                 ]
-              }
+              },
+              "type": "Scope"
             },
             "Catch_Cotización": {
-              "type": "Scope",
               "actions": {
                 "Create_new_folder_1": {
                   "type": "OpenApiConnection",
@@ -180,10 +176,10 @@
                   "Failed",
                   "TimedOut"
                 ]
-              }
+              },
+              "type": "Scope"
             },
             "Try_Docs": {
-              "type": "Scope",
               "actions": {
                 "Get_folder_metadata_using_path_2": {
                   "type": "OpenApiConnection",
@@ -209,10 +205,10 @@
                   "Succeeded",
                   "Failed"
                 ]
-              }
+              },
+              "type": "Scope"
             },
             "Catch_Docs": {
-              "type": "Scope",
               "actions": {
                 "Create_new_folder_2": {
                   "type": "OpenApiConnection",
@@ -235,9 +231,20 @@
                   "TimedOut",
                   "Failed"
                 ]
-              }
+              },
+              "type": "Scope"
             },
             "Get_folder_metadata_using_path_3_Docs": {
+              "runAfter": {
+                "Catch_Docs": [
+                  "Succeeded",
+                  "Skipped"
+                ],
+                "Try_Docs": [
+                  "Succeeded",
+                  "Failed"
+                ]
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -249,19 +256,222 @@
                   "operationId": "GetFolderMetadataByPath",
                   "connectionName": "shared_sharepointonline"
                 }
+              }
+            },
+            "Get_adjuntos_temporales_FDI": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "table": "4317d03a-bbcb-4499-a38b-f9de52fad4f8",
+                  "$filter": "@concat('Destino eq ''', triggerBody()?['text_1'], '''')",
+                  "$top": 500
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "GetItems",
+                  "connectionName": "shared_sharepointonline"
+                }
               },
               "runAfter": {
-                "Catch_Docs": [
-                  "Succeeded",
-                  "Skipped"
-                ],
-                "Try_Docs": [
-                  "Succeeded",
-                  "Failed"
+                "Get_folder_metadata_using_path_3_Docs": [
+                  "Succeeded"
                 ]
               }
             },
+            "Apply_to_each_AdjuntoTemporal": {
+              "type": "Foreach",
+              "foreach": "@body('Get_adjuntos_temporales_FDI')?['value']",
+              "actions": {
+                "AdjuntoTemporal_FolderName": {
+                  "type": "Compose",
+                  "inputs": "@concat('Sistema ', string(coalesce(items('Apply_to_each_AdjuntoTemporal')?['Versi_x00f3_n'], items('Apply_to_each_AdjuntoTemporal')?['ID'])), ' - ', if(contains(coalesce(items('Apply_to_each_AdjuntoTemporal')?['Comentarios'], ''), '|'), last(split(coalesce(items('Apply_to_each_AdjuntoTemporal')?['Comentarios'], ''), '|')), coalesce(items('Apply_to_each_AdjuntoTemporal')?['Comentarios'], items('Apply_to_each_AdjuntoTemporal')?['Title'])))"
+                },
+                "Try_Docs_AdjuntoTemporal": {
+                  "type": "Scope",
+                  "actions": {
+                    "Get_folder_metadata_Docs_AdjuntoTemporal": {
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "parameters": {
+                          "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                          "path": "@concat('/Carpeta cotizaciones/', variables('varYear'), '/', outputs('NombreCarpeta'), '/Docs/', outputs('AdjuntoTemporal_FolderName'))"
+                        },
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                          "operationId": "GetFolderMetadataByPath",
+                          "connectionName": "shared_sharepointonline"
+                        }
+                      }
+                    }
+                  },
+                  "runAfter": {
+                    "AdjuntoTemporal_FolderName": [
+                      "Succeeded"
+                    ]
+                  }
+                },
+                "Catch_Docs_AdjuntoTemporal": {
+                  "type": "Scope",
+                  "actions": {
+                    "Create_folder_Docs_AdjuntoTemporal": {
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "parameters": {
+                          "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                          "table": "dd92d2ae-9940-483d-bf7e-2ee98b44cdce",
+                          "parameters/path": "@concat('/', variables('varYear'), '/', outputs('NombreCarpeta'), '/Docs/', outputs('AdjuntoTemporal_FolderName'))"
+                        },
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                          "operationId": "CreateNewFolder",
+                          "connectionName": "shared_sharepointonline"
+                        }
+                      }
+                    }
+                  },
+                  "runAfter": {
+                    "Try_Docs_AdjuntoTemporal": [
+                      "TimedOut",
+                      "Failed"
+                    ]
+                  }
+                },
+                "Get_folder_metadata_Docs_AdjuntoTemporal_Final": {
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                      "path": "@concat('/Carpeta cotizaciones/', variables('varYear'), '/', outputs('NombreCarpeta'), '/Docs/', outputs('AdjuntoTemporal_FolderName'))"
+                    },
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "operationId": "GetFolderMetadataByPath",
+                      "connectionName": "shared_sharepointonline"
+                    }
+                  },
+                  "runAfter": {
+                    "Catch_Docs_AdjuntoTemporal": [
+                      "Succeeded",
+                      "Skipped"
+                    ],
+                    "Try_Docs_AdjuntoTemporal": [
+                      "Succeeded",
+                      "Failed"
+                    ]
+                  }
+                },
+                "Get_attachments_AdjuntoTemporal": {
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                      "table": "4317d03a-bbcb-4499-a38b-f9de52fad4f8",
+                      "itemId": "@items('Apply_to_each_AdjuntoTemporal')?['ID']"
+                    },
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "operationId": "GetAttachments",
+                      "connectionName": "shared_sharepointonline"
+                    }
+                  },
+                  "runAfter": {
+                    "Get_folder_metadata_Docs_AdjuntoTemporal_Final": [
+                      "Succeeded"
+                    ]
+                  }
+                },
+                "Apply_to_each_ArchivoTemporal": {
+                  "type": "Foreach",
+                  "foreach": "@body('Get_attachments_AdjuntoTemporal')",
+                  "actions": {
+                    "Get_attachment_content_AdjuntoTemporal": {
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "parameters": {
+                          "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                          "table": "4317d03a-bbcb-4499-a38b-f9de52fad4f8",
+                          "itemId": "@items('Apply_to_each_AdjuntoTemporal')?['ID']",
+                          "attachmentId": "@items('Apply_to_each_ArchivoTemporal')?['Id']"
+                        },
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                          "operationId": "GetAttachmentContent",
+                          "connectionName": "shared_sharepointonline"
+                        }
+                      }
+                    },
+                    "Create_file_AdjuntoTemporal": {
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "parameters": {
+                          "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                          "folderPath": "@outputs('Get_folder_metadata_Docs_AdjuntoTemporal_Final')?['body/Path']",
+                          "name": "@items('Apply_to_each_ArchivoTemporal')?['DisplayName']",
+                          "body": "@body('Get_attachment_content_AdjuntoTemporal')"
+                        },
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                          "operationId": "CreateFile",
+                          "connectionName": "shared_sharepointonline"
+                        }
+                      },
+                      "runAfter": {
+                        "Get_attachment_content_AdjuntoTemporal": [
+                          "Succeeded"
+                        ]
+                      },
+                      "runtimeConfiguration": {
+                        "contentTransfer": {
+                          "transferMode": "Chunked"
+                        }
+                      }
+                    }
+                  },
+                  "runAfter": {
+                    "Get_attachments_AdjuntoTemporal": [
+                      "Succeeded"
+                    ]
+                  }
+                },
+                "Delete_item_AdjuntoTemporal": {
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                      "table": "4317d03a-bbcb-4499-a38b-f9de52fad4f8",
+                      "id": "@items('Apply_to_each_AdjuntoTemporal')?['ID']"
+                    },
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "operationId": "DeleteItem",
+                      "connectionName": "shared_sharepointonline"
+                    }
+                  },
+                  "runAfter": {
+                    "Apply_to_each_ArchivoTemporal": [
+                      "Succeeded"
+                    ]
+                  }
+                }
+              },
+              "runAfter": {
+                "Get_adjuntos_temporales_FDI": [
+                  "Succeeded"
+                ]
+              },
+              "runtimeConfiguration": {
+                "concurrency": {
+                  "repetitions": 1
+                }
+              }
+            },
             "Update_Cotizacion_FolderPath": {
+              "runAfter": {
+                "Get_folder_metadata_using_path_3_Docs": [
+                  "Succeeded"
+                ]
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -276,14 +486,14 @@
                   "operationId": "PatchItem",
                   "connectionName": "shared_sharepointonline"
                 }
-              },
-              "runAfter": {
-                "Get_folder_metadata_using_path_3_Docs": [
-                  "Succeeded"
-                ]
               }
             },
             "FDI_Crear": {
+              "runAfter": {
+                "FDI_Existing_Metadata": [
+                  "Failed"
+                ]
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -298,11 +508,6 @@
                   "connectionName": "shared_sharepointonline"
                 }
               },
-              "runAfter": {
-                "FDI_Existing_Metadata": [
-                  "Failed"
-                ]
-              },
               "runtimeConfiguration": {
                 "contentTransfer": {
                   "transferMode": "Chunked"
@@ -310,6 +515,11 @@
               }
             },
             "Update_item": {
+              "runAfter": {
+                "Cotizador_propiedades": [
+                  "Succeeded"
+                ]
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -325,14 +535,17 @@
                   "operationId": "PatchItem",
                   "connectionName": "shared_sharepointonline"
                 }
-              },
-              "runAfter": {
-                "Cotizador_propiedades": [
-                  "Succeeded"
-                ]
               }
             },
             "Cotizador_Metadata": {
+              "runAfter": {
+                "Run_FDI_Office_Script": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "%252fRecursos%252fCotizador%2bMontilla.xlsm": "/Recursos/Cotizador Montilla.xlsm"
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -344,17 +557,17 @@
                   "operationId": "GetFileMetadata",
                   "connectionName": "shared_sharepointonline"
                 }
-              },
+              }
+            },
+            "Cotizador_Contenido": {
               "runAfter": {
-                "Run_FDI_Office_Script": [
+                "Cotizador_Metadata": [
                   "Succeeded"
                 ]
               },
               "metadata": {
                 "%252fRecursos%252fCotizador%2bMontilla.xlsm": "/Recursos/Cotizador Montilla.xlsm"
-              }
-            },
-            "Cotizador_Contenido": {
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -367,17 +580,14 @@
                   "operationId": "GetFileContent",
                   "connectionName": "shared_sharepointonline"
                 }
-              },
-              "runAfter": {
-                "Cotizador_Metadata": [
-                  "Succeeded"
-                ]
-              },
-              "metadata": {
-                "%252fRecursos%252fCotizador%2bMontilla.xlsm": "/Recursos/Cotizador Montilla.xlsm"
               }
             },
             "Cotización_crear": {
+              "runAfter": {
+                "Cotizador_Contenido": [
+                  "Succeeded"
+                ]
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -392,11 +602,6 @@
                   "connectionName": "shared_sharepointonline"
                 }
               },
-              "runAfter": {
-                "Cotizador_Contenido": [
-                  "Succeeded"
-                ]
-              },
               "runtimeConfiguration": {
                 "contentTransfer": {
                   "transferMode": "Chunked"
@@ -404,6 +609,11 @@
               }
             },
             "Cotizador_propiedades": {
+              "runAfter": {
+                "Cotización_crear": [
+                  "Succeeded"
+                ]
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -419,14 +629,14 @@
                   "operationId": "PatchFileItem",
                   "connectionName": "shared_sharepointonline"
                 }
-              },
-              "runAfter": {
-                "Cotización_crear": [
-                  "Succeeded"
-                ]
               }
             },
             "Get_sistemas_puente": {
+              "runAfter": {
+                "Get_folder_metadata_using_path_3_Docs": [
+                  "Succeeded"
+                ]
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -441,14 +651,14 @@
                   "operationId": "GetItems",
                   "connectionName": "shared_sharepointonline"
                 }
-              },
-              "runAfter": {
-                "Get_folder_metadata_using_path_3_Docs": [
-                  "Succeeded"
-                ]
               }
             },
             "Get_sistemas_sel": {
+              "runAfter": {
+                "Get_sistemas_puente": [
+                  "Succeeded"
+                ]
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -463,14 +673,14 @@
                   "operationId": "GetItems",
                   "connectionName": "shared_sharepointonline"
                 }
-              },
+              }
+            },
+            "Get_sistemas_din": {
               "runAfter": {
                 "Get_sistemas_puente": [
                   "Succeeded"
                 ]
-              }
-            },
-            "Get_sistemas_din": {
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -485,14 +695,14 @@
                   "operationId": "GetItems",
                   "connectionName": "shared_sharepointonline"
                 }
-              },
+              }
+            },
+            "Get_sistemas_pbk": {
               "runAfter": {
                 "Get_sistemas_puente": [
                   "Succeeded"
                 ]
-              }
-            },
-            "Get_sistemas_pbk": {
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -507,14 +717,14 @@
                   "operationId": "GetItems",
                   "connectionName": "shared_sharepointonline"
                 }
-              },
+              }
+            },
+            "Get_sistemas_drv": {
               "runAfter": {
                 "Get_sistemas_puente": [
                   "Succeeded"
                 ]
-              }
-            },
-            "Get_sistemas_drv": {
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -529,14 +739,14 @@
                   "operationId": "GetItems",
                   "connectionName": "shared_sharepointonline"
                 }
-              },
+              }
+            },
+            "Get_sistemas_can": {
               "runAfter": {
                 "Get_sistemas_puente": [
                   "Succeeded"
                 ]
-              }
-            },
-            "Get_sistemas_can": {
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -551,14 +761,14 @@
                   "operationId": "GetItems",
                   "connectionName": "shared_sharepointonline"
                 }
-              },
+              }
+            },
+            "Get_sistemas_mez": {
               "runAfter": {
                 "Get_sistemas_puente": [
                   "Succeeded"
                 ]
-              }
-            },
-            "Get_sistemas_mez": {
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -573,14 +783,14 @@
                   "operationId": "GetItems",
                   "connectionName": "shared_sharepointonline"
                 }
-              },
+              }
+            },
+            "Get_sistemas_cfl": {
               "runAfter": {
                 "Get_sistemas_puente": [
                   "Succeeded"
                 ]
-              }
-            },
-            "Get_sistemas_cfl": {
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -595,14 +805,14 @@
                   "operationId": "GetItems",
                   "connectionName": "shared_sharepointonline"
                 }
-              },
+              }
+            },
+            "Get_sistemas_mzl": {
               "runAfter": {
                 "Get_sistemas_puente": [
                   "Succeeded"
                 ]
-              }
-            },
-            "Get_sistemas_mzl": {
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -617,14 +827,14 @@
                   "operationId": "GetItems",
                   "connectionName": "shared_sharepointonline"
                 }
-              },
+              }
+            },
+            "Get_sistemas_ot": {
               "runAfter": {
                 "Get_sistemas_puente": [
                   "Succeeded"
                 ]
-              }
-            },
-            "Get_sistemas_ot": {
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -639,14 +849,14 @@
                   "operationId": "GetItems",
                   "connectionName": "shared_sharepointonline"
                 }
-              },
+              }
+            },
+            "Get_hija_listado_piezas": {
               "runAfter": {
                 "Get_sistemas_puente": [
                   "Succeeded"
                 ]
-              }
-            },
-            "Get_hija_listado_piezas": {
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -661,14 +871,14 @@
                   "operationId": "GetItems",
                   "connectionName": "shared_sharepointonline"
                 }
-              },
+              }
+            },
+            "Get_hija_tarimas": {
               "runAfter": {
                 "Get_sistemas_puente": [
                   "Succeeded"
                 ]
-              }
-            },
-            "Get_hija_tarimas": {
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -683,14 +893,14 @@
                   "operationId": "GetItems",
                   "connectionName": "shared_sharepointonline"
                 }
-              },
+              }
+            },
+            "Get_hija_productos": {
               "runAfter": {
                 "Get_sistemas_puente": [
                   "Succeeded"
                 ]
-              }
-            },
-            "Get_hija_productos": {
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -705,14 +915,14 @@
                   "operationId": "GetItems",
                   "connectionName": "shared_sharepointonline"
                 }
-              },
+              }
+            },
+            "Get_hija_colores": {
               "runAfter": {
                 "Get_sistemas_puente": [
                   "Succeeded"
                 ]
-              }
-            },
-            "Get_hija_colores": {
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -727,14 +937,14 @@
                   "operationId": "GetItems",
                   "connectionName": "shared_sharepointonline"
                 }
-              },
+              }
+            },
+            "Get_hija_elementos_seguridad": {
               "runAfter": {
                 "Get_sistemas_puente": [
                   "Succeeded"
                 ]
-              }
-            },
-            "Get_hija_elementos_seguridad": {
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -749,14 +959,14 @@
                   "operationId": "GetItems",
                   "connectionName": "shared_sharepointonline"
                 }
-              },
+              }
+            },
+            "Get_hija_piezas_especiales": {
               "runAfter": {
                 "Get_sistemas_puente": [
                   "Succeeded"
                 ]
-              }
-            },
-            "Get_hija_piezas_especiales": {
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -771,14 +981,14 @@
                   "operationId": "GetItems",
                   "connectionName": "shared_sharepointonline"
                 }
-              },
+              }
+            },
+            "Get_hija_proveedores_externos": {
               "runAfter": {
                 "Get_sistemas_puente": [
                   "Succeeded"
                 ]
-              }
-            },
-            "Get_hija_proveedores_externos": {
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -793,48 +1003,9 @@
                   "operationId": "GetItems",
                   "connectionName": "shared_sharepointonline"
                 }
-              },
-              "runAfter": {
-                "Get_sistemas_puente": [
-                  "Succeeded"
-                ]
               }
             },
             "Payload_Cotizacion": {
-              "type": "Compose",
-              "inputs": {
-                "Creación": "@outputs('CotizacionActual')?['Created']",
-                "ID": "@outputs('CotizacionActual')?['ID']",
-                "Carpeta": "@outputs('NombreCarpeta')",
-                "Folio": "@outputs('CotizacionActual')?['Folio']",
-                "VendedoresLookUp": "@outputs('CotizacionActual')?['VendedoresLookUp']?['Value']",
-                "EmpresaLookUp": "@outputs('CotizacionActual')?['EmpresaLookUp']?['Value']",
-                "Dirección de la empresa": "@outputs('CotizacionActual')?['Direcci_x00f3_ndelaempresa']",
-                "ContactoLookUp": "@outputs('CotizacionActual')?['ContactoLookUp']?['Value']",
-                "Correo empresarial": "@outputs('CotizacionActual')?['Correoempresarial']",
-                "Número de teléfono": "@outputs('CotizacionActual')?['N_x00fa_merodetel_x00e9_fono']",
-                "Moneda de cotización": "@outputs('CotizacionActual')?['Monedadecotizaci_x00f3_n']?['Value']",
-                "Flete": "@outputs('CotizacionActual')?['Flete']",
-                "País de destino": "@coalesce(outputs('CotizacionActual')?['Pa_x00ed_sdedestino']?['Value'], outputs('CotizacionActual')?['Pa_x00ed_sdedestino/Value'], outputs('CotizacionActual')?['Pa_x00ed_sdedestino']?['Title'], outputs('CotizacionActual')?['Pa_x00ed_sdedestino'])",
-                "Estado de destino": "@coalesce(outputs('CotizacionActual')?['Estadodedestino']?['Value'], outputs('CotizacionActual')?['Estadodedestino/Value'], outputs('CotizacionActual')?['Estadodedestino']?['Title'], outputs('CotizacionActual')?['Estadodedestino'])",
-                "Ciudad de destino": "@coalesce(outputs('CotizacionActual')?['Ciudaddedestino']?['Value'], outputs('CotizacionActual')?['Ciudaddedestino/Value'], outputs('CotizacionActual')?['Ciudaddedestino']?['Title'], outputs('CotizacionActual')?['Ciudaddedestino'])",
-                "Fianzas": "@outputs('CotizacionActual')?['Fianzas']",
-                "Póliza de responsabilidad civil": "@outputs('CotizacionActual')?['P_x00f3_lizaderesponsabilidadciv']",
-                "Monto de póliza": "@outputs('CotizacionActual')?['Montodep_x00f3_liza']",
-                "Licitación": "@outputs('CotizacionActual')?['Licitaci_x00f3_n']",
-                "Fecha de entrega": "@outputs('CotizacionActual')?['Fechadeentrega']",
-                "Prioridad": "@outputs('CotizacionActual')?['Prioridad']?['Value']",
-                "Estado": "@outputs('CotizacionActual')?['Estado']?['Value']",
-                "Created By": "@outputs('CotizacionActual')?['Author']?['DisplayName']",
-                "Notificado": "@outputs('CotizacionActual')?['Notificado']",
-                "Title": "@outputs('CotizacionActual')?['Title']",
-                "Nombre de contacto": "@outputs('CotizacionActual')?['Nombredecontacto']",
-                "Solicitud o generación": "@outputs('CotizacionActual')?['Solicitudogeneraci_x00f3_n']?['Value']",
-                "Item Type": "@outputs('CotizacionActual')?['{ContentType}']?['Name']",
-                "Path": "@outputs('CotizacionActual')?['{Path}']",
-                "DocsUrl": "@concat('https://montillacom.sharepoint.com/sites/Pruebas/Carpeta cotizaciones/', variables('varYear'), '/', outputs('NombreCarpeta'), '/Docs')",
-                "DocsLink": "@concat('https://montillacom.sharepoint.com/sites/Pruebas/Carpeta cotizaciones/', variables('varYear'), '/', outputs('NombreCarpeta'), '/Docs')"
-              },
               "runAfter": {
                 "Get_sistemas_sel": [
                   "Succeeded"
@@ -884,10 +1055,43 @@
                 "Get_hija_proveedores_externos": [
                   "Succeeded"
                 ]
+              },
+              "type": "Compose",
+              "inputs": {
+                "Creación": "@outputs('CotizacionActual')?['Created']",
+                "ID": "@outputs('CotizacionActual')?['ID']",
+                "Carpeta": "@outputs('NombreCarpeta')",
+                "Folio": "@outputs('CotizacionActual')?['Folio']",
+                "VendedoresLookUp": "@outputs('CotizacionActual')?['VendedoresLookUp']?['Value']",
+                "EmpresaLookUp": "@outputs('CotizacionActual')?['EmpresaLookUp']?['Value']",
+                "Dirección de la empresa": "@outputs('CotizacionActual')?['Direcci_x00f3_ndelaempresa']",
+                "ContactoLookUp": "@outputs('CotizacionActual')?['ContactoLookUp']?['Value']",
+                "Correo empresarial": "@outputs('CotizacionActual')?['Correoempresarial']",
+                "Número de teléfono": "@outputs('CotizacionActual')?['N_x00fa_merodetel_x00e9_fono']",
+                "Moneda de cotización": "@outputs('CotizacionActual')?['Monedadecotizaci_x00f3_n']?['Value']",
+                "Flete": "@outputs('CotizacionActual')?['Flete']",
+                "País de destino": "@coalesce(outputs('CotizacionActual')?['Pa_x00ed_sdedestino']?['Value'], outputs('CotizacionActual')?['Pa_x00ed_sdedestino/Value'], outputs('CotizacionActual')?['Pa_x00ed_sdedestino']?['Title'], outputs('CotizacionActual')?['Pa_x00ed_sdedestino'])",
+                "Estado de destino": "@coalesce(outputs('CotizacionActual')?['Estadodedestino']?['Value'], outputs('CotizacionActual')?['Estadodedestino/Value'], outputs('CotizacionActual')?['Estadodedestino']?['Title'], outputs('CotizacionActual')?['Estadodedestino'])",
+                "Ciudad de destino": "@coalesce(outputs('CotizacionActual')?['Ciudaddedestino']?['Value'], outputs('CotizacionActual')?['Ciudaddedestino/Value'], outputs('CotizacionActual')?['Ciudaddedestino']?['Title'], outputs('CotizacionActual')?['Ciudaddedestino'])",
+                "Fianzas": "@outputs('CotizacionActual')?['Fianzas']",
+                "Póliza de responsabilidad civil": "@outputs('CotizacionActual')?['P_x00f3_lizaderesponsabilidadciv']",
+                "Monto de póliza": "@outputs('CotizacionActual')?['Montodep_x00f3_liza']",
+                "Licitación": "@outputs('CotizacionActual')?['Licitaci_x00f3_n']",
+                "Fecha de entrega": "@outputs('CotizacionActual')?['Fechadeentrega']",
+                "Prioridad": "@outputs('CotizacionActual')?['Prioridad']?['Value']",
+                "Estado": "@outputs('CotizacionActual')?['Estado']?['Value']",
+                "Created By": "@outputs('CotizacionActual')?['Author']?['DisplayName']",
+                "Notificado": "@outputs('CotizacionActual')?['Notificado']",
+                "Title": "@outputs('CotizacionActual')?['Title']",
+                "Nombre de contacto": "@outputs('CotizacionActual')?['Nombredecontacto']",
+                "Solicitud o generación": "@outputs('CotizacionActual')?['Solicitudogeneraci_x00f3_n']?['Value']",
+                "Item Type": "@outputs('CotizacionActual')?['{ContentType}']?['Name']",
+                "Path": "@outputs('CotizacionActual')?['{Path}']",
+                "DocsUrl": "@concat('https://montillacom.sharepoint.com/sites/Pruebas/Carpeta cotizaciones/', variables('varYear'), '/', outputs('NombreCarpeta'), '/Docs')",
+                "DocsLink": "@concat('https://montillacom.sharepoint.com/sites/Pruebas/Carpeta cotizaciones/', variables('varYear'), '/', outputs('NombreCarpeta'), '/Docs')"
               }
             },
             "Apply_to_each_SistemaPuente": {
-              "type": "Foreach",
               "foreach": "@body('Get_sistemas_puente')?['value']",
               "actions": {
                 "SistemaPuente_ID": {
@@ -895,234 +1099,239 @@
                   "inputs": "@items('Apply_to_each_SistemaPuente')?['ID']"
                 },
                 "SistemaPuente_Numero": {
-                  "type": "Compose",
-                  "inputs": "@coalesce(items('Apply_to_each_SistemaPuente')?['SistemaId'], items('Apply_to_each_SistemaPuente')?['SistemaID'], items('Apply_to_each_SistemaPuente')?['ID'])",
                   "runAfter": {
                     "SistemaPuente_ID": [
                       "Succeeded"
                     ]
-                  }
+                  },
+                  "type": "Compose",
+                  "inputs": "@coalesce(items('Apply_to_each_SistemaPuente')?['SistemaId'], items('Apply_to_each_SistemaPuente')?['SistemaID'], items('Apply_to_each_SistemaPuente')?['ID'])"
                 },
                 "SistemaPuente_TipoKey": {
-                  "type": "Compose",
-                  "inputs": "@if(equals(items('Apply_to_each_SistemaPuente')?['Title'], 'Selectivo'), 'SEL', if(equals(items('Apply_to_each_SistemaPuente')?['Title'], 'Dinámico'), 'DIN', if(equals(items('Apply_to_each_SistemaPuente')?['Title'], 'Pushback'), 'PBK', if(equals(items('Apply_to_each_SistemaPuente')?['Title'], 'Drive In'), 'DRV', if(equals(items('Apply_to_each_SistemaPuente')?['Title'], 'Cantiléver'), 'CAN', if(equals(items('Apply_to_each_SistemaPuente')?['Title'], 'Mezzanine'), 'MEZ', if(equals(items('Apply_to_each_SistemaPuente')?['Title'], 'Carton Flow'), 'CFL', if(equals(items('Apply_to_each_SistemaPuente')?['Title'], 'Mezzanine Limpio'), 'MZL', if(equals(items('Apply_to_each_SistemaPuente')?['Title'], 'Otro'), 'OT', 'OT')))))))))",
                   "runAfter": {
                     "SistemaPuente_Numero": [
                       "Succeeded"
                     ]
-                  }
+                  },
+                  "type": "Compose",
+                  "inputs": "@if(equals(items('Apply_to_each_SistemaPuente')?['Title'], 'Selectivo'), 'SEL', if(equals(items('Apply_to_each_SistemaPuente')?['Title'], 'Dinámico'), 'DIN', if(equals(items('Apply_to_each_SistemaPuente')?['Title'], 'Pushback'), 'PBK', if(equals(items('Apply_to_each_SistemaPuente')?['Title'], 'Drive In'), 'DRV', if(equals(items('Apply_to_each_SistemaPuente')?['Title'], 'Cantiléver'), 'CAN', if(equals(items('Apply_to_each_SistemaPuente')?['Title'], 'Mezzanine'), 'MEZ', if(equals(items('Apply_to_each_SistemaPuente')?['Title'], 'Carton Flow'), 'CFL', if(equals(items('Apply_to_each_SistemaPuente')?['Title'], 'Mezzanine Limpio'), 'MZL', if(equals(items('Apply_to_each_SistemaPuente')?['Title'], 'Otro'), 'OT', 'OT')))))))))"
                 },
                 "Filter_SEL_detalle": {
-                  "type": "Query",
-                  "inputs": {
-                    "from": "@body('Get_sistemas_sel')?['value']",
-                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
-                  },
                   "runAfter": {
                     "SistemaPuente_TipoKey": [
                       "Succeeded"
                     ]
+                  },
+                  "type": "Query",
+                  "inputs": {
+                    "from": "@body('Get_sistemas_sel')?['value']",
+                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
                   }
                 },
                 "Filter_DIN_detalle": {
-                  "type": "Query",
-                  "inputs": {
-                    "from": "@body('Get_sistemas_din')?['value']",
-                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
-                  },
                   "runAfter": {
                     "Filter_SEL_detalle": [
                       "Succeeded"
                     ]
+                  },
+                  "type": "Query",
+                  "inputs": {
+                    "from": "@body('Get_sistemas_din')?['value']",
+                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
                   }
                 },
                 "Filter_PBK_detalle": {
-                  "type": "Query",
-                  "inputs": {
-                    "from": "@body('Get_sistemas_pbk')?['value']",
-                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
-                  },
                   "runAfter": {
                     "Filter_DIN_detalle": [
                       "Succeeded"
                     ]
+                  },
+                  "type": "Query",
+                  "inputs": {
+                    "from": "@body('Get_sistemas_pbk')?['value']",
+                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
                   }
                 },
                 "Filter_DRV_detalle": {
-                  "type": "Query",
-                  "inputs": {
-                    "from": "@body('Get_sistemas_drv')?['value']",
-                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
-                  },
                   "runAfter": {
                     "Filter_PBK_detalle": [
                       "Succeeded"
                     ]
+                  },
+                  "type": "Query",
+                  "inputs": {
+                    "from": "@body('Get_sistemas_drv')?['value']",
+                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
                   }
                 },
                 "Filter_CAN_detalle": {
-                  "type": "Query",
-                  "inputs": {
-                    "from": "@body('Get_sistemas_can')?['value']",
-                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
-                  },
                   "runAfter": {
                     "Filter_DRV_detalle": [
                       "Succeeded"
                     ]
+                  },
+                  "type": "Query",
+                  "inputs": {
+                    "from": "@body('Get_sistemas_can')?['value']",
+                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
                   }
                 },
                 "Filter_MEZ_detalle": {
-                  "type": "Query",
-                  "inputs": {
-                    "from": "@body('Get_sistemas_mez')?['value']",
-                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
-                  },
                   "runAfter": {
                     "Filter_CAN_detalle": [
                       "Succeeded"
                     ]
+                  },
+                  "type": "Query",
+                  "inputs": {
+                    "from": "@body('Get_sistemas_mez')?['value']",
+                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
                   }
                 },
                 "Filter_CFL_detalle": {
-                  "type": "Query",
-                  "inputs": {
-                    "from": "@body('Get_sistemas_cfl')?['value']",
-                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
-                  },
                   "runAfter": {
                     "Filter_MEZ_detalle": [
                       "Succeeded"
                     ]
+                  },
+                  "type": "Query",
+                  "inputs": {
+                    "from": "@body('Get_sistemas_cfl')?['value']",
+                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
                   }
                 },
                 "Filter_MZL_detalle": {
-                  "type": "Query",
-                  "inputs": {
-                    "from": "@body('Get_sistemas_mzl')?['value']",
-                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
-                  },
                   "runAfter": {
                     "Filter_CFL_detalle": [
                       "Succeeded"
                     ]
+                  },
+                  "type": "Query",
+                  "inputs": {
+                    "from": "@body('Get_sistemas_mzl')?['value']",
+                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
                   }
                 },
                 "Filter_OT_detalle": {
-                  "type": "Query",
-                  "inputs": {
-                    "from": "@body('Get_sistemas_ot')?['value']",
-                    "where": "@equals(item()?['SistemaID#Id'], outputs('SistemaPuente_ID'))"
-                  },
                   "runAfter": {
                     "Filter_MZL_detalle": [
                       "Succeeded"
                     ]
+                  },
+                  "type": "Query",
+                  "inputs": {
+                    "from": "@body('Get_sistemas_ot')?['value']",
+                    "where": "@equals(item()?['SistemaID#Id'], outputs('SistemaPuente_ID'))"
                   }
                 },
                 "DetalleSistema": {
-                  "type": "Compose",
-                  "inputs": "@coalesce(if(empty(body('Filter_SEL_detalle')), null, first(body('Filter_SEL_detalle'))), if(empty(body('Filter_DIN_detalle')), null, first(body('Filter_DIN_detalle'))), if(empty(body('Filter_PBK_detalle')), null, first(body('Filter_PBK_detalle'))), if(empty(body('Filter_DRV_detalle')), null, first(body('Filter_DRV_detalle'))), if(empty(body('Filter_CAN_detalle')), null, first(body('Filter_CAN_detalle'))), if(empty(body('Filter_MEZ_detalle')), null, first(body('Filter_MEZ_detalle'))), if(empty(body('Filter_CFL_detalle')), null, first(body('Filter_CFL_detalle'))), if(empty(body('Filter_MZL_detalle')), null, first(body('Filter_MZL_detalle'))), if(empty(body('Filter_OT_detalle')), null, first(body('Filter_OT_detalle'))), json('{}'))",
                   "runAfter": {
                     "Filter_OT_detalle": [
                       "Succeeded"
                     ]
-                  }
+                  },
+                  "type": "Compose",
+                  "inputs": "@coalesce(if(empty(body('Filter_SEL_detalle')), null, first(body('Filter_SEL_detalle'))), if(empty(body('Filter_DIN_detalle')), null, first(body('Filter_DIN_detalle'))), if(empty(body('Filter_PBK_detalle')), null, first(body('Filter_PBK_detalle'))), if(empty(body('Filter_DRV_detalle')), null, first(body('Filter_DRV_detalle'))), if(empty(body('Filter_CAN_detalle')), null, first(body('Filter_CAN_detalle'))), if(empty(body('Filter_MEZ_detalle')), null, first(body('Filter_MEZ_detalle'))), if(empty(body('Filter_CFL_detalle')), null, first(body('Filter_CFL_detalle'))), if(empty(body('Filter_MZL_detalle')), null, first(body('Filter_MZL_detalle'))), if(empty(body('Filter_OT_detalle')), null, first(body('Filter_OT_detalle'))), json('{}'))"
                 },
                 "SistemaTipoKey": {
-                  "type": "Compose",
-                  "inputs": "@coalesce(outputs('DetalleSistema')?['TipoKey'], outputs('SistemaPuente_TipoKey'))",
                   "runAfter": {
                     "DetalleSistema": [
                       "Succeeded"
                     ]
-                  }
+                  },
+                  "type": "Compose",
+                  "inputs": "@coalesce(outputs('DetalleSistema')?['TipoKey'], outputs('SistemaPuente_TipoKey'))"
                 },
                 "Filter_Piezas_Sistema": {
-                  "type": "Query",
-                  "inputs": {
-                    "from": "@body('Get_hija_listado_piezas')?['value']",
-                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
-                  },
                   "runAfter": {
                     "SistemaTipoKey": [
                       "Succeeded"
                     ]
+                  },
+                  "type": "Query",
+                  "inputs": {
+                    "from": "@body('Get_hija_listado_piezas')?['value']",
+                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
                   }
                 },
                 "Filter_Tarimas_Sistema": {
-                  "type": "Query",
-                  "inputs": {
-                    "from": "@body('Get_hija_tarimas')?['value']",
-                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
-                  },
                   "runAfter": {
                     "Filter_Piezas_Sistema": [
                       "Succeeded"
                     ]
+                  },
+                  "type": "Query",
+                  "inputs": {
+                    "from": "@body('Get_hija_tarimas')?['value']",
+                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
                   }
                 },
                 "Filter_Productos_Sistema": {
-                  "type": "Query",
-                  "inputs": {
-                    "from": "@body('Get_hija_productos')?['value']",
-                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
-                  },
                   "runAfter": {
                     "Filter_Tarimas_Sistema": [
                       "Succeeded"
                     ]
+                  },
+                  "type": "Query",
+                  "inputs": {
+                    "from": "@body('Get_hija_productos')?['value']",
+                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
                   }
                 },
                 "Filter_Elementos_Seguridad_Sistema": {
-                  "type": "Query",
-                  "inputs": {
-                    "from": "@body('Get_hija_elementos_seguridad')?['value']",
-                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
-                  },
                   "runAfter": {
                     "Filter_Productos_Sistema": [
                       "Succeeded"
                     ]
+                  },
+                  "type": "Query",
+                  "inputs": {
+                    "from": "@body('Get_hija_elementos_seguridad')?['value']",
+                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
                   }
                 },
                 "Filter_Piezas_Especiales_Sistema": {
-                  "type": "Query",
-                  "inputs": {
-                    "from": "@body('Get_hija_piezas_especiales')?['value']",
-                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
-                  },
                   "runAfter": {
                     "Filter_Elementos_Seguridad_Sistema": [
                       "Succeeded"
                     ]
+                  },
+                  "type": "Query",
+                  "inputs": {
+                    "from": "@body('Get_hija_piezas_especiales')?['value']",
+                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
                   }
                 },
                 "Filter_Proveedores_Externos_Sistema": {
-                  "type": "Query",
-                  "inputs": {
-                    "from": "@body('Get_hija_proveedores_externos')?['value']",
-                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
-                  },
                   "runAfter": {
                     "Filter_Piezas_Especiales_Sistema": [
                       "Succeeded"
                     ]
+                  },
+                  "type": "Query",
+                  "inputs": {
+                    "from": "@body('Get_hija_proveedores_externos')?['value']",
+                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
                   }
                 },
                 "Filter_Colores_Sistema": {
-                  "type": "Query",
-                  "inputs": {
-                    "from": "@body('Get_hija_colores')?['value']",
-                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
-                  },
                   "runAfter": {
                     "Filter_Proveedores_Externos_Sistema": [
                       "Succeeded"
                     ]
+                  },
+                  "type": "Query",
+                  "inputs": {
+                    "from": "@body('Get_hija_colores')?['value']",
+                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
                   }
                 },
                 "Select_Piezas_Sistema": {
+                  "runAfter": {
+                    "Filter_Piezas_Sistema": [
+                      "Succeeded"
+                    ]
+                  },
                   "type": "Select",
                   "inputs": {
                     "from": "@body('Filter_Piezas_Sistema')",
@@ -1136,14 +1345,14 @@
                       "Unidad": "",
                       "Notas": ""
                     }
-                  },
-                  "runAfter": {
-                    "Filter_Piezas_Sistema": [
-                      "Succeeded"
-                    ]
                   }
                 },
                 "Select_Tarimas_Sistema": {
+                  "runAfter": {
+                    "Filter_Tarimas_Sistema": [
+                      "Succeeded"
+                    ]
+                  },
                   "type": "Select",
                   "inputs": {
                     "from": "@body('Filter_Tarimas_Sistema')",
@@ -1166,14 +1375,14 @@
                       "ExcedenteFrente": "@item()?['Excedentefrente']",
                       "ExcedenteFondo": "@item()?['Excedentefondo']"
                     }
-                  },
-                  "runAfter": {
-                    "Filter_Tarimas_Sistema": [
-                      "Succeeded"
-                    ]
                   }
                 },
                 "Select_Productos_Sistema": {
+                  "runAfter": {
+                    "Filter_Productos_Sistema": [
+                      "Succeeded"
+                    ]
+                  },
                   "type": "Select",
                   "inputs": {
                     "from": "@body('Filter_Productos_Sistema')",
@@ -1188,14 +1397,14 @@
                       "PesoProducto": "@item()?['Pesoproducto']",
                       "CantidadPorNivel": "@item()?['Cantidadpornivel']"
                     }
-                  },
-                  "runAfter": {
-                    "Filter_Productos_Sistema": [
-                      "Succeeded"
-                    ]
                   }
                 },
                 "Select_Elementos_Seguridad_Sistema": {
+                  "runAfter": {
+                    "Filter_Elementos_Seguridad_Sistema": [
+                      "Succeeded"
+                    ]
+                  },
                   "type": "Select",
                   "inputs": {
                     "from": "@body('Filter_Elementos_Seguridad_Sistema')",
@@ -1209,14 +1418,14 @@
                       "Comentario": "@item()?['Comentarios']",
                       "Comentarios": "@item()?['Comentarios']"
                     }
-                  },
-                  "runAfter": {
-                    "Filter_Elementos_Seguridad_Sistema": [
-                      "Succeeded"
-                    ]
                   }
                 },
                 "Select_Piezas_Especiales_Sistema": {
+                  "runAfter": {
+                    "Filter_Piezas_Especiales_Sistema": [
+                      "Succeeded"
+                    ]
+                  },
                   "type": "Select",
                   "inputs": {
                     "from": "@body('Filter_Piezas_Especiales_Sistema')",
@@ -1230,14 +1439,14 @@
                       "Comentarios": "@item()?['Comentarios']",
                       "Proveedor": "@item()?['Proveedor']"
                     }
-                  },
-                  "runAfter": {
-                    "Filter_Piezas_Especiales_Sistema": [
-                      "Succeeded"
-                    ]
                   }
                 },
                 "Select_Proveedores_Externos_Sistema": {
+                  "runAfter": {
+                    "Filter_Proveedores_Externos_Sistema": [
+                      "Succeeded"
+                    ]
+                  },
                   "type": "Select",
                   "inputs": {
                     "from": "@body('Filter_Proveedores_Externos_Sistema')",
@@ -1249,14 +1458,14 @@
                       "Alcance": "@item()?['Alcance']",
                       "Comentarios": "@item()?['Alcance']"
                     }
-                  },
-                  "runAfter": {
-                    "Filter_Proveedores_Externos_Sistema": [
-                      "Succeeded"
-                    ]
                   }
                 },
                 "Select_Colores_Sistema": {
+                  "runAfter": {
+                    "Filter_Colores_Sistema": [
+                      "Succeeded"
+                    ]
+                  },
                   "type": "Select",
                   "inputs": {
                     "from": "@body('Filter_Colores_Sistema')",
@@ -1270,14 +1479,32 @@
                       "ColorNombre": "@item()?['ColorNombre']",
                       "ColorKey": "@item()?['ColorKey']"
                     }
-                  },
-                  "runAfter": {
-                    "Filter_Colores_Sistema": [
-                      "Succeeded"
-                    ]
                   }
                 },
                 "Append_Sistema_Normalizado_to_varSistemas": {
+                  "runAfter": {
+                    "Select_Piezas_Sistema": [
+                      "Succeeded"
+                    ],
+                    "Select_Tarimas_Sistema": [
+                      "Succeeded"
+                    ],
+                    "Select_Productos_Sistema": [
+                      "Succeeded"
+                    ],
+                    "Select_Elementos_Seguridad_Sistema": [
+                      "Succeeded"
+                    ],
+                    "Select_Piezas_Especiales_Sistema": [
+                      "Succeeded"
+                    ],
+                    "Select_Proveedores_Externos_Sistema": [
+                      "Succeeded"
+                    ],
+                    "Select_Colores_Sistema": [
+                      "Succeeded"
+                    ]
+                  },
                   "type": "AppendToArrayVariable",
                   "inputs": {
                     "name": "varSistemas",
@@ -1390,29 +1617,6 @@
                       "DocsLink": "@concat('https://montillacom.sharepoint.com/sites/Pruebas/Carpeta cotizaciones/', variables('varYear'), '/', outputs('NombreCarpeta'), '/Docs/Sistema ', string(outputs('SistemaPuente_Numero')), ' - ', coalesce(outputs('DetalleSistema')?['NombreSistema'], items('Apply_to_each_SistemaPuente')?['Estado'], items('Apply_to_each_SistemaPuente')?['Title']))",
                       "Documentos": "@concat('https://montillacom.sharepoint.com/sites/Pruebas/Carpeta cotizaciones/', variables('varYear'), '/', outputs('NombreCarpeta'), '/Docs/Sistema ', string(outputs('SistemaPuente_Numero')), ' - ', coalesce(outputs('DetalleSistema')?['NombreSistema'], items('Apply_to_each_SistemaPuente')?['Estado'], items('Apply_to_each_SistemaPuente')?['Title']))"
                     }
-                  },
-                  "runAfter": {
-                    "Select_Piezas_Sistema": [
-                      "Succeeded"
-                    ],
-                    "Select_Tarimas_Sistema": [
-                      "Succeeded"
-                    ],
-                    "Select_Productos_Sistema": [
-                      "Succeeded"
-                    ],
-                    "Select_Elementos_Seguridad_Sistema": [
-                      "Succeeded"
-                    ],
-                    "Select_Piezas_Especiales_Sistema": [
-                      "Succeeded"
-                    ],
-                    "Select_Proveedores_Externos_Sistema": [
-                      "Succeeded"
-                    ],
-                    "Select_Colores_Sistema": [
-                      "Succeeded"
-                    ]
                   }
                 }
               },
@@ -1421,6 +1625,7 @@
                   "Succeeded"
                 ]
               },
+              "type": "Foreach",
               "runtimeConfiguration": {
                 "concurrency": {
                   "repetitions": 1
@@ -1428,42 +1633,27 @@
               }
             },
             "Payload_Global": {
-              "type": "Compose",
-              "inputs": {
-                "cotizacion": "@outputs('Payload_Cotizacion')",
-                "sistemas": "@variables('varSistemas')"
-              },
               "runAfter": {
                 "Apply_to_each_SistemaPuente": [
                   "Succeeded"
                 ]
+              },
+              "type": "Compose",
+              "inputs": {
+                "cotizacion": "@outputs('Payload_Cotizacion')",
+                "sistemas": "@variables('varSistemas')"
               }
             },
             "Payload_Global_JSON": {
-              "type": "Compose",
-              "inputs": "@string(outputs('Payload_Global'))",
               "runAfter": {
                 "Payload_Global": [
                   "Succeeded"
                 ]
-              }
+              },
+              "type": "Compose",
+              "inputs": "@string(outputs('Payload_Global'))"
             },
             "Run_FDI_Office_Script": {
-              "type": "OpenApiConnection",
-              "inputs": {
-                "parameters": {
-                  "source": "groups/8d40587e-7320-4ac9-820d-fd0c9732e328",
-                  "drive": "b!J3QmlH6RAUG0eCDIw45xf76YXaSSToNOgLIoPEPyYWWu0pLdQJk9SL9-LumLRM3O",
-                  "file": "@outputs('FDI_Creado_ExcelFileId')",
-                  "scriptId": "@parameters('FDI_OfficeScriptId (map_FDI_OfficeScriptId)')",
-                  "ScriptParameters/payloadJson": "@outputs('Payload_Global_JSON')"
-                },
-                "host": {
-                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness",
-                  "operationId": "RunScriptProd",
-                  "connectionName": "shared_excelonlinebusiness"
-                }
-              },
               "runAfter": {
                 "FDI_Creado_ExcelFileId": [
                   "Succeeded"
@@ -1479,9 +1669,35 @@
                 "payloadJsonExpression": "@outputs('Payload_Global_JSON')",
                 "exportedSchemaNote": "RunScriptProd validates ScriptParameters as an object. Do not keep ScriptParameters as an empty string or combine it with a flattened script-parameter path.",
                 "tableId": null
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "source": "groups/8d40587e-7320-4ac9-820d-fd0c9732e328",
+                  "drive": "b!J3QmlH6RAUG0eCDIw45xf76YXaSSToNOgLIoPEPyYWWu0pLdQJk9SL9-LumLRM3O",
+                  "file": "@outputs('FDI_Creado_ExcelFileId')",
+                  "scriptId": "@parameters('FDI_OfficeScriptId (map_FDI_OfficeScriptId)')",
+                  "ScriptParameters/payloadJson": "@outputs('Payload_Global_JSON')"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness",
+                  "operationId": "RunScriptProd",
+                  "connectionName": "shared_excelonlinebusiness"
+                }
               }
             },
             "FDI_Master_Metadata": {
+              "runAfter": {
+                "Payload_Global_JSON": [
+                  "Succeeded"
+                ],
+                "Update_Cotizacion_FolderPath": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "%252fRecursos%252fFDI_Master.xlsx": "/Recursos/FDI_Master.xlsx"
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -1493,20 +1709,17 @@
                   "operationId": "GetFileMetadata",
                   "connectionName": "shared_sharepointonline"
                 }
-              },
+              }
+            },
+            "FDI_Master_Contenido": {
               "runAfter": {
-                "Payload_Global_JSON": [
-                  "Succeeded"
-                ],
-                "Update_Cotizacion_FolderPath": [
+                "FDI_Master_Metadata": [
                   "Succeeded"
                 ]
               },
               "metadata": {
                 "%252fRecursos%252fFDI_Master.xlsx": "/Recursos/FDI_Master.xlsx"
-              }
-            },
-            "FDI_Master_Contenido": {
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -1519,26 +1732,23 @@
                   "operationId": "GetFileContent",
                   "connectionName": "shared_sharepointonline"
                 }
-              },
-              "runAfter": {
-                "FDI_Master_Metadata": [
-                  "Succeeded"
-                ]
-              },
-              "metadata": {
-                "%252fRecursos%252fFDI_Master.xlsx": "/Recursos/FDI_Master.xlsx"
               }
             },
             "FDI_Target_File_Path": {
-              "type": "Compose",
-              "inputs": "@concat('/Carpeta cotizaciones/', variables('varYear'), '/', outputs('NombreCarpeta'), '/Docs/FDI ', outputs('NombreCarpeta'), '.xlsx')",
               "runAfter": {
                 "FDI_Master_Contenido": [
                   "Succeeded"
                 ]
-              }
+              },
+              "type": "Compose",
+              "inputs": "@concat('/Carpeta cotizaciones/', variables('varYear'), '/', outputs('NombreCarpeta'), '/Docs/FDI ', outputs('NombreCarpeta'), '.xlsx')"
             },
             "FDI_Existing_Metadata": {
+              "runAfter": {
+                "FDI_Target_File_Path": [
+                  "Succeeded"
+                ]
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -1550,16 +1760,9 @@
                   "operationId": "GetFileMetadataByPath",
                   "connectionName": "shared_sharepointonline"
                 }
-              },
-              "runAfter": {
-                "FDI_Target_File_Path": [
-                  "Succeeded"
-                ]
               }
             },
             "FDI_Crear_FileId": {
-              "type": "Compose",
-              "inputs": "@coalesce(outputs('FDI_Existing_Metadata')?['body/Id'], outputs('FDI_Existing_Metadata')?['body/Identifier'], outputs('FDI_Crear')?['body/Id'], outputs('FDI_Crear')?['body/Identifier'])",
               "runAfter": {
                 "FDI_Existing_Metadata": [
                   "Succeeded",
@@ -1569,9 +1772,16 @@
                   "Succeeded",
                   "Skipped"
                 ]
-              }
+              },
+              "type": "Compose",
+              "inputs": "@coalesce(outputs('FDI_Existing_Metadata')?['body/Id'], outputs('FDI_Existing_Metadata')?['body/Identifier'], outputs('FDI_Crear')?['body/Id'], outputs('FDI_Crear')?['body/Identifier'])"
             },
             "FDI_Creado_Metadata": {
+              "runAfter": {
+                "FDI_Crear_FileId": [
+                  "Succeeded"
+                ]
+              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
@@ -1583,184 +1793,22 @@
                   "operationId": "GetFileMetadata",
                   "connectionName": "shared_sharepointonline"
                 }
-              },
-              "runAfter": {
-                "FDI_Crear_FileId": [
-                  "Succeeded"
-                ]
               }
             },
             "FDI_Creado_ExcelFileId": {
-              "type": "Compose",
-              "inputs": "@coalesce(outputs('FDI_Creado_Metadata')?['body/Id'], outputs('FDI_Creado_Metadata')?['body/Identifier'], outputs('FDI_Crear_FileId'))",
               "runAfter": {
                 "FDI_Creado_Metadata": [
                   "Succeeded"
                 ]
-              }
-            },
-            "Apply_to_each_SistemaAdjuntos": {
-              "type": "Foreach",
-              "foreach": "@body('Get_sistemas_puente')?['value']",
-              "actions": {
-                "SistemaAdjuntos_FolderName": {
-                  "type": "Compose",
-                  "inputs": "@concat('Sistema ', string(coalesce(items('Apply_to_each_SistemaAdjuntos')?['SistemaId'], items('Apply_to_each_SistemaAdjuntos')?['SistemaID'], items('Apply_to_each_SistemaAdjuntos')?['ID'])), ' - ', coalesce(items('Apply_to_each_SistemaAdjuntos')?['Estado'], items('Apply_to_each_SistemaAdjuntos')?['Title']))"
-                },
-                "Try_Docs_Sistema": {
-                  "type": "Scope",
-                  "actions": {
-                    "Get_folder_metadata_Docs_Sistema": {
-                      "type": "OpenApiConnection",
-                      "inputs": {
-                        "parameters": {
-                          "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
-                          "path": "@concat('/Carpeta cotizaciones/', variables('varYear'), '/', outputs('NombreCarpeta'), '/Docs/', outputs('SistemaAdjuntos_FolderName'))"
-                        },
-                        "host": {
-                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                          "operationId": "GetFolderMetadataByPath",
-                          "connectionName": "shared_sharepointonline"
-                        }
-                      }
-                    }
-                  },
-                  "runAfter": {
-                    "SistemaAdjuntos_FolderName": [
-                      "Succeeded"
-                    ]
-                  }
-                },
-                "Catch_Docs_Sistema": {
-                  "type": "Scope",
-                  "actions": {
-                    "Create_folder_Docs_Sistema": {
-                      "type": "OpenApiConnection",
-                      "inputs": {
-                        "parameters": {
-                          "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
-                          "table": "dd92d2ae-9940-483d-bf7e-2ee98b44cdce",
-                          "parameters/path": "@concat('/', variables('varYear'), '/', outputs('NombreCarpeta'), '/Docs/', outputs('SistemaAdjuntos_FolderName'))"
-                        },
-                        "host": {
-                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                          "operationId": "CreateNewFolder",
-                          "connectionName": "shared_sharepointonline"
-                        }
-                      }
-                    }
-                  },
-                  "runAfter": {
-                    "Try_Docs_Sistema": [
-                      "TimedOut",
-                      "Failed"
-                    ]
-                  }
-                },
-                "Get_folder_metadata_Docs_Sistema_Final": {
-                  "type": "OpenApiConnection",
-                  "inputs": {
-                    "parameters": {
-                      "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
-                      "path": "@concat('/Carpeta cotizaciones/', variables('varYear'), '/', outputs('NombreCarpeta'), '/Docs/', outputs('SistemaAdjuntos_FolderName'))"
-                    },
-                    "host": {
-                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                      "operationId": "GetFolderMetadataByPath",
-                      "connectionName": "shared_sharepointonline"
-                    }
-                  },
-                  "runAfter": {
-                    "Catch_Docs_Sistema": [
-                      "Succeeded",
-                      "Skipped"
-                    ],
-                    "Try_Docs_Sistema": [
-                      "Succeeded",
-                      "Failed"
-                    ]
-                  }
-                },
-                "Get_attachments_Sistema": {
-                  "type": "OpenApiConnection",
-                  "inputs": {
-                    "parameters": {
-                      "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
-                      "table": "b1ee600e-adc7-481e-99ab-aeda6eddd7a1",
-                      "itemId": "@items('Apply_to_each_SistemaAdjuntos')?['ID']"
-                    },
-                    "host": {
-                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                      "operationId": "GetAttachments",
-                      "connectionName": "shared_sharepointonline"
-                    }
-                  },
-                  "runAfter": {
-                    "Get_folder_metadata_Docs_Sistema_Final": [
-                      "Succeeded"
-                    ]
-                  }
-                },
-                "Apply_to_each_AdjuntoSistema": {
-                  "type": "Foreach",
-                  "foreach": "@body('Get_attachments_Sistema')",
-                  "actions": {
-                    "Get_attachment_content_Sistema": {
-                      "type": "OpenApiConnection",
-                      "inputs": {
-                        "parameters": {
-                          "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
-                          "table": "b1ee600e-adc7-481e-99ab-aeda6eddd7a1",
-                          "itemId": "@items('Apply_to_each_SistemaAdjuntos')?['ID']",
-                          "attachmentId": "@items('Apply_to_each_AdjuntoSistema')?['Id']"
-                        },
-                        "host": {
-                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                          "operationId": "GetAttachmentContent",
-                          "connectionName": "shared_sharepointonline"
-                        }
-                      }
-                    },
-                    "Create_file_AdjuntoSistema": {
-                      "type": "OpenApiConnection",
-                      "inputs": {
-                        "parameters": {
-                          "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
-                          "folderPath": "@outputs('Get_folder_metadata_Docs_Sistema_Final')?['body/Path']",
-                          "name": "@items('Apply_to_each_AdjuntoSistema')?['DisplayName']",
-                          "body": "@body('Get_attachment_content_Sistema')"
-                        },
-                        "host": {
-                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                          "operationId": "CreateFile",
-                          "connectionName": "shared_sharepointonline"
-                        }
-                      },
-                      "runAfter": {
-                        "Get_attachment_content_Sistema": [
-                          "Succeeded"
-                        ]
-                      }
-                    }
-                  },
-                  "runAfter": {
-                    "Get_attachments_Sistema": [
-                      "Succeeded"
-                    ]
-                  }
-                }
               },
-              "runAfter": {
-                "Get_sistemas_puente": [
-                  "Succeeded"
-                ]
-              },
-              "runtimeConfiguration": {
-                "concurrency": {
-                  "repetitions": 1
-                }
-              }
+              "type": "Compose",
+              "inputs": "@coalesce(outputs('FDI_Creado_Metadata')?['body/Id'], outputs('FDI_Creado_Metadata')?['body/Identifier'], outputs('FDI_Crear_FileId'))"
             }
+          },
+          "runAfter": {
+            "NombreCarpeta": [
+              "Succeeded"
+            ]
           },
           "else": {
             "actions": {
@@ -1782,23 +1830,37 @@
                 }
               },
               "Skip_CarpetaCreada_Preexistente": {
-                "type": "Compose",
-                "inputs": "Cotización ya tenía CarpetaCreada = true; no se regeneró FDI.",
                 "runAfter": {
                   "Update_Cotizacion_FolderPath_Preexistente": [
                     "Succeeded"
                   ]
-                }
+                },
+                "type": "Compose",
+                "inputs": "Cotización ya tenía CarpetaCreada = true; no se regeneró FDI."
               }
             }
           },
-          "runAfter": {
-            "NombreCarpeta": [
-              "Succeeded"
+          "expression": {
+            "and": [
+              {
+                "equals": [
+                  "@not(coalesce(outputs('CotizacionActual')?['CarpetaCreada'], false))",
+                  true
+                ]
+              }
             ]
-          }
+          },
+          "type": "If"
         },
         "Respond_to_a_PowerApp_or_flow": {
+          "runAfter": {
+            "Condition": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "a37d0201-04c7-4d7c-8e52-dc0e6b8efef1"
+          },
           "type": "Response",
           "kind": "PowerApp",
           "inputs": {
@@ -1825,17 +1887,10 @@
               "result": "@if(coalesce(outputs('CotizacionActual')?['CarpetaCreada'], false), 'SkippedCarpetaCreada', 'FDICreated')",
               "cotizacionId": "@string(outputs('CotizacionActual')?['ID'])"
             }
-          },
-          "runAfter": {
-            "Condition": [
-              "Succeeded"
-            ]
-          },
-          "metadata": {
-            "operationMetadataId": "a37d0201-04c7-4d7c-8e52-dc0e6b8efef1"
           }
         },
         "Initialize_variable": {
+          "runAfter": {},
           "type": "InitializeVariable",
           "inputs": {
             "variables": [
@@ -1845,19 +1900,23 @@
                 "value": "@formatDateTime(utcNow(),'yyyy')"
               }
             ]
-          },
-          "runAfter": {}
+          }
         },
         "NombreCarpeta": {
-          "type": "Compose",
-          "inputs": "@concat(\r\n  trim(string(outputs('CotizacionActual')?['Folio'])),\r\n  ' ',\r\n  trim(string(coalesce(outputs('CotizacionActual')?['EmpresaLookUp']?['Value'], outputs('CotizacionActual')?['EmpresaLookUp/Value'], outputs('CotizacionActual')?['EmpresaLookUp'])))\r\n)",
           "runAfter": {
             "CotizacionActual": [
               "Succeeded"
             ]
-          }
+          },
+          "type": "Compose",
+          "inputs": "@concat(\r\n  trim(string(outputs('CotizacionActual')?['Folio'])),\r\n  ' ',\r\n  trim(string(coalesce(outputs('CotizacionActual')?['EmpresaLookUp']?['Value'], outputs('CotizacionActual')?['EmpresaLookUp/Value'], outputs('CotizacionActual')?['EmpresaLookUp'])))\r\n)"
         },
         "Initialize_varSistemas": {
+          "runAfter": {
+            "Initialize_variable": [
+              "Succeeded"
+            ]
+          },
           "type": "InitializeVariable",
           "inputs": {
             "variables": [
@@ -1867,14 +1926,14 @@
                 "value": []
               }
             ]
-          },
-          "runAfter": {
-            "Initialize_variable": [
-              "Succeeded"
-            ]
           }
         },
         "Get_Cotizacion_FDI": {
+          "runAfter": {
+            "Initialize_varSistemas": [
+              "Succeeded"
+            ]
+          },
           "type": "OpenApiConnection",
           "inputs": {
             "parameters": {
@@ -1887,21 +1946,16 @@
               "operationId": "GetItem",
               "connectionName": "shared_sharepointonline"
             }
-          },
-          "runAfter": {
-            "Initialize_varSistemas": [
-              "Succeeded"
-            ]
           }
         },
         "CotizacionActual": {
-          "type": "Compose",
-          "inputs": "@body('Get_Cotizacion_FDI')",
           "runAfter": {
             "Get_Cotizacion_FDI": [
               "Succeeded"
             ]
-          }
+          },
+          "type": "Compose",
+          "inputs": "@body('Get_Cotizacion_FDI')"
         }
       }
     },
