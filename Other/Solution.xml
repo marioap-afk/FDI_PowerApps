@@ -5,7 +5,7 @@
       <LocalizedName description="FDI" languagecode="3082" />
     </LocalizedNames>
     <Descriptions />
-    <Version>1.0.0.43</Version>
+    <Version>1.0.0.44</Version>
     <Managed>0</Managed>
     <Publisher>
       <UniqueName>Mario</UniqueName>
@@ -24,6 +24,7 @@
     <RootComponents>
       <RootComponent type="29" id="{74540af5-62f6-f011-8406-7ced8d1aeeed}" behavior="0" />
       <RootComponent type="29" id="{9c172a3b-3fb1-f011-bbd2-6045bd022950}" behavior="0" />
+      <RootComponent type="29" id="{e91fc28a-2c6b-f111-ab0d-7ced8d1aeeed}" behavior="0" />
       <RootComponent type="300" schemaName="mapc_fdi_412ec" behavior="0" />
     </RootComponents>
     <MissingDependencies>
