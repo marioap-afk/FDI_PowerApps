@@ -1,0 +1,15 @@
+<environmentvariabledefinition schemaname="map_shared_sharepointonline_d4748ed9903341a4909b12c08b45251d">
+  <apiid>/providers/microsoft.powerapps/apis/shared_sharepointonline</apiid>
+  <displayname default="Hija Tarimas">
+    <label description="Hija Tarimas" languagecode="3082" />
+  </displayname>
+  <introducedversion>1.0.0.37</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <parameterkey>table</parameterkey>
+  <parentdefinitionid>
+    <schemaname>map_FDI_SharePointSiteUrl</schemaname>
+  </parentdefinitionid>
+  <secretstore>0</secretstore>
+  <type>100000004</type>
+</environmentvariabledefinition>

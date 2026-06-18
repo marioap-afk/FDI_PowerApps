@@ -1,0 +1,15 @@
+<environmentvariabledefinition schemaname="map_shared_sharepointonline_b4f904ba96a24d01b75e59c595c72b6e">
+  <apiid>/providers/microsoft.powerapps/apis/shared_sharepointonline</apiid>
+  <displayname default="Bitácora cotizaciones">
+    <label description="Bitácora cotizaciones" languagecode="3082" />
+  </displayname>
+  <introducedversion>1.0.0.37</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <parameterkey>table</parameterkey>
+  <parentdefinitionid>
+    <schemaname>map_FDI_SharePointSiteUrl</schemaname>
+  </parentdefinitionid>
+  <secretstore>0</secretstore>
+  <type>100000004</type>
+</environmentvariabledefinition>

@@ -35,6 +35,14 @@
         "FDI_OfficeScriptId": {
           "defaultValue": "ms-officescript%3A%2F%2Fonedrive_business_itemlink%2FREPLACE_WITH_FILL_FDI_WORKBOOK_SCRIPT_ID",
           "type": "String"
+        },
+        "FDI_OfficeScriptId (map_FDI_OfficeScriptId)": {
+          "defaultValue": "ms-officescript://onedrive_business_itemlink/01EMJYBMG4H5E23ISXRVC3FCQQG2VX3PTR",
+          "type": "String",
+          "metadata": {
+            "schemaName": "map_FDI_OfficeScriptId",
+            "description": "El ID del Office Script en Creación_FDI. "
+          }
         }
       },
       "triggers": {
@@ -1442,11 +1450,8 @@
                   "source": "groups/8d40587e-7320-4ac9-820d-fd0c9732e328",
                   "drive": "b!J3QmlH6RAUG0eCDIw45xf76YXaSSToNOgLIoPEPyYWWu0pLdQJk9SL9-LumLRM3O",
                   "file": "@outputs('FDI_Creado_ExcelFileId')",
-                  "scriptId": "ms-officescript%3A%2F%2Fonedrive_business_itemlink%2F01EMJYBMG4H5E23ISXRVC3FCQQG2VX3PTR",
-                  "ScriptParameters/payloadJson": "@outputs('Payload_Global_JSON')",
-                  "ScriptParameters": {
-                    "payloadJson": "@outputs('Payload_Global_JSON')"
-                  }
+                  "scriptId": "@parameters('FDI_OfficeScriptId (map_FDI_OfficeScriptId)')",
+                  "ScriptParameters/payloadJson": "@outputs('Payload_Global_JSON')"
                 },
                 "host": {
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness",

@@ -1,11 +1,11 @@
-<ImportExportXml version="9.2.26052.159" SolutionPackageVersion="9.2" languagecode="3082" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26052.159" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.26052.00159">
+<ImportExportXml version="9.2.26052.159" SolutionPackageVersion="9.2" languagecode="3082" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26052.159" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.26053.00150">
   <SolutionManifest>
     <UniqueName>FDI</UniqueName>
     <LocalizedNames>
       <LocalizedName description="FDI" languagecode="3082" />
     </LocalizedNames>
     <Descriptions />
-    <Version>1.0.0.37</Version>
+    <Version>1.0.0.38</Version>
     <Managed>0</Managed>
     <Publisher>
       <UniqueName>Mario</UniqueName>

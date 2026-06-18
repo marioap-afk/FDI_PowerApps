@@ -1,0 +1,15 @@
+<environmentvariabledefinition schemaname="map_shared_sharepointonline_084043d6bf7f46139feef8858a11c606">
+  <apiid>/providers/microsoft.powerapps/apis/shared_sharepointonline</apiid>
+  <displayname default="Sistema Drive In">
+    <label description="Sistema Drive In" languagecode="3082" />
+  </displayname>
+  <introducedversion>1.0.0.37</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <parameterkey>table</parameterkey>
+  <parentdefinitionid>
+    <schemaname>map_FDI_SharePointSiteUrl</schemaname>
+  </parentdefinitionid>
+  <secretstore>0</secretstore>
+  <type>100000004</type>
+</environmentvariabledefinition>

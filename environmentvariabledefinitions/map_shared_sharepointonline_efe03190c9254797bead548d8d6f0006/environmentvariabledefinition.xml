@@ -1,0 +1,15 @@
+<environmentvariabledefinition schemaname="map_shared_sharepointonline_efe03190c9254797bead548d8d6f0006">
+  <apiid>/providers/microsoft.powerapps/apis/shared_sharepointonline</apiid>
+  <displayname default="Países_List">
+    <label description="Países_List" languagecode="3082" />
+  </displayname>
+  <introducedversion>1.0.0.37</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <parameterkey>table</parameterkey>
+  <parentdefinitionid>
+    <schemaname>map_FDI_SharePointSiteUrl</schemaname>
+  </parentdefinitionid>
+  <secretstore>0</secretstore>
+  <type>100000004</type>
+</environmentvariabledefinition>
