@@ -172,18 +172,6 @@
             ]
           },
           "actions": {
-            "Run_Creacion_FDI": {
-              "type": "Workflow",
-              "inputs": {
-                "host": {
-                  "workflowReferenceName": "74540af5-62f6-f011-8406-7ced8d1aeeed"
-                },
-                "body": {
-                  "text": "@string(first(body('Get_Cotizacion_Notificacion')?['value'])?['ID'])"
-                }
-              },
-              "runAfter": {}
-            },
             "Post_Teams_Solicitud_FDI": {
               "type": "OpenApiConnection",
               "inputs": {
@@ -198,11 +186,6 @@
                   "operationId": "PostMessageToConversation",
                   "connectionName": "shared_teams"
                 }
-              },
-              "runAfter": {
-                "Run_Creacion_FDI": [
-                  "Succeeded"
-                ]
               }
             },
             "Update_Cotizacion_Notificado": {
@@ -243,8 +226,7 @@
                     "operationId": "PostMessageToConversation",
                     "connectionName": "shared_teams"
                   }
-                },
-                "runAfter": {}
+                }
               }
             }
           },

@@ -40,26 +40,23 @@
       "triggers": {
         "manual": {
           "type": "Request",
-          "kind": "Button",
+          "kind": "PowerAppV2",
           "inputs": {
             "schema": {
               "type": "object",
               "properties": {
                 "text": {
+                  "description": "ID del item de Cotizaciones 2026 a procesar",
                   "title": "CotizacionId",
                   "type": "string",
-                  "x-ms-dynamically-added": true,
-                  "description": "ID del item de Cotizaciones 2026 a procesar",
-                  "x-ms-content-hint": "TEXT"
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
                 }
               },
               "required": [
                 "text"
               ]
             }
-          },
-          "metadata": {
-            "operationMetadataId": "b07df8a7-0b20-4d18-bec4-4f4cfef7b4b3"
           }
         }
       },
@@ -323,7 +320,7 @@
               },
               "runAfter": {
                 "Cotizador_propiedades": [
-                  "SUCCEEDED"
+                  "Succeeded"
                 ]
               }
             },
@@ -417,7 +414,7 @@
               },
               "runAfter": {
                 "Cotización_crear": [
-                  "SUCCEEDED"
+                  "Succeeded"
                 ]
               }
             },
@@ -624,7 +621,7 @@
               "inputs": {
                 "parameters": {
                   "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
-                  "table": "80069fdc-2de1-4c95-a88b-02770ca25959",
+                  "table": "ae2f94dc-a4e0-4f54-8b6c-1b259c8326c5",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "ID asc",
                   "$top": 500
@@ -1445,7 +1442,8 @@
                   "source": "groups/8d40587e-7320-4ac9-820d-fd0c9732e328",
                   "drive": "b!J3QmlH6RAUG0eCDIw45xf76YXaSSToNOgLIoPEPyYWWu0pLdQJk9SL9-LumLRM3O",
                   "file": "@outputs('FDI_Creado_ExcelFileId')",
-                  "scriptId": "@parameters('FDI_OfficeScriptId')",
+                  "scriptId": "ms-officescript%3A%2F%2Fonedrive_business_itemlink%2F01EMJYBMG4H5E23ISXRVC3FCQQG2VX3PTR",
+                  "ScriptParameters/payloadJson": "@outputs('Payload_Global_JSON')",
                   "ScriptParameters": {
                     "payloadJson": "@outputs('Payload_Global_JSON')"
                   }
@@ -1469,7 +1467,8 @@
                 "note": "Rebind FDI_OfficeScriptId after importing the solution if Power Automate assigns a different Office Script id.",
                 "payloadJsonManualMapping": "After import, re-select fill-fdi-workbook if Power Automate cannot resolve the script. Confirm ScriptParameters.payloadJson is mapped to outputs('Payload_Global_JSON').",
                 "payloadJsonExpression": "@outputs('Payload_Global_JSON')",
-                "exportedSchemaNote": "RunScriptProd validates ScriptParameters as an object. Do not keep ScriptParameters as an empty string or combine it with a flattened script-parameter path."
+                "exportedSchemaNote": "RunScriptProd validates ScriptParameters as an object. Do not keep ScriptParameters as an empty string or combine it with a flattened script-parameter path.",
+                "tableId": null
               }
             },
             "FDI_Master_Metadata": {
@@ -1608,8 +1607,7 @@
                     "operationId": "PatchItem",
                     "connectionName": "shared_sharepointonline"
                   }
-                },
-                "runAfter": {}
+                }
               },
               "Skip_CarpetaCreada_Preexistente": {
                 "type": "Compose",
