@@ -40,6 +40,14 @@
         "$connections": {
           "defaultValue": {},
           "type": "Object"
+        },
+        "FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)": {
+          "defaultValue": "https://montillacom.sharepoint.com/sites/Pruebas",
+          "type": "String",
+          "metadata": {
+            "schemaName": "map_FDI_SharePointSiteUrl",
+            "description": "El sitio de todas las listas "
+          }
         }
       },
       "triggers": {
@@ -126,7 +134,7 @@
           "type": "OpenApiConnection",
           "inputs": {
             "parameters": {
-              "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+              "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
               "table": "53f4e788-fbb6-4deb-8fcf-965eb4db0c1e",
               "$filter": "@concat('Folio eq ''', outputs('FolioDesdeAsunto'), '''')",
               "$orderby": "ID desc",
@@ -192,10 +200,17 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "table": "53f4e788-fbb6-4deb-8fcf-965eb4db0c1e",
                   "id": "@first(body('Get_Cotizacion_Notificacion')?['value'])?['ID']",
-                  "item/Notificado": true
+                  "item/Monedadecotizaci_x00f3_n/Value": "MXN",
+                  "item/Flete": true,
+                  "item/Fianzas": false,
+                  "item/P_x00f3_lizaderesponsabilidadciv": false,
+                  "item/Licitaci_x00f3_n": false,
+                  "item/Estado/Value": "Borrador",
+                  "item/Notificado": false,
+                  "item/CarpetaCreada": false
                 },
                 "host": {
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",

@@ -36,12 +36,12 @@
           "defaultValue": "ms-officescript%3A%2F%2Fonedrive_business_itemlink%2FREPLACE_WITH_FILL_FDI_WORKBOOK_SCRIPT_ID",
           "type": "String"
         },
-        "FDI_OfficeScriptId (map_FDI_OfficeScriptId)": {
-          "defaultValue": "ms-officescript://onedrive_business_itemlink/01EMJYBMG4H5E23ISXRVC3FCQQG2VX3PTR",
+        "FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)": {
+          "defaultValue": "https://montillacom.sharepoint.com/sites/Pruebas",
           "type": "String",
           "metadata": {
-            "schemaName": "map_FDI_OfficeScriptId",
-            "description": "El ID del Office Script en Creación_FDI. "
+            "schemaName": "map_FDI_SharePointSiteUrl",
+            "description": "El sitio de todas las listas "
           }
         }
       },
@@ -97,7 +97,7 @@
                   "type": "OpenApiConnection",
                   "inputs": {
                     "parameters": {
-                      "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                      "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                       "path": "@concat('/Carpeta cotizaciones/', variables('varYear'))"
                     },
                     "host": {
@@ -116,7 +116,7 @@
                   "type": "OpenApiConnection",
                   "inputs": {
                     "parameters": {
-                      "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                      "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                       "table": "dd92d2ae-9940-483d-bf7e-2ee98b44cdce",
                       "parameters/path": "@variables('varYear')"
                     },
@@ -142,7 +142,7 @@
                   "type": "OpenApiConnection",
                   "inputs": {
                     "parameters": {
-                      "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                      "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                       "path": "@concat('/Carpeta cotizaciones/', variables('varYear'), '/', outputs('NombreCarpeta'))"
                     },
                     "host": {
@@ -171,7 +171,7 @@
                   "type": "OpenApiConnection",
                   "inputs": {
                     "parameters": {
-                      "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                      "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                       "table": "dd92d2ae-9940-483d-bf7e-2ee98b44cdce",
                       "parameters/path": "@concat('/', variables('varYear'), '/', outputs('NombreCarpeta'))"
                     },
@@ -197,7 +197,7 @@
                   "type": "OpenApiConnection",
                   "inputs": {
                     "parameters": {
-                      "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                      "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                       "path": "@concat(\r\n  '/Carpeta cotizaciones/',\r\n  variables('varYear'),\r\n  '/',\r\n  outputs('NombreCarpeta'),\r\n  '/Docs'\r\n)"
                     },
                     "host": {
@@ -226,7 +226,7 @@
                   "type": "OpenApiConnection",
                   "inputs": {
                     "parameters": {
-                      "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                      "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                       "table": "dd92d2ae-9940-483d-bf7e-2ee98b44cdce",
                       "parameters/path": "@concat(\r\n  '/',\r\n  variables('varYear'),\r\n  '/',\r\n  outputs('NombreCarpeta'),\r\n  '/Docs'\r\n)"
                     },
@@ -249,7 +249,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "path": "@concat(\r\n  '/Carpeta cotizaciones/',\r\n  variables('varYear'),\r\n  '/',\r\n  outputs('NombreCarpeta'),\r\n  '/Docs'\r\n)"
                 },
                 "host": {
@@ -273,10 +273,10 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "table": "53f4e788-fbb6-4deb-8fcf-965eb4db0c1e",
                   "id": "@outputs('CotizacionActual')?['ID']",
-                  "item/Carpeta": "@concat(\r\n  'https://montillacom.sharepoint.com/sites/Pruebas/Carpeta cotizaciones/',\r\n  variables('varYear'),\r\n  '/',\r\n  outputs('NombreCarpeta')\r\n)",
+                  "item/Carpeta": "@concat(\r\n  'https://montillacom.sharepoint.com/sites/Pruebas/Carpeta cotizaciones/',\r\n  variables('varYear'),\r\n  '/',\r\n  outputs('NombreCarpeta')\r\n)\r\n",
                   "item/FolderPath": "@concat(\r\n  'Carpeta cotizaciones/',\r\n  variables('varYear'),\r\n  '/',\r\n  outputs('NombreCarpeta')\r\n)"
                 },
                 "host": {
@@ -295,7 +295,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "folderPath": "@outputs('Get_folder_metadata_using_path_3_Docs')?['body/Path']",
                   "name": "@concat('FDI ',outputs('NombreCarpeta'),'.xlsx')",
                   "body": "@body('FDI_Master_Contenido')"
@@ -321,12 +321,12 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "table": "53f4e788-fbb6-4deb-8fcf-965eb4db0c1e",
                   "id": "@outputs('CotizacionActual')?['ID']",
                   "item/Carpeta": "@concat(\r\n  'https://montillacom.sharepoint.com/sites/Pruebas/Carpeta cotizaciones/',\r\n  variables('varYear'),\r\n  '/',\r\n  outputs('NombreCarpeta')\r\n)",
                   "item/CarpetaCreada": true,
-                  "item/FolderPath": "@concat(\r\n  'Carpeta cotizaciones/',\r\n  variables('varYear'),\r\n  '/',\r\n  outputs('NombreCarpeta')\r\n)"
+                  "item/FolderPath": "@concat(\r\n  'Carpeta cotizaciones/',\r\n  variables('varYear'),\r\n  '/',\r\n  outputs('NombreCarpeta')\r\n)\r\n"
                 },
                 "host": {
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
@@ -344,7 +344,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "id": "%252fRecursos%252fCotizador%2bMontilla.xlsm"
                 },
                 "host": {
@@ -366,7 +366,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "id": "%252fRecursos%252fCotizador%2bMontilla.xlsm",
                   "inferContentType": true
                 },
@@ -389,7 +389,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "folderPath": "@outputs('Get_folder_metadata_using_path_3_Docs')?['body/Path']",
                   "name": "@concat('Cot ',outputs('NombreCarpeta'),'.xlsm')",
                   "body": "@body('Cotizador_Contenido')"
@@ -415,7 +415,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "table": "dd92d2ae-9940-483d-bf7e-2ee98b44cdce",
                   "id": "@outputs('Cotización_crear')?['body/ItemId']",
                   "item/Tipodearchivo/Value": "Cotización",
@@ -438,7 +438,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "table": "b1ee600e-adc7-481e-99ab-aeda6eddd7a1",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "SistemaId asc",
@@ -460,7 +460,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "table": "49e4088a-4095-44e6-860d-fbdb57460fbc",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "ID asc",
@@ -482,7 +482,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "table": "4cbf73c9-e56a-492c-8cfa-9488d3f99384",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "ID asc",
@@ -504,7 +504,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "table": "384e7e0d-6bf3-448a-8e45-daae023d0a74",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "ID asc",
@@ -526,7 +526,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "table": "7b78bff1-40df-4d59-bd26-147298f55ea0",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "ID asc",
@@ -548,7 +548,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "table": "ac95efa8-9c17-4711-a606-d0ede65dc47b",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "ID asc",
@@ -570,7 +570,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "table": "b2a3008d-eee9-4933-b9f1-5a8b963a8473",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "ID asc",
@@ -592,7 +592,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "table": "5f4632e6-7584-4178-b437-30fa15d2017f",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "ID asc",
@@ -614,7 +614,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "table": "87c8be82-d437-412c-bf85-570b452b146e",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "ID asc",
@@ -636,7 +636,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "table": "ae2f94dc-a4e0-4f54-8b6c-1b259c8326c5",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "ID asc",
@@ -658,7 +658,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "table": "15dbc11e-0dcc-4374-99f0-b08ef2e32da5",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "SistemaCotizaci_x00f3_nIDId asc, Orden asc",
@@ -680,7 +680,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "table": "2de8ae3c-2e93-45ea-9e97-614acb8eee4e",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "SistemaCotizaci_x00f3_nIDId asc, Orden asc",
@@ -702,7 +702,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "table": "0443828d-c0a4-487f-883b-b72f29b33554",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "SistemaCotizaci_x00f3_nIDId asc, Orden asc",
@@ -724,7 +724,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "table": "99b5175d-4c65-484e-b01e-81a58e024c5d",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "SistemaCotizaci_x00f3_nIDId asc, Orden asc",
@@ -746,7 +746,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "table": "9c051314-b3bf-4cb9-852d-5994cb6d4afc",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "SistemaCotizaci_x00f3_nIDId asc, Orden asc",
@@ -768,7 +768,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "table": "c54d76c6-2d76-4f86-a8f2-380ab036ae71",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "SistemaCotizaci_x00f3_nIDId asc, Orden asc",
@@ -790,7 +790,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "table": "772a6dae-e1bf-47c1-a03b-1e08f7243368",
                   "$filter": "@concat('Cotizaci_x00f3_nIDId eq ', string(outputs('CotizacionActual')?['ID']))",
                   "$orderby": "SistemaCotizaci_x00f3_nIDId asc, Orden asc",
@@ -1460,10 +1460,10 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "source": "groups/8d40587e-7320-4ac9-820d-fd0c9732e328",
-                  "drive": "b!J3QmlH6RAUG0eCDIw45xf76YXaSSToNOgLIoPEPyYWWu0pLdQJk9SL9-LumLRM3O",
+                  "source": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
+                  "drive": "b!J3QmlH6RAUG0eCDIw45xf76YXaSSToNOgLIoPEPyYWWYLpuMGk_IQYbLilU6oPh8",
                   "file": "@outputs('FDI_Creado_ExcelFileId')",
-                  "scriptId": "@parameters('FDI_OfficeScriptId (map_FDI_OfficeScriptId)')",
+                  "scriptId": "ms-officescript%3A%2F%2Fonedrive_business_itemlink%2F01EMJYBMG4H5E23ISXRVC3FCQQG2VX3PTR",
                   "ScriptParameters/payloadJson": "@outputs('Payload_Global_JSON')"
                 },
                 "host": {
@@ -1493,7 +1493,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "id": "%252fRecursos%252fFDI_Master.xlsx"
                 },
                 "host": {
@@ -1518,7 +1518,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "id": "%252fRecursos%252fFDI_Master.xlsx",
                   "inferContentType": true
                 },
@@ -1550,7 +1550,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "path": "@outputs('FDI_Target_File_Path')"
                 },
                 "host": {
@@ -1583,7 +1583,7 @@
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "id": "@outputs('FDI_Crear_FileId')"
                 },
                 "host": {
@@ -1614,10 +1614,10 @@
                 "type": "OpenApiConnection",
                 "inputs": {
                   "parameters": {
-                    "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                    "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                     "table": "53f4e788-fbb6-4deb-8fcf-965eb4db0c1e",
                     "id": "@outputs('CotizacionActual')?['ID']",
-                    "item/Carpeta": "@concat(\r\n  'https://montillacom.sharepoint.com/sites/Pruebas/Carpeta cotizaciones/',\r\n  variables('varYear'),\r\n  '/',\r\n  outputs('NombreCarpeta')\r\n)",
+                    "item/Carpeta": "@concat(\r\n  'https://montillacom.sharepoint.com/sites/Pruebas/Carpeta cotizaciones/',\r\n  variables('varYear'),\r\n  '/',\r\n  outputs('NombreCarpeta')\r\n)\r\n",
                     "item/FolderPath": "@concat(\r\n  'Carpeta cotizaciones/',\r\n  variables('varYear'),\r\n  '/',\r\n  outputs('NombreCarpeta')\r\n)"
                   },
                   "host": {
@@ -1724,7 +1724,7 @@
           "type": "OpenApiConnection",
           "inputs": {
             "parameters": {
-              "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+              "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
               "table": "53f4e788-fbb6-4deb-8fcf-965eb4db0c1e",
               "id": "@triggerBody()?['text']"
             },

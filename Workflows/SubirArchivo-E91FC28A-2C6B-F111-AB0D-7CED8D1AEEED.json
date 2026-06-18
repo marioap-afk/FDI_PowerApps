@@ -2,33 +2,38 @@
   "properties": {
     "connectionReferences": {
       "shared_sharepointonline": {
-        "runtimeSource": "embedded",
+        "api": {
+          "name": "shared_sharepointonline"
+        },
         "connection": {
           "connectionReferenceLogicalName": "mapc_sharedsharepointonline_d481e"
         },
-        "api": {
-          "name": "shared_sharepointonline"
-        }
+        "runtimeSource": "embedded"
       }
     },
     "definition": {
       "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
       "contentVersion": "1.0.0.0",
       "parameters": {
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
         "$connections": {
           "defaultValue": {},
           "type": "Object"
         },
-        "$authentication": {
-          "defaultValue": {},
-          "type": "SecureObject"
+        "FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)": {
+          "defaultValue": "https://montillacom.sharepoint.com/sites/Pruebas",
+          "type": "String",
+          "metadata": {
+            "schemaName": "map_FDI_SharePointSiteUrl",
+            "description": "El sitio de todas las listas "
+          }
         }
       },
       "triggers": {
         "manual": {
-          "metadata": {
-            "operationMetadataId": "07263cab-06c3-4709-aff8-b05ac75d17a9"
-          },
           "type": "Request",
           "kind": "PowerAppV2",
           "inputs": {
@@ -47,105 +52,104 @@
                 "text"
               ]
             }
+          },
+          "metadata": {
+            "operationMetadataId": "07263cab-06c3-4709-aff8-b05ac75d17a9"
           }
         }
       },
       "actions": {
         "Get_items": {
-          "runAfter": {},
-          "metadata": {
-            "operationMetadataId": "e077580b-8c27-4f5f-9a29-f91f08534c57"
-          },
           "type": "OpenApiConnection",
           "inputs": {
             "parameters": {
-              "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+              "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
               "table": "4317d03a-bbcb-4499-a38b-f9de52fad4f8",
               "$filter": "@concat('startswith(Title,''FDI ', triggerBody()?['text'], ' -'')')"
             },
             "host": {
               "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-              "connectionName": "shared_sharepointonline",
-              "operationId": "GetItems"
-            },
-            "authentication": "@parameters('$authentication')"
+              "operationId": "GetItems",
+              "connectionName": "shared_sharepointonline"
+            }
+          },
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "e077580b-8c27-4f5f-9a29-f91f08534c57"
           }
         },
         "For_each": {
+          "type": "Foreach",
           "foreach": "@body('Get_items')?['value']",
           "actions": {
             "Get_attachments": {
-              "runAfter": {},
-              "metadata": {
-                "operationMetadataId": "456b4c48-881f-4957-9f03-a96804f964ac"
-              },
               "type": "OpenApiConnection",
               "inputs": {
                 "parameters": {
-                  "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                  "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                   "table": "4317d03a-bbcb-4499-a38b-f9de52fad4f8",
                   "itemId": "@items('For_each')?['ID']"
                 },
                 "host": {
                   "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                  "connectionName": "shared_sharepointonline",
-                  "operationId": "GetItemAttachments"
-                },
-                "authentication": "@parameters('$authentication')"
+                  "operationId": "GetItemAttachments",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "metadata": {
+                "operationMetadataId": "456b4c48-881f-4957-9f03-a96804f964ac"
               }
             },
             "For_each_1": {
+              "type": "Foreach",
               "foreach": "@body('Get_attachments')",
               "actions": {
                 "Get_attachment_content": {
-                  "runAfter": {},
-                  "metadata": {
-                    "operationMetadataId": "ab81028a-e4d3-494a-a349-2e6486a119eb"
-                  },
                   "type": "OpenApiConnection",
                   "inputs": {
                     "parameters": {
-                      "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                      "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                       "table": "4317d03a-bbcb-4499-a38b-f9de52fad4f8",
                       "itemId": "@items('For_each')?['ID']",
                       "attachmentId": "@items('For_each_1')?['Id']"
                     },
                     "host": {
                       "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                      "connectionName": "shared_sharepointonline",
-                      "operationId": "GetAttachmentContent"
-                    },
-                    "authentication": "@parameters('$authentication')"
+                      "operationId": "GetAttachmentContent",
+                      "connectionName": "shared_sharepointonline"
+                    }
+                  },
+                  "metadata": {
+                    "operationMetadataId": "ab81028a-e4d3-494a-a349-2e6486a119eb"
                   }
                 },
                 "Create_file": {
-                  "runAfter": {
-                    "Get_attachment_content": [
-                      "Succeeded"
-                    ]
-                  },
-                  "metadata": {
-                    "operationMetadataId": "d86bef0c-4f83-4364-bd2d-9978ebee0a06"
-                  },
                   "type": "OpenApiConnection",
                   "inputs": {
                     "parameters": {
-                      "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                      "dataset": "@parameters('FDI_SharePointSiteUrl (map_FDI_SharePointSiteUrl)')",
                       "folderPath": "@concat(items('For_each')?['Destino'], '/Docs')",
                       "name": "@items('For_each_1')?['DisplayName']",
                       "body": "@body('Get_attachment_content')"
                     },
                     "host": {
                       "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
-                      "connectionName": "shared_sharepointonline",
-                      "operationId": "CreateFile"
-                    },
-                    "authentication": "@parameters('$authentication')"
+                      "operationId": "CreateFile",
+                      "connectionName": "shared_sharepointonline"
+                    }
+                  },
+                  "runAfter": {
+                    "Get_attachment_content": [
+                      "Succeeded"
+                    ]
                   },
                   "runtimeConfiguration": {
                     "contentTransfer": {
                       "transferMode": "Chunked"
                     }
+                  },
+                  "metadata": {
+                    "operationMetadataId": "d86bef0c-4f83-4364-bd2d-9978ebee0a06"
                   }
                 }
               },
@@ -156,8 +160,7 @@
               },
               "metadata": {
                 "operationMetadataId": "82bd2b38-cd04-4974-b54a-b19a928fb786"
-              },
-              "type": "Foreach"
+              }
             }
           },
           "runAfter": {
@@ -167,8 +170,7 @@
           },
           "metadata": {
             "operationMetadataId": "a33757ee-648b-41bd-a32c-4f2a7c7678ae"
-          },
-          "type": "Foreach"
+          }
         }
       },
       "outputs": {}
