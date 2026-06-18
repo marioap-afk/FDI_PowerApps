@@ -5,7 +5,7 @@
       <LocalizedName description="FDI" languagecode="3082" />
     </LocalizedNames>
     <Descriptions />
-    <Version>1.0.0.45</Version>
+    <Version>1.0.0.46</Version>
     <Managed>0</Managed>
     <Publisher>
       <UniqueName>Mario</UniqueName>

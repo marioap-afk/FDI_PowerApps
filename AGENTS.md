@@ -98,3 +98,11 @@ Requisitos minimos antes de entregar:
 
 No incluir archivos generados o no relacionados en el commit. Si existen
 archivos no trackeados ajenos al cambio, dejarlos fuera y reportarlos.
+
+## Regla obligatoria: bumpear version en cada cambio del .msapp
+
+Cada vez que se regenere o commitee
+`CanvasApps/mapc_fdi_412ec_DocumentUri.msapp`, **subir** `<Version>` en
+`Other/Solution.xml` (p. ej. `1.0.0.45` → `1.0.0.46`). Dos builds distintos con
+la misma version hacen que el import **no actualice** la app en el entorno
+destino. Reportar la version final en la respuesta.

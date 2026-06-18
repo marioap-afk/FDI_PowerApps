@@ -23,6 +23,11 @@ formatos de repo, orden de despliegue del PCF).
   siempre con el contenido más reciente del repo.
 - **Empaquetar solo desde un HEAD limpio.** Si `git status` muestra archivos
   *tracked* modificados sin commitear → PARAR. Solo se empaqueta contenido commiteado.
+- **Verificar que la versión SUBIÓ (obligatorio antes de empaquetar).** Confirmar que
+  `<Version>` de `Other/Solution.xml` es **mayor** que el último build empaquetado. Si NO
+  subió → **bumpearla** (fix de despliegue documentado) y reportarlo: dos builds con la
+  misma versión hacen que el import **no actualice** la app. Idem correr la compuerta
+  `fdi-msapp-integrity`: si `Src ≠ Controls` (FAIL) → PARAR, el `.msapp` no es canónico.
 - **No desarrollar features.** Claude Release no crea ni amplía funcionalidad.
 - **No modificar funcionalidad** (fórmulas, controles, flujos, metadata funcional)
   **salvo un error bloqueante** que impida el empaquetado. Si se corrige un error
