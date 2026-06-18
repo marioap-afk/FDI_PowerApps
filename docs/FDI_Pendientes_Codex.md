@@ -5,37 +5,41 @@
 
 ## Regla de proceso (división de roles)
 
-- **Codex** desarrolla sobre `Src/*.pa.yaml` y commitea. No necesita Studio ni correr la
-  verificación de integridad (no tiene Studio interactivo y `pac canvas` no round-trippea esta app
-  por el PCF).
-- **Usuario**: para dejar un `.msapp` **canónico/desplegable**, abre la app en **Power Apps Studio**
-  (lee `Src/`, muestra los cambios de Codex) y **Guarda/Publica** (regenera `Controls/` en sync +
-  bumpea `AppVersion`). Commitea ese `.msapp`.
+- **Codex** desarrolla con `pac canvas unpack --layout SourceCode` → edita `Src/*.pa.yaml` →
+  `pac canvas pack --layout SourceCode` (genera `packed.json`). **NUNCA editar el `Src/` interno del
+  `.msapp` a mano y re-zipear** (produce round-trip sin `packed.json`; Studio carga `Controls/` viejos
+  y el cambio no aparece). `pac` **NO compila** — solo empaqueta el YAML.
+- **Usuario**: abre ese `.msapp` en **Power Apps Studio**, que **compila** el YAML → `Controls/`;
+  **Guarda/Publica** y **exporta**. Ese export es el canónico desplegable. (Probado end-to-end
+  2026-06-18; ver memoria `canvas-pac-studio-compile`.)
 - **Claude Release**: corre `fdi-msapp-integrity` (compuerta) y empaqueta con `fdi-app-packaging`.
   Un FAIL antes del guardado por Studio es esperado (no es defecto de Codex).
 
-## Estado actual (2026-06-17)
+## Estado actual (2026-06-18)
 
-- **Reskin ya ABRE en Studio** (1.0.0.20 corre) ✅ — PA2108 resuelto. Nuevos bloqueos del reskin:
-  **0j** (crash al agregar un sistema) y **0k** (48 errores App Checker por `%…RESERVED%`). El usuario
-  prepara **1.0.0.21** con estos fixes (export en su codespace `solutions/last/FDI_1_0_0_21.zip`).
-- **0h (Sistema Otro)**: **flujo arreglado** ✅, pero la **app NO** — el `.msapp` 1.0.0.21 aún trae el GUID muerto `80069fdc…` en `DataSources.json`/`Properties.json`, usado en 3 fórmulas vivas de `scrFDI` (LookUp L578/L1545, Filter+Remove L856) → **OT 404 en la app**. Falta re-bindear el data source en Studio.
-- **0j/0k (1.0.0.21, `7b0cbf5`)**: RESERVED=0 ✅ y Radius=0 ✅ verificados; **empaquetado** `FDI_unmanaged_2026-06-17_7b0cbf5.zip`. Sigue pac-pack → falta que el usuario **pruebe el crash de agregar sistema** y, si OK, exporte el canónico desde Studio.
-- Último build empaquetable sano garantizado = **`a97e7eb` (1.0.0.17, pre-reskin)** — regenerable con
-  `git checkout a97e7eb` + packer. Builds de reskin previos (`2ee102a`/`6ed8d89`/`0b0d755`) **no desplegar**.
-- `solutions/` **purgado**: se borraron todos los ZIP intermedios (regenerables desde su commit).
-  Solo queda el **PCF** `FDI_PCFHtmlEditor_unmanaged_1.5.2`. `[Content_Types].xml` de referencia
-  ahora vive en `.codex/skills/fdi-app-packaging/Content_Types.xml` (ya no depende de ZIPs sueltos).
-- **RBAC**: documentación de listas hecha; usuario ya **creó** `Usuarios`/`Permisos`. Falta poblar
-  `Permisos` + bootstrap admin (P1) y P2–P4 (Codex).
+- **Reskin: RESUELTO y compilado en Studio** ✅ — `0i` (PA2108/Radius), `0j` (crash del panel al
+  agregar sistema) y `0k` (48 errores `%RESERVED%`) **cerrados**. El panel muestra la tarjeta del
+  sistema (`cntSistemasSelectedState`) y los botones quedaron bien (**Enviar en verde**). Flujo
+  probado end-to-end: Codex `pac pack --layout SourceCode` → usuario abre en Studio (compila) → exporta.
+- **En curso (Codex):** rediseño de la tira de tabs — eliminar `SistemasTabContainer`/`TabsGallery` y
+  mostrar los sistemas agregados como **galería en el panel derecho** (cada tarjeta con "Abrir captura").
+- **0h (Sistema Otro):** flujo arreglado ✅; el usuario reporta haber cambiado el data source de la app.
+  **Verificar** en el export canónico final que el GUID viejo `80069fdc…` ya **no** esté en
+  `DataSources.json`/`Properties.json`.
+- **RBAC (item 7):** docs hechas + listas `Usuarios`/`Permisos` creadas. **Acción del usuario (P1,
+  DESBLOQUEADA): poblar `Permisos`** con la matriz semilla + **bootstrap de tu fila Admin** en
+  `Usuarios`. Luego P2–P4 (Codex).
+- `solutions/` purgado; solo queda el **PCF** `FDI_PCFHtmlEditor_unmanaged_1.5.2`. `[Content_Types].xml`
+  de referencia en `.codex/skills/fdi-app-packaging/Content_Types.xml`. Último canónico pre-reskin
+  garantizado = `a97e7eb` (1.0.0.17).
 
 ## Pendientes
 
 | # | Pendiente | Prioridad | Detalle | Estado |
 | --- | --- | --- | --- | --- |
-| 0j | **BLOQUEANTE — crash al agregar un sistema** (reskin). En `scrFDI`, clic en "+" de una tarjeta agrega el sistema (la pestaña aparece) pero el **área de contenido queda en blanco/rota**. Camino: card `OnSelect` (≈L4366) `UpdateContext({locTabSel: ThisItem}); Switch(TipoKey, Navigate(scrFDI_XXX, {locTabSel: ThisItem}))` → destino lee `locTabSel.SistemaId` en `OnVisible`. Sospecha: contenedores `GroupContainer@1.5.0 Variant:AutoLayout` con `Height: =Parent.Height` anidados en padre AutoLayout → colapsan a 0 (`cntFDISistemaSEL` y equivalentes / panel de contenido de scrFDI). **No** es el Label de los RESERVED (ese está `Visible:=false`). Reproducir con Monitor para el control/fórmula exacto. | 🔴 **Bloqueante** | screenshots del usuario | ❌ abierto |
-| 0k | **Enums malformados `%Enum.RESERVED%.Valor` → 48 errores App Checker**. En 1.0.0.20 son **6 tokens** en `scrFDI`, todos en el Label **`lblErroresFDIResumen`** (`Visible:=false`, por eso no crashea). Cada línea dispara ~8 errores (`ErrBadToken` por `%`, `ErrInvalidDot` por `.RESERVED`, `ErrOperatorExpected`) → ~48 en 1.0.0.21. **Fix:** reescribir `%<Enum>.RESERVED%.<Valor>` → `<Enum>.<Valor>` (p. ej. `=%Align.RESERVED%.Left` → `=Align.Left`; `Role: =%TextRole.RESERVED%.Default` → `=TextRole.Default`). **Barrer TODOS** los `%*.RESERVED%` de `Src/`. **NO** tocar los `RESERVED` de `References/Templates.json`/`Themes.json` (internos legítimos). | 🟠 Media | App Checker (48); 6 en Src 1.0.0.20 | ❌ abierto |
-| 0i | **BLOQUEANTE — el reskin debe abrir en Studio sin `PA2108`**. El reskin aplicó `Radius*` por esquina a `Label@2.5.1` (no las soporta). **Progreso:** `6ed8d89` (1.0.0.19) quitó solo 8/192 (Studio reporta por lotes); el **sweep `0b0d755` (1.0.0.20) ya dejó 0 Label `Radius*`** ✅. **Falta lo decisivo:** el binario **sigue siendo `pac canvas pack` (rutas con `/`), sin validar por Studio** → no hay garantía de que abra. `GroupContainer`(494)/`Button`(276) son válidos; **`Image@2.2.3`(20) sin verificar** (si no soporta `Radius*`, será el próximo lote PA2108). **Acción:** abrir 1.0.0.20 en Power Apps Studio; si abre **sin PA2108**, Guardar/Publicar y exportar (binario con `\`) → entonces se empaqueta. Si lanza PA2108 (p. ej. en Image), barrer también. | 🔴 **Bloqueante** | PA2108 (sesión 9af22165…) | ⏳ Label OK (0/192); falta export real de Studio (1.0.0.20 es pac-pack) |
+| 0j | **BLOQUEANTE — crash al agregar un sistema** (reskin). En `scrFDI`, clic en "+" de una tarjeta agrega el sistema (la pestaña aparece) pero el **área de contenido queda en blanco/rota**. Camino: card `OnSelect` (≈L4366) `UpdateContext({locTabSel: ThisItem}); Switch(TipoKey, Navigate(scrFDI_XXX, {locTabSel: ThisItem}))` → destino lee `locTabSel.SistemaId` en `OnVisible`. Sospecha: contenedores `GroupContainer@1.5.0 Variant:AutoLayout` con `Height: =Parent.Height` anidados en padre AutoLayout → colapsan a 0 (`cntFDISistemaSEL` y equivalentes / panel de contenido de scrFDI). **No** es el Label de los RESERVED (ese está `Visible:=false`). Reproducir con Monitor para el control/fórmula exacto. | 🔴 **Bloqueante** | screenshots del usuario | ✅ resuelto (compilado en Studio 2026-06-18; tarjeta `cntSistemasSelectedState`) |
+| 0k | **Enums malformados `%Enum.RESERVED%.Valor` → 48 errores App Checker**. En 1.0.0.20 son **6 tokens** en `scrFDI`, todos en el Label **`lblErroresFDIResumen`** (`Visible:=false`, por eso no crashea). Cada línea dispara ~8 errores (`ErrBadToken` por `%`, `ErrInvalidDot` por `.RESERVED`, `ErrOperatorExpected`) → ~48 en 1.0.0.21. **Fix:** reescribir `%<Enum>.RESERVED%.<Valor>` → `<Enum>.<Valor>` (p. ej. `=%Align.RESERVED%.Left` → `=Align.Left`; `Role: =%TextRole.RESERVED%.Default` → `=TextRole.Default`). **Barrer TODOS** los `%*.RESERVED%` de `Src/`. **NO** tocar los `RESERVED` de `References/Templates.json`/`Themes.json` (internos legítimos). | 🟠 Media | App Checker (48); 6 en Src 1.0.0.20 | ✅ resuelto (RESERVED=0 verificado) |
+| 0i | **BLOQUEANTE — el reskin debe abrir en Studio sin `PA2108`**. El reskin aplicó `Radius*` por esquina a `Label@2.5.1` (no las soporta). **Progreso:** `6ed8d89` (1.0.0.19) quitó solo 8/192 (Studio reporta por lotes); el **sweep `0b0d755` (1.0.0.20) ya dejó 0 Label `Radius*`** ✅. **Falta lo decisivo:** el binario **sigue siendo `pac canvas pack` (rutas con `/`), sin validar por Studio** → no hay garantía de que abra. `GroupContainer`(494)/`Button`(276) son válidos; **`Image@2.2.3`(20) sin verificar** (si no soporta `Radius*`, será el próximo lote PA2108). **Acción:** abrir 1.0.0.20 en Power Apps Studio; si abre **sin PA2108**, Guardar/Publicar y exportar (binario con `\`) → entonces se empaqueta. Si lanza PA2108 (p. ej. en Image), barrer también. | 🔴 **Bloqueante** | PA2108 (sesión 9af22165…) | ✅ resuelto (abre en Studio, Radius=0) |
 | 0h | **GUID viejo de la lista "Sistema Otro" → 404 en app + flujo** (misma clase que 0b). La lista `Sistema Otro` se recreó (GUID nuevo); el viejo `80069fdc-2de1-4c95-a88b-02770ca25959` quedó fijado → `GetTable failed 404 "List not found"`. Vive en **4 lugares funcionales**: (1) flujo `Workflows/Creacin_FDI…json`, acción **`Get_sistemas_ot`**; (2) `CanvasApps/mapc_fdi_412ec.meta.xml` (`"Sistema Otro":{"tableName":"80069fdc…"}`); (3) `Other/Customizations.xml` (idem); (4) **dentro del `.msapp`**: `References/DataSources.json` + `Properties.json`. El usuario ya re-apuntó la acción del flujo **por nombre en el portal**, pero **no sobrevive al re-import** hasta actualizar la fuente. **Fix:** en **Studio** quitar y re-agregar el data source `Sistema Otro` (re-bindea al GUID vivo dentro del `.msapp`) **y** re-exportar el flujo (actualiza el JSON). El **GUID nuevo** se saca de la lista viva en SharePoint (el export de metadata del repo es viejo, aún trae el `80069fdc`). | 🔴 Alta | [FDI_DataSource_Bug_Report.md](FDI_DataSource_Bug_Report.md) (misma clase) | ⏳ arreglado en portal; falta fuente (app + flujo) |
 | 9 | **Controles para adjuntar archivos en los sistemas (no existen aún)**: añadir captura de archivos por sistema/pieza — p. ej. **layout/imagen**, **diseño del cliente**, etc. Definir: destino de almacenamiento (biblioteca SharePoint vs adjuntos de lista), alcance (por sistema o por pieza), tipos permitidos, y persistencia en el payload/flujo + plantilla. | 🟠 Media | feature nuevo — dominio de Codex | ❌ abierto |
 | 0f | **Plantilla + Office Script: quitar hojas `*_Datos`, normalizar tablas en `*_Form`** (y reducir lentitud del flujo). Toca `templates/FDI_Master.xlsx`, `scripts/generate-fdi-excel.py`, `scripts/office-scripts/fill-fdi-workbook.ts` — **dominio de Codex**. | 🟠 Media | [FDI_Plantilla_Script_Normalizar_Spec.md](FDI_Plantilla_Script_Normalizar_Spec.md) | ❌ abierto |
