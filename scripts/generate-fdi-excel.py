@@ -50,6 +50,7 @@ HEADER_ROWS = [
     (29, ("Fecha de entrega", "FechaEntrega")),
     (30, ("Fecha FDI", "Creación", "Created")),
     (33, ("Notas generales", "Notas", "Comentarios", "Consideraciones especiales")),
+    (34, ("DocsUrl", "DocsLink", "Documentos")),
 ]
 
 COMMON_LAYOUT = {
@@ -310,6 +311,7 @@ def fill_identity_and_method(ws, tipo: str, system: dict[str, Any], system_no: i
     set_cell(ws, "B13", pick(system, "FolioPedidoAnterior", "PedidoBase", "NumPedidoCot"))
     set_cell(ws, "B14", pick(system, "ComentariosReferencia", "ConsEsp"))
     set_cell(ws, "B25", truthy(pick(system, "AdjuntarImagenLayout", "RequiereAdjuntarLayout")))
+    set_cell(ws, "B26", pick(system, "DocsUrl", "DocsLink", "Documentos"))
 
 
 def fill_common(ws, tipo: str, system: dict[str, Any]) -> None:
@@ -494,8 +496,10 @@ def add_ot_sheet(wb, system: dict[str, Any], sheet_name: str, system_no: int) ->
     ws["B4"] = pick(system, "SistemaId", "SistemaID", "RegistroID")
     ws["A5"] = "Descripción"
     ws["B5"] = pick(system, "NombreSistema", "Title")
-    ws["A7"] = "Detalle"
-    ws["B7"] = html_to_text(pick(system, "HTMLCol", "HTML"))
+    ws["A6"] = "Documentos"
+    ws["B6"] = pick(system, "DocsUrl", "DocsLink", "Documentos")
+    ws["A8"] = "Detalle"
+    ws["B8"] = html_to_text(pick(system, "HTMLCol", "HTML"))
     ws.column_dimensions["A"].width = 24
     ws.column_dimensions["B"].width = 80
 

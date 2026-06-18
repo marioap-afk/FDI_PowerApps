@@ -831,7 +831,9 @@
                 "Nombre de contacto": "@outputs('CotizacionActual')?['Nombredecontacto']",
                 "Solicitud o generación": "@outputs('CotizacionActual')?['Solicitudogeneraci_x00f3_n']?['Value']",
                 "Item Type": "@outputs('CotizacionActual')?['{ContentType}']?['Name']",
-                "Path": "@outputs('CotizacionActual')?['{Path}']"
+                "Path": "@outputs('CotizacionActual')?['{Path}']",
+                "DocsUrl": "@concat('https://montillacom.sharepoint.com/sites/Pruebas/Carpeta cotizaciones/', variables('varYear'), '/', outputs('NombreCarpeta'), '/Docs')",
+                "DocsLink": "@concat('https://montillacom.sharepoint.com/sites/Pruebas/Carpeta cotizaciones/', variables('varYear'), '/', outputs('NombreCarpeta'), '/Docs')"
               },
               "runAfter": {
                 "Get_sistemas_sel": [
@@ -1383,7 +1385,10 @@
                       "proveedoresExternos": "@body('Select_Proveedores_Externos_Sistema')",
                       "ProveedoresExternos": "@body('Select_Proveedores_Externos_Sistema')",
                       "colores": "@body('Select_Colores_Sistema')",
-                      "Colores": "@body('Select_Colores_Sistema')"
+                      "Colores": "@body('Select_Colores_Sistema')",
+                      "DocsUrl": "@concat('https://montillacom.sharepoint.com/sites/Pruebas/Carpeta cotizaciones/', variables('varYear'), '/', outputs('NombreCarpeta'), '/Docs/Sistema ', string(outputs('SistemaPuente_Numero')), ' - ', coalesce(outputs('DetalleSistema')?['NombreSistema'], items('Apply_to_each_SistemaPuente')?['Estado'], items('Apply_to_each_SistemaPuente')?['Title']))",
+                      "DocsLink": "@concat('https://montillacom.sharepoint.com/sites/Pruebas/Carpeta cotizaciones/', variables('varYear'), '/', outputs('NombreCarpeta'), '/Docs/Sistema ', string(outputs('SistemaPuente_Numero')), ' - ', coalesce(outputs('DetalleSistema')?['NombreSistema'], items('Apply_to_each_SistemaPuente')?['Estado'], items('Apply_to_each_SistemaPuente')?['Title']))",
+                      "Documentos": "@concat('https://montillacom.sharepoint.com/sites/Pruebas/Carpeta cotizaciones/', variables('varYear'), '/', outputs('NombreCarpeta'), '/Docs/Sistema ', string(outputs('SistemaPuente_Numero')), ' - ', coalesce(outputs('DetalleSistema')?['NombreSistema'], items('Apply_to_each_SistemaPuente')?['Estado'], items('Apply_to_each_SistemaPuente')?['Title']))"
                     }
                   },
                   "runAfter": {
@@ -1592,6 +1597,168 @@
                 "FDI_Creado_Metadata": [
                   "Succeeded"
                 ]
+              }
+            },
+            "Apply_to_each_SistemaAdjuntos": {
+              "type": "Foreach",
+              "foreach": "@body('Get_sistemas_puente')?['value']",
+              "actions": {
+                "SistemaAdjuntos_FolderName": {
+                  "type": "Compose",
+                  "inputs": "@concat('Sistema ', string(coalesce(items('Apply_to_each_SistemaAdjuntos')?['SistemaId'], items('Apply_to_each_SistemaAdjuntos')?['SistemaID'], items('Apply_to_each_SistemaAdjuntos')?['ID'])), ' - ', coalesce(items('Apply_to_each_SistemaAdjuntos')?['Estado'], items('Apply_to_each_SistemaAdjuntos')?['Title']))"
+                },
+                "Try_Docs_Sistema": {
+                  "type": "Scope",
+                  "actions": {
+                    "Get_folder_metadata_Docs_Sistema": {
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "parameters": {
+                          "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                          "path": "@concat('/Carpeta cotizaciones/', variables('varYear'), '/', outputs('NombreCarpeta'), '/Docs/', outputs('SistemaAdjuntos_FolderName'))"
+                        },
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                          "operationId": "GetFolderMetadataByPath",
+                          "connectionName": "shared_sharepointonline"
+                        }
+                      }
+                    }
+                  },
+                  "runAfter": {
+                    "SistemaAdjuntos_FolderName": [
+                      "Succeeded"
+                    ]
+                  }
+                },
+                "Catch_Docs_Sistema": {
+                  "type": "Scope",
+                  "actions": {
+                    "Create_folder_Docs_Sistema": {
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "parameters": {
+                          "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                          "table": "dd92d2ae-9940-483d-bf7e-2ee98b44cdce",
+                          "parameters/path": "@concat('/', variables('varYear'), '/', outputs('NombreCarpeta'), '/Docs/', outputs('SistemaAdjuntos_FolderName'))"
+                        },
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                          "operationId": "CreateNewFolder",
+                          "connectionName": "shared_sharepointonline"
+                        }
+                      }
+                    }
+                  },
+                  "runAfter": {
+                    "Try_Docs_Sistema": [
+                      "TimedOut",
+                      "Failed"
+                    ]
+                  }
+                },
+                "Get_folder_metadata_Docs_Sistema_Final": {
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                      "path": "@concat('/Carpeta cotizaciones/', variables('varYear'), '/', outputs('NombreCarpeta'), '/Docs/', outputs('SistemaAdjuntos_FolderName'))"
+                    },
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "operationId": "GetFolderMetadataByPath",
+                      "connectionName": "shared_sharepointonline"
+                    }
+                  },
+                  "runAfter": {
+                    "Catch_Docs_Sistema": [
+                      "Succeeded",
+                      "Skipped"
+                    ],
+                    "Try_Docs_Sistema": [
+                      "Succeeded",
+                      "Failed"
+                    ]
+                  }
+                },
+                "Get_attachments_Sistema": {
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                      "table": "b1ee600e-adc7-481e-99ab-aeda6eddd7a1",
+                      "itemId": "@items('Apply_to_each_SistemaAdjuntos')?['ID']"
+                    },
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "operationId": "GetAttachments",
+                      "connectionName": "shared_sharepointonline"
+                    }
+                  },
+                  "runAfter": {
+                    "Get_folder_metadata_Docs_Sistema_Final": [
+                      "Succeeded"
+                    ]
+                  }
+                },
+                "Apply_to_each_AdjuntoSistema": {
+                  "type": "Foreach",
+                  "foreach": "@body('Get_attachments_Sistema')",
+                  "actions": {
+                    "Get_attachment_content_Sistema": {
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "parameters": {
+                          "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                          "table": "b1ee600e-adc7-481e-99ab-aeda6eddd7a1",
+                          "itemId": "@items('Apply_to_each_SistemaAdjuntos')?['ID']",
+                          "attachmentId": "@items('Apply_to_each_AdjuntoSistema')?['Id']"
+                        },
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                          "operationId": "GetAttachmentContent",
+                          "connectionName": "shared_sharepointonline"
+                        }
+                      }
+                    },
+                    "Create_file_AdjuntoSistema": {
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "parameters": {
+                          "dataset": "https://montillacom.sharepoint.com/sites/Pruebas",
+                          "folderPath": "@outputs('Get_folder_metadata_Docs_Sistema_Final')?['body/Path']",
+                          "name": "@items('Apply_to_each_AdjuntoSistema')?['DisplayName']",
+                          "body": "@body('Get_attachment_content_Sistema')"
+                        },
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                          "operationId": "CreateFile",
+                          "connectionName": "shared_sharepointonline"
+                        }
+                      },
+                      "runAfter": {
+                        "Get_attachment_content_Sistema": [
+                          "Succeeded"
+                        ]
+                      }
+                    }
+                  },
+                  "runAfter": {
+                    "Get_attachments_Sistema": [
+                      "Succeeded"
+                    ]
+                  }
+                }
+              },
+              "runAfter": {
+                "Get_sistemas_puente": [
+                  "Succeeded"
+                ]
+              },
+              "runtimeConfiguration": {
+                "concurrency": {
+                  "repetitions": 1
+                }
               }
             }
           },

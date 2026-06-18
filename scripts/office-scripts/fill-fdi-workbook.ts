@@ -56,7 +56,8 @@ const HEADER_ROWS: Array<[number, string[]]> = [
   [26, ["Prioridad", "Prioridad de cotización"]],
   [29, ["Fecha de entrega", "FechaEntrega"]],
   [30, ["Fecha FDI", "Creación", "Created"]],
-  [33, ["Notas generales", "Notas", "Comentarios", "Consideraciones especiales"]]
+  [33, ["Notas generales", "Notas", "Comentarios", "Consideraciones especiales"]],
+  [34, ["DocsUrl", "DocsLink", "Documentos"]]
 ];
 
 interface CommonLayout {
@@ -181,6 +182,7 @@ function fillIdentityAndMethod(sheet: ExcelScript.Worksheet, tipo: string, siste
   setCell(sheet, "B13", read(sistema, "FolioPedidoAnterior", "PedidoBase", "NumPedidoCot", ""));
   setCell(sheet, "B14", read(sistema, "ComentariosReferencia", "ConsEsp", ""));
   setCell(sheet, "B25", read(sistema, "AdjuntarImagenLayout", "RequiereAdjuntarLayout", ""));
+  setCell(sheet, "B26", read(sistema, "DocsUrl", "DocsLink", "Documentos", ""));
 }
 
 function fillCommon(sheet: ExcelScript.Worksheet, tipo: string, sistema: Record<string, unknown>) {
@@ -337,16 +339,17 @@ function fillRack(sheet: ExcelScript.Worksheet, sistema: Record<string, unknown>
 function addOtSheet(workbook: ExcelScript.Workbook, sistema: Record<string, unknown>, sheetName: string, systemNo: number) {
   const sheet = workbook.addWorksheet(sheetName);
   sheet.getRange("A1").setValue("Formulario de Sistema (Otro)");
-  sheet.getRange("A3:B7").setValues([
+  sheet.getRange("A3:B8").setValues([
     ["Sistema No", systemNo],
     ["SistemaID", formatValue(read(sistema, "SistemaId", "SistemaID", "RegistroID", ""))],
     ["Descripción", formatValue(read(sistema, "NombreSistema", "Title", ""))],
+    ["Documentos", formatValue(read(sistema, "DocsUrl", "DocsLink", "Documentos", ""))],
     ["", ""],
     ["Detalle", htmlToText(read(sistema, "HTMLCol", "HTML", ""))]
   ]);
   sheet.getRange("A:A").getFormat().setColumnWidth(160);
   sheet.getRange("B:B").getFormat().setColumnWidth(520);
-  sheet.getRange("B7").getFormat().setWrapText(true);
+  sheet.getRange("B8").getFormat().setWrapText(true);
 }
 
 function writePayloadSheet(workbook: ExcelScript.Workbook, payloadJson: string) {
