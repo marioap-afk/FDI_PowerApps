@@ -30,6 +30,27 @@ ejemplo `scrMisCotizaciones`. Si el usuario limita explicitamente el alcance e
 impide tocar `scrInicio`, se debe pedir confirmacion antes de entregar un
 `.msapp` con el label obsoleto.
 
+## Regla obligatoria: base = ultimo export publicado del usuario
+
+Codex SIEMPRE parte del ultimo `.msapp` que el usuario exporto tras abrir la app
+en Power Apps Studio, compilar y **Publicar** — NUNCA de un `.msapp` viejo del
+repo. Regenerar o commitear un `.msapp` que no derive del export publicado mas
+reciente **revierte los cambios del usuario** (p. ej. formulas borradas en
+`scrAdmin` que "reaparecen" commit tras commit).
+
+Requisitos:
+
+- Cuando el usuario entrega un export, usarlo como base: `pac canvas unpack` de
+  **ese** `.msapp`, no del que esta en el repo si difiere.
+- Si el cambio NO requiere editar la app, commitear el `.msapp` del export
+  **tal cual** (es el canonico, ya compilado por Studio).
+- Senal de base canonica antes de commitear: `Header.LastSavedDateTimeUTC`
+  fresco (un Publish real de Studio) y la compuerta `fdi-msapp-integrity` en
+  **PASS** (Src == Controls). Si la base esta sin compilar (FAIL del gate),
+  pedir al usuario que Publique y re-exporte antes de seguir.
+- Tras cada cambio que regenere el `.msapp`, **bumpear la version** de la
+  solucion (evita dos binarios con el mismo AppVersion).
+
 ## Regla obligatoria: responsividad
 
 Cada cambio de UI en la canvas app FDI debe ser responsivo por defecto. Esto
