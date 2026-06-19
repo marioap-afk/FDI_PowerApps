@@ -266,14 +266,16 @@ def find_table(ws, table_key: str, tipo: str):
 
 class RowInsertContext:
     def __init__(self) -> None:
-        self.insertions: list[tuple[int, int]] = []
+        self.insertions: list[tuple[int, int, int, int]] = []
 
-    def record(self, insert_at_row: int, count: int) -> None:
-        self.insertions.append((insert_at_row, count))
+    def record(self, insert_at_row: int, count: int, min_col: int, max_col: int) -> None:
+        self.insertions.append((insert_at_row, count, min_col, max_col))
 
     def adjust_ref(self, ref: str) -> str:
         min_col, min_row, max_col, max_row = range_boundaries(ref)
-        for insert_at_row, count in self.insertions:
+        for insert_at_row, count, insert_min_col, insert_max_col in self.insertions:
+            if max_col < insert_min_col or min_col > insert_max_col:
+                continue
             if insert_at_row <= min_row:
                 min_row += count
                 max_row += count
@@ -315,10 +317,23 @@ def ensure_range_capacity(ws, ref: str, row_count: int, context: RowInsertContex
     extra_rows = max(0, row_count - capacity)
     if extra_rows:
         insert_at_row = max_row + 1
-        ws.insert_rows(insert_at_row, amount=extra_rows)
-        context.record(insert_at_row, extra_rows)
+        move_min_col = 1
+        move_max_col = max(7, max_col)
+        move_ref = format_range_ref(move_min_col, insert_at_row, move_max_col, max(ws.max_row, insert_at_row))
+        ws.move_range(move_ref, rows=extra_rows, cols=0, translate=False)
+        for row in range(insert_at_row, insert_at_row + extra_rows):
+            for col in range(move_min_col, move_max_col + 1):
+                ws.cell(row, col).value = None
+        context.record(insert_at_row, extra_rows, move_min_col, move_max_col)
         max_row += extra_rows
     return format_range_ref(min_col, min_row, max_col, max_row)
+
+
+def expanded_ref_for_rows(ref: str, row_count: int) -> str:
+    min_col, min_row, max_col, max_row = range_boundaries(ref)
+    capacity = max(0, max_row - min_row)
+    extra_rows = max(0, row_count - capacity)
+    return format_range_ref(min_col, min_row, max_col, max_row + extra_rows)
 
 
 def write_table_to_ref(ws, ref: str, rows: list[dict[str, Any]], columns: list[tuple[str, ...]], headers: list[str]) -> None:
@@ -347,12 +362,12 @@ def write_system_table_preview(ws, tipo: str, table_key: str, rows: list[dict[st
     write_table_to_ref(ws, ref, rows, columns, headers)
 
 
-def write_system_table_data(ws, tipo: str, table_key: str, rows: list[dict[str, Any]], context: RowInsertContext) -> None:
+def write_system_table_data(ws, tipo: str, table_key: str, rows: list[dict[str, Any]]) -> None:
     definition = TABLE_DEFINITIONS[table_key]
     columns = table_columns(table_key)
     headers = table_headers(table_key)
     table = find_table(ws, table_key, tipo)
-    ref = context.adjust_ref(definition["range"])
+    ref = expanded_ref_for_rows(definition["range"], len(rows))
     if table is not None:
         table.ref = ref
     write_table_to_ref(ws, ref, rows, columns, headers)
@@ -363,11 +378,6 @@ def ensure_system_table_preview_capacity(ws, tipo: str, table_key: str, rows: li
     if not preview_ref:
         return
     ensure_range_capacity(ws, context.adjust_ref(preview_ref), len(rows), context)
-
-
-def ensure_system_table_data_capacity(ws, table_key: str, rows: list[dict[str, Any]], context: RowInsertContext) -> None:
-    definition = TABLE_DEFINITIONS[table_key]
-    ensure_range_capacity(ws, context.adjust_ref(definition["range"]), len(rows), context)
 
 
 def preview_ref_for(table_key: str, tipo: str) -> str:
@@ -542,11 +552,9 @@ def fill_detail_tables(ws, tipo: str, system: dict[str, Any]) -> None:
         ),
     ]
     for table_key, rows in table_writes:
-        ensure_system_table_data_capacity(ws, table_key, rows, context)
+        write_system_table_data(ws, tipo, table_key, rows)
     for table_key, rows in table_writes:
         ensure_system_table_preview_capacity(ws, tipo, table_key, rows, context)
-    for table_key, rows in table_writes:
-        write_system_table_data(ws, tipo, table_key, rows, context)
     for table_key, rows in table_writes:
         write_system_table_preview(ws, tipo, table_key, rows, context)
 

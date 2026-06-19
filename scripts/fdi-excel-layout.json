@@ -1,7 +1,7 @@
 {
   "version": 1,
   "configSheet": "FDI_Table_Config",
-  "hiddenColumns": ["I:V"],
+  "hiddenColumns": ["I:AP"],
   "tables": {
     "piezas": {
       "baseName": "tblPiezas",
@@ -50,7 +50,7 @@
     },
     "productos": {
       "baseName": "tblProductos",
-      "range": "I32:N57",
+      "range": "W4:AB29",
       "headers": ["TipoProducto", "LargoProducto", "AnchoProducto", "AltoProducto", "PesoProducto", "CantidadPorNivel"],
       "previewHeaders": ["Tipo", "Largo", "Ancho", "Alto", "Peso", "Cant./nivel"],
       "aliases": [
@@ -69,7 +69,7 @@
     },
     "elementosSeguridad": {
       "baseName": "tblElementosSeguridad",
-      "range": "P32:R57",
+      "range": "AD4:AF29",
       "headers": ["Pieza", "Cantidad", "Comentario"],
       "previewHeaders": ["Pieza", "Cantidad", "Comentario"],
       "aliases": [
@@ -90,7 +90,7 @@
     },
     "piezasEspeciales": {
       "baseName": "tblPiezasEspeciales",
-      "range": "T32:V57",
+      "range": "AH4:AJ29",
       "headers": ["Pieza", "Cantidad", "Comentario"],
       "previewHeaders": ["Pieza", "Cantidad", "Comentario"],
       "aliases": [
@@ -111,7 +111,7 @@
     },
     "colores": {
       "baseName": "tblColores",
-      "range": "I60:J85",
+      "range": "AL4:AM29",
       "headers": ["Pieza", "Color"],
       "previewHeaders": ["Pieza", "Color"],
       "aliases": [
@@ -131,7 +131,7 @@
     },
     "proveedoresExternos": {
       "baseName": "tblProveedoresExternos",
-      "range": "L60:M85",
+      "range": "AO4:AP29",
       "headers": ["Proveedor", "Alcance"],
       "previewHeaders": ["Proveedor", "Alcance"],
       "aliases": [

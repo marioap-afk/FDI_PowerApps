@@ -106,6 +106,8 @@ interface LayoutConfig {
 interface RowInsertion {
   row: number;
   count: number;
+  startColumn: number;
+  endColumn: number;
 }
 
 interface TableWriteContext {
@@ -417,13 +419,10 @@ function fillDetailTables(sheet: ExcelScript.Worksheet, tipo: string, sistema: R
   ];
 
   tableWrites.forEach(([tableKey, rows]) => {
-    ensureSystemTableDataCapacity(sheet, layoutConfig, tableKey, rows, context);
+    writeSystemTableData(sheet, tipo, layoutConfig, tableKey, rows);
   });
   tableWrites.forEach(([tableKey, rows]) => {
     ensureSystemTablePreviewCapacity(sheet, tipo, layoutConfig, tableKey, rows, context);
-  });
-  tableWrites.forEach(([tableKey, rows]) => {
-    writeSystemTableData(sheet, tipo, layoutConfig, tableKey, rows, context);
   });
   tableWrites.forEach(([tableKey, rows]) => {
     writeSystemTablePreview(sheet, tipo, layoutConfig, tableKey, rows, context);
@@ -444,18 +443,6 @@ function ensureSystemTablePreviewCapacity(
     const previewRange = sheet.getRange(adjustRangeRef(previewRef, context));
     ensureRangeCapacity(sheet, previewRange, rows.length, aliasesFor(tableKey, definition).length, context);
   }
-}
-
-function ensureSystemTableDataCapacity(
-  sheet: ExcelScript.Worksheet,
-  layoutConfig: LayoutConfig,
-  tableKey: string,
-  rows: Record<string, unknown>[],
-  context: TableWriteContext
-) {
-  const definition = layoutConfig.tables[tableKey];
-  const targetRange = sheet.getRange(adjustRangeRef(definition.range, context));
-  ensureRangeCapacity(sheet, targetRange, rows.length, aliasesFor(tableKey, definition).length, context);
 }
 
 function writeSystemTablePreview(
@@ -479,14 +466,25 @@ function writeSystemTableData(
   tipo: string,
   layoutConfig: LayoutConfig,
   tableKey: string,
-  rows: Record<string, unknown>[],
-  context: TableWriteContext
+  rows: Record<string, unknown>[]
 ) {
   const definition = layoutConfig.tables[tableKey];
   const table = findSheetTable(sheet, definition.baseName, tipo);
-  const targetRange = sheet.getRange(adjustRangeRef(definition.range, context));
-  if (table) table.resize(targetRange);
-  writeTableToRange(sheet, targetRange, rows, aliasesFor(tableKey, definition), definition.headers);
+  const baseRange = table ? table.getRange() : sheet.getRange(definition.range);
+  const targetRange = resizedRangeForRows(sheet, baseRange, rows.length, aliasesFor(tableKey, definition).length);
+  if (table) {
+    try {
+      table.resize(targetRange);
+    } catch {
+      // En plantillas viejas las tablas ocultas estaban apiladas; si Excel bloquea el resize,
+      // el preview visible sigue siendo la salida confiable.
+    }
+  }
+  try {
+    writeTableToRange(sheet, targetRange, rows, aliasesFor(tableKey, definition), definition.headers);
+  } catch {
+    // No abortar el FDI por una tabla oculta legacy; los datos visibles se escriben después.
+  }
 }
 
 function previewRangeFor(tableKey: string, tipo: string, definition: TableDefinition): string {
@@ -528,9 +526,18 @@ function ensureRangeCapacity(
   const dataRowCount = Math.max(0, tableRange.getRowCount() - 1);
   const extraRows = Math.max(0, rowCount - dataRowCount);
   if (extraRows > 0) {
-    const insertAtRow = tableRange.getRowIndex() + tableRange.getRowCount() + 1;
-    sheet.getRange(`${insertAtRow}:${insertAtRow + extraRows - 1}`).insert(ExcelScript.InsertShiftDirection.down);
-    context.insertions.push({ row: insertAtRow, count: extraRows });
+    const insertAtRowIndex = tableRange.getRowIndex() + tableRange.getRowCount();
+    const visibleStartColumnIndex = 0;
+    const visibleColumnCount = Math.max(7, tableRange.getColumnIndex() + columnCount);
+    sheet
+      .getRangeByIndexes(insertAtRowIndex, visibleStartColumnIndex, extraRows, visibleColumnCount)
+      .insert(ExcelScript.InsertShiftDirection.down);
+    context.insertions.push({
+      row: insertAtRowIndex + 1,
+      count: extraRows,
+      startColumn: visibleStartColumnIndex + 1,
+      endColumn: visibleColumnCount
+    });
   }
 
   return sheet.getRangeByIndexes(
@@ -541,13 +548,27 @@ function ensureRangeCapacity(
   );
 }
 
+function resizedRangeForRows(sheet: ExcelScript.Worksheet, range: ExcelScript.Range, rowCount: number, columnCount: number): ExcelScript.Range {
+  const dataRowCount = Math.max(0, range.getRowCount() - 1);
+  const extraRows = Math.max(0, rowCount - dataRowCount);
+  return sheet.getRangeByIndexes(
+    range.getRowIndex(),
+    range.getColumnIndex(),
+    range.getRowCount() + extraRows,
+    columnCount
+  );
+}
+
 function adjustRangeRef(ref: string, context: TableWriteContext): string {
   const match = /^([A-Z]+)(\d+):([A-Z]+)(\d+)$/i.exec(ref);
   if (!match) return ref;
 
+  const startColumn = columnNumber(match[1]);
+  const endColumn = columnNumber(match[3]);
   let startRow = Number(match[2]);
   let endRow = Number(match[4]);
   context.insertions.forEach((insertion) => {
+    if (endColumn < insertion.startColumn || startColumn > insertion.endColumn) return;
     if (insertion.row <= startRow) {
       startRow += insertion.count;
       endRow += insertion.count;
@@ -557,6 +578,10 @@ function adjustRangeRef(ref: string, context: TableWriteContext): string {
   });
 
   return `${match[1]}${startRow}:${match[3]}${endRow}`;
+}
+
+function columnNumber(columnLetters: string): number {
+  return columnLetters.toUpperCase().split("").reduce((value, letter) => value * 26 + letter.charCodeAt(0) - 64, 0);
 }
 
 function writeTableToRange(
