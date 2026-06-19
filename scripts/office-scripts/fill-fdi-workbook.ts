@@ -458,6 +458,7 @@ function writeSystemTablePreview(
   if (previewRef) {
     const targetRange = sheet.getRange(adjustRangeRef(previewRef, context));
     writeTableToRange(sheet, targetRange, rows, aliasesFor(tableKey, definition), previewHeadersFor(definition));
+    showPreviewRows(sheet, targetRange, rows.length);
   }
 }
 
@@ -640,11 +641,7 @@ function setCell(sheet: ExcelScript.Worksheet, address: string, value: unknown) 
 function read(obj: Record<string, unknown>, ...keysAndFallback: unknown[]): unknown {
   const fallback = keysAndFallback.length > 0 ? keysAndFallback[keysAndFallback.length - 1] : "";
   const keys = keysAndFallback.slice(0, -1).filter((key): key is string => typeof key === "string");
-  for (const key of keys) {
-    const value = obj[key];
-    if (value !== undefined && value !== null && value !== "") return value;
-  }
-  return fallback;
+  return pick(obj, keys, fallback);
 }
 
 function pick(obj: Record<string, unknown>, aliases: string[], fallback: unknown): unknown {
@@ -652,7 +649,39 @@ function pick(obj: Record<string, unknown>, aliases: string[], fallback: unknown
     const value = obj[key];
     if (value !== undefined && value !== null && value !== "") return value;
   }
+
+  const normalizedKeys = Object.keys(obj).map((key) => ({ key, normalized: normalizeKey(key) }));
+  for (const alias of aliases) {
+    const normalizedAlias = normalizeKey(alias);
+    if (!normalizedAlias) continue;
+    for (const entry of normalizedKeys) {
+      if (!keyMatchesAlias(entry.normalized, normalizedAlias)) continue;
+      const value = obj[entry.key];
+      if (value !== undefined && value !== null && value !== "") return value;
+    }
+  }
+
   return fallback;
+}
+
+function keyMatchesAlias(key: string, alias: string): boolean {
+  return key === alias || key.replace(/\d+$/, "") === alias;
+}
+
+function normalizeKey(key: string): string {
+  return key
+    .replace(/_x([0-9a-fA-F]{4})_/g, (_match, hex) => String.fromCharCode(parseInt(hex, 16)))
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function showPreviewRows(sheet: ExcelScript.Worksheet, tableRange: ExcelScript.Range, rowCount: number) {
+  if (rowCount < 1) return;
+  const startRow = tableRange.getRowIndex() + 1;
+  const endRow = startRow + rowCount;
+  sheet.getRange(`${startRow}:${endRow}`).setRowHidden(false);
 }
 
 function formatValue(value: unknown): string | number | boolean {

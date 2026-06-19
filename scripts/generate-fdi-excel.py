@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import unicodedata
 from copy import deepcopy
 from html import unescape
 from pathlib import Path
@@ -115,7 +116,31 @@ def pick(data: dict[str, Any], *keys: str, default: Any = "") -> Any:
     for key in keys:
         if key in data and data[key] not in (None, ""):
             return data[key]
+    normalized_keys = [(key, normalize_key(key)) for key in data]
+    for key in keys:
+        normalized_alias = normalize_key(key)
+        if not normalized_alias:
+            continue
+        for actual_key, normalized_actual in normalized_keys:
+            if not key_matches_alias(normalized_actual, normalized_alias):
+                continue
+            value = data[actual_key]
+            if value not in (None, ""):
+                return value
     return default
+
+
+def key_matches_alias(key: str, alias: str) -> bool:
+    return key == alias or re.sub(r"\d+$", "", key) == alias
+
+
+def normalize_key(key: str) -> str:
+    decoded = re.sub(r"_x([0-9a-fA-F]{4})_", lambda match: chr(int(match.group(1), 16)), str(key))
+    without_accents = "".join(
+        char for char in unicodedata.normalize("NFD", decoded)
+        if unicodedata.category(char) != "Mn"
+    )
+    return re.sub(r"[^a-z0-9]", "", without_accents.lower())
 
 
 def as_list(value: Any) -> list[dict[str, Any]]:
@@ -360,6 +385,9 @@ def write_system_table_preview(ws, tipo: str, table_key: str, rows: list[dict[st
     headers = table_preview_headers(table_key)
     ref = context.adjust_ref(preview_ref)
     write_table_to_ref(ws, ref, rows, columns, headers)
+    if rows:
+        _min_col, min_row, _max_col, _max_row = range_boundaries(ref)
+        set_rows_hidden(ws, min_row, min_row + len(rows), False)
 
 
 def write_system_table_data(ws, tipo: str, table_key: str, rows: list[dict[str, Any]]) -> None:
