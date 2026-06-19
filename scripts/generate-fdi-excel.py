@@ -8,6 +8,7 @@ from html import unescape
 from pathlib import Path
 from typing import Any
 
+from openpyxl.cell.cell import MergedCell
 from openpyxl import load_workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
 from openpyxl.utils import column_index_from_string, get_column_letter, range_boundaries
@@ -172,6 +173,15 @@ def table_columns(table_key: str) -> list[tuple[str, ...]]:
     return [tuple(aliases) for aliases in TABLE_DEFINITIONS[table_key]["aliases"]]
 
 
+def table_headers(table_key: str) -> list[str]:
+    return [str(header) for header in TABLE_DEFINITIONS[table_key]["headers"]]
+
+
+def table_preview_headers(table_key: str) -> list[str]:
+    definition = TABLE_DEFINITIONS[table_key]
+    return [str(header) for header in definition.get("previewHeaders", definition["headers"])]
+
+
 def find_table(ws, table_key: str, tipo: str):
     base_name = TABLE_DEFINITIONS[table_key]["baseName"]
     expected_prefix = f"{base_name}_{tipo}"
@@ -184,11 +194,26 @@ def find_table(ws, table_key: str, tipo: str):
     return None
 
 
-def table_ref(ws, table_key: str, tipo: str) -> str:
-    table = find_table(ws, table_key, tipo)
-    if table is not None:
-        return table.ref
-    return TABLE_DEFINITIONS[table_key]["range"]
+class RowInsertContext:
+    def __init__(self) -> None:
+        self.insertions: list[tuple[int, int]] = []
+
+    def record(self, insert_at_row: int, count: int) -> None:
+        self.insertions.append((insert_at_row, count))
+
+    def adjust_ref(self, ref: str) -> str:
+        min_col, min_row, max_col, max_row = range_boundaries(ref)
+        for insert_at_row, count in self.insertions:
+            if insert_at_row <= min_row:
+                min_row += count
+                max_row += count
+            elif min_row < insert_at_row <= max_row + 1:
+                max_row += count
+        return format_range_ref(min_col, min_row, max_col, max_row)
+
+
+def format_range_ref(min_col: int, min_row: int, max_col: int, max_row: int) -> str:
+    return f"{get_column_letter(min_col)}{min_row}:{get_column_letter(max_col)}{max_row}"
 
 
 def set_cell(ws, address: str, value: Any) -> None:
@@ -207,29 +232,61 @@ def clear_table_area(ws, start_row: int, end_row: int, column_count: int) -> Non
             ws.cell(row, col).value = None
 
 
-def clear_table_range(ws, ref: str, columns: list[tuple[str, ...]]) -> None:
+def clear_table_range(ws, ref: str, column_count: int) -> None:
     min_col, min_row, _max_col, max_row = range_boundaries(ref)
     for row in range(min_row + 1, max_row + 1):
-        for col in range(min_col, min_col + len(columns)):
+        for col in range(min_col, min_col + column_count):
             ws.cell(row, col).value = None
 
 
-def write_table_to_ref(ws, ref: str, rows: list[dict[str, Any]], columns: list[tuple[str, ...]]) -> None:
-    min_col, min_row, _max_col, max_row = range_boundaries(ref)
-    clear_table_range(ws, ref, columns)
+def ensure_range_capacity(ws, ref: str, row_count: int, context: RowInsertContext) -> str:
+    min_col, min_row, max_col, max_row = range_boundaries(ref)
     capacity = max(0, max_row - min_row)
-    for row_offset, item in enumerate(rows[:capacity]):
+    extra_rows = max(0, row_count - capacity)
+    if extra_rows:
+        insert_at_row = max_row + 1
+        ws.insert_rows(insert_at_row, amount=extra_rows)
+        context.record(insert_at_row, extra_rows)
+        max_row += extra_rows
+    return format_range_ref(min_col, min_row, max_col, max_row)
+
+
+def write_table_to_ref(ws, ref: str, rows: list[dict[str, Any]], columns: list[tuple[str, ...]], headers: list[str]) -> None:
+    min_col, min_row, _max_col, max_row = range_boundaries(ref)
+    capacity = max(0, max_row - min_row)
+    if len(rows) > capacity:
+        raise ValueError(f"El rango {ws.title}!{ref} no tiene filas suficientes para escribir {len(rows)} registros.")
+
+    unmerge_intersecting_range(ws, ref)
+    for col_offset, header in enumerate(headers, 1):
+        ws.cell(min_row, min_col + col_offset - 1).value = header
+    clear_table_range(ws, ref, len(columns))
+    for row_offset, item in enumerate(rows):
         for col_offset, aliases in enumerate(columns, 1):
             ws.cell(min_row + 1 + row_offset, min_col + col_offset - 1).value = truthy(pick(item, *aliases))
 
 
-def write_system_table(ws, tipo: str, table_key: str, rows: list[dict[str, Any]]) -> None:
+def write_system_table_preview(ws, tipo: str, table_key: str, rows: list[dict[str, Any]], context: RowInsertContext) -> None:
+    definition = TABLE_DEFINITIONS[table_key]
+    preview_ref = definition.get("previewRanges", {}).get(tipo)
+    if not preview_ref:
+        return
+    columns = table_columns(table_key)
+    headers = table_preview_headers(table_key)
+    ref = ensure_range_capacity(ws, context.adjust_ref(preview_ref), len(rows), context)
+    write_table_to_ref(ws, ref, rows, columns, headers)
+
+
+def write_system_table_data(ws, tipo: str, table_key: str, rows: list[dict[str, Any]], context: RowInsertContext) -> None:
     definition = TABLE_DEFINITIONS[table_key]
     columns = table_columns(table_key)
-    write_table_to_ref(ws, table_ref(ws, table_key, tipo), rows, columns)
-    preview_ref = definition.get("previewRanges", {}).get(tipo)
-    if preview_ref:
-        write_table_to_ref(ws, preview_ref, rows, columns)
+    headers = table_headers(table_key)
+    table = find_table(ws, table_key, tipo)
+    base_ref = table.ref if table is not None else definition["range"]
+    ref = ensure_range_capacity(ws, context.adjust_ref(base_ref), len(rows), context)
+    if table is not None:
+        table.ref = ref
+    write_table_to_ref(ws, ref, rows, columns, headers)
 
 
 def set_rows_hidden(ws, start_row: int, end_row: int, hidden: bool) -> None:
@@ -334,19 +391,6 @@ def fill_common(ws, tipo: str, system: dict[str, Any]) -> None:
     set_cell(ws, f"B{layout['comments']}", pick(system, "ConsEsp", "Consideraciones especiales", "Comentarios"))
 
 
-def fill_tarima_block(ws, system: dict[str, Any], base_row: int) -> None:
-    tarimas = as_list(pick(system, "tarimas", "Tarimas", default=[]))
-    first = tarimas[0] if tarimas else {}
-    set_cell(ws, f"B{base_row}", pick(first, "Peso", "PesoTarima"))
-    set_cell(ws, f"B{base_row + 1}", pick(first, "Alto", "AltoTarima"))
-    set_cell(ws, f"B{base_row + 2}", pick(first, "Frente", "FrenteTarima"))
-    set_cell(ws, f"B{base_row + 3}", pick(first, "Fondo", "FondoTarima"))
-    set_cell(ws, f"B{base_row + 4}", pick(first, "Excedente", default=bool(pick(first, "ExcedenteFrente", "ExcedenteFondo"))))
-    set_cell(ws, f"B{base_row + 5}", pick(first, "ExcedenteFrente", "Excedente frente"))
-    set_cell(ws, f"B{base_row + 6}", pick(first, "ExcedenteFondo", "Excedente fondo"))
-    set_cell(ws, f"B{base_row + 7}", pick(first, "Huella", "HuellaTarima"))
-
-
 def fill_area_and_levels(ws, system: dict[str, Any], area_row: int, levels_row: int, include_montacargas: bool) -> None:
     if include_montacargas:
         set_cell(ws, f"B{area_row}", pick(system, "PasilloMax", "Pasillo máximo"))
@@ -381,44 +425,42 @@ def fill_rack(ws, system: dict[str, Any], start_row: int, high_impact: bool = Tr
 
 
 def fill_detail_tables(ws, tipo: str, system: dict[str, Any]) -> None:
-    write_system_table(
-        ws,
-        tipo,
-        "piezas",
-        rows_from_summary(as_list(pick(system, "piezas", "Piezas", default=[])), pick(system, "PiezasResumen")),
-    )
-    write_system_table(ws, tipo, "tarimas", as_list(pick(system, "tarimas", "Tarimas", default=[])))
-    write_system_table(ws, tipo, "productos", as_list(pick(system, "productos", "Productos", default=[])))
-    write_system_table(
-        ws,
-        tipo,
-        "elementosSeguridad",
-        rows_from_summary(
-            as_list(pick(system, "elementosSeguridad", "ElementosSeguridad", default=[])),
-            pick(system, "ElementosSeguridadResumen"),
+    context = RowInsertContext()
+    table_writes = [
+        (
+            "piezas",
+            rows_from_summary(as_list(pick(system, "piezas", "Piezas", default=[])), pick(system, "PiezasResumen")),
         ),
-    )
-    write_system_table(ws, tipo, "piezasEspeciales", as_list(pick(system, "piezasEspeciales", "PiezasEspeciales", default=[])))
-    write_system_table(ws, tipo, "colores", as_list(pick(system, "colores", "Colores", default=[])))
-    write_system_table(
-        ws,
-        tipo,
-        "proveedoresExternos",
-        as_list(pick(system, "proveedoresExternos", "ProveedoresExternos", default=[])),
-    )
+        ("tarimas", as_list(pick(system, "tarimas", "Tarimas", default=[]))),
+        ("productos", as_list(pick(system, "productos", "Productos", default=[]))),
+        (
+            "elementosSeguridad",
+            rows_from_summary(
+                as_list(pick(system, "elementosSeguridad", "ElementosSeguridad", default=[])),
+                pick(system, "ElementosSeguridadResumen"),
+            ),
+        ),
+        ("piezasEspeciales", as_list(pick(system, "piezasEspeciales", "PiezasEspeciales", default=[]))),
+        ("colores", as_list(pick(system, "colores", "Colores", default=[]))),
+        (
+            "proveedoresExternos",
+            as_list(pick(system, "proveedoresExternos", "ProveedoresExternos", default=[])),
+        ),
+    ]
+    for table_key, rows in table_writes:
+        write_system_table_preview(ws, tipo, table_key, rows, context)
+    for table_key, rows in table_writes:
+        write_system_table_data(ws, tipo, table_key, rows, context)
 
 
 def fill_supported_form(ws, tipo: str, system: dict[str, Any], system_no: int) -> None:
     fill_identity_and_method(ws, tipo, system, system_no)
     if tipo == "SEL":
-        fill_tarima_block(ws, system, 29)
         fill_area_and_levels(ws, system, 38, 43, True)
     elif tipo in ("DIN", "PBK"):
-        fill_tarima_block(ws, system, 29)
         fill_rack(ws, system, 38, True)
         fill_area_and_levels(ws, system, 46, 51, True)
     elif tipo == "DRV":
-        fill_tarima_block(ws, system, 29)
         set_cell(ws, "B38", pick(system, "FrentesBuscados", "Frentes buscados"))
         set_cell(ws, "B39", pick(system, "FondosBuscados", "Fondos buscados"))
         set_cell(ws, "B40", pick(system, "NivelesBuscados", "Niveles buscados"))
@@ -523,6 +565,43 @@ def hide_layout_columns(ws) -> None:
             ws.column_dimensions[column_letter].hidden = True
 
 
+def unmerge_intersecting_range(ws, ref: str) -> None:
+    min_col, min_row, max_col, max_row = range_boundaries(ref)
+    for merged_range in list(ws.merged_cells.ranges):
+        if (
+            merged_range.max_col < min_col
+            or merged_range.min_col > max_col
+            or merged_range.max_row < min_row
+            or merged_range.min_row > max_row
+        ):
+            continue
+        try:
+            ws.unmerge_cells(str(merged_range))
+        except KeyError:
+            if merged_range in ws.merged_cells.ranges:
+                ws.merged_cells.ranges.remove(merged_range)
+            for row in range(merged_range.min_row, merged_range.max_row + 1):
+                for col in range(merged_range.min_col, merged_range.max_col + 1):
+                    cell = ws._cells.get((row, col))
+                    if isinstance(cell, MergedCell):
+                        del ws._cells[(row, col)]
+
+
+def ensure_preview_ranges(ws, tipo: str) -> None:
+    for table_key, definition in TABLE_DEFINITIONS.items():
+        ref = definition.get("previewRanges", {}).get(tipo)
+        if not ref:
+            continue
+        min_col, min_row, _max_col, max_row = range_boundaries(ref)
+        headers = table_preview_headers(table_key)
+        unmerge_intersecting_range(ws, ref)
+        for offset, header in enumerate(headers):
+            ws.cell(min_row, min_col + offset).value = header
+        for row in range(min_row + 1, max_row + 1):
+            for col in range(min_col, min_col + len(headers)):
+                ws.cell(row, col).value = None
+
+
 def ensure_form_tables(wb) -> None:
     style = TableStyleInfo(name="TableStyleMedium2", showFirstColumn=False, showLastColumn=False, showRowStripes=True, showColumnStripes=False)
     for tipo, sheet_name in TYPE_TEMPLATES.items():
@@ -547,6 +626,7 @@ def ensure_form_tables(wb) -> None:
             table = Table(displayName=table_name, ref=ref)
             table.tableStyleInfo = deepcopy(style)
             ws.add_table(table)
+        ensure_preview_ranges(ws, tipo)
 
 
 def write_layout_config_sheet(wb) -> None:

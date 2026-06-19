@@ -74,12 +74,22 @@ interface TableDefinition {
   baseName: string;
   range: string;
   headers: string[];
+  previewHeaders?: string[];
   aliases: string[][];
   previewRanges?: Record<string, string>;
 }
 
 interface LayoutConfig {
   tables: Record<string, TableDefinition>;
+}
+
+interface RowInsertion {
+  row: number;
+  count: number;
+}
+
+interface TableWriteContext {
+  insertions: RowInsertion[];
 }
 
 const COMMON_LAYOUT: Record<string, CommonLayout> = {
@@ -210,14 +220,11 @@ function fillSupportedForm(sheet: ExcelScript.Worksheet, tipo: string, sistema: 
   fillIdentityAndMethod(sheet, tipo, sistema, systemNo);
 
   if (tipo === "SEL") {
-    fillTarimaBlock(sheet, sistema, 29);
     fillAreaAndLevels(sheet, sistema, 38, 43, true);
   } else if (tipo === "DIN" || tipo === "PBK") {
-    fillTarimaBlock(sheet, sistema, 29);
     fillRack(sheet, sistema, 38, true);
     fillAreaAndLevels(sheet, sistema, 46, 51, true);
   } else if (tipo === "DRV") {
-    fillTarimaBlock(sheet, sistema, 29);
     setCell(sheet, "B38", read(sistema, "FrentesBuscados", "Frentes buscados", ""));
     setCell(sheet, "B39", read(sistema, "FondosBuscados", "Fondos buscados", ""));
     setCell(sheet, "B40", read(sistema, "NivelesBuscados", "Niveles buscados", ""));
@@ -286,19 +293,6 @@ function fillSupportedForm(sheet: ExcelScript.Worksheet, tipo: string, sistema: 
 
   fillCommon(sheet, tipo, sistema);
   fillDetailTables(sheet, tipo, sistema, layoutConfig);
-}
-
-function fillTarimaBlock(sheet: ExcelScript.Worksheet, sistema: Record<string, unknown>, baseRow: number) {
-  const tarimas = asRecordArray(read(sistema, "tarimas", "Tarimas", []));
-  const first = tarimas.length > 0 ? tarimas[0] : {};
-  setCell(sheet, `B${baseRow}`, read(first, "Peso", "PesoTarima", ""));
-  setCell(sheet, `B${baseRow + 1}`, read(first, "Alto", "AltoTarima", ""));
-  setCell(sheet, `B${baseRow + 2}`, read(first, "Frente", "FrenteTarima", ""));
-  setCell(sheet, `B${baseRow + 3}`, read(first, "Fondo", "FondoTarima", ""));
-  setCell(sheet, `B${baseRow + 4}`, read(first, "Excedente", hasAnyValue(first, ["ExcedenteFrente", "ExcedenteFondo"])));
-  setCell(sheet, `B${baseRow + 5}`, read(first, "ExcedenteFrente", "Excedente frente", ""));
-  setCell(sheet, `B${baseRow + 6}`, read(first, "ExcedenteFondo", "Excedente fondo", ""));
-  setCell(sheet, `B${baseRow + 7}`, read(first, "Huella", "HuellaTarima", ""));
 }
 
 function fillAreaAndLevels(sheet: ExcelScript.Worksheet, sistema: Record<string, unknown>, areaRow: number, levelsRow: number, includeMontacargas: boolean) {
@@ -379,45 +373,69 @@ function readLayoutConfig(workbook: ExcelScript.Workbook): LayoutConfig {
 }
 
 function fillDetailTables(sheet: ExcelScript.Worksheet, tipo: string, sistema: Record<string, unknown>, layoutConfig: LayoutConfig) {
-  writeSystemTable(
-    sheet,
-    tipo,
-    layoutConfig,
-    "piezas",
-    rowsFromSummary(asRecordArray(read(sistema, "piezas", "Piezas", [])), read(sistema, "PiezasResumen", ""))
-  );
-  writeSystemTable(sheet, tipo, layoutConfig, "tarimas", asRecordArray(read(sistema, "tarimas", "Tarimas", [])));
-  writeSystemTable(sheet, tipo, layoutConfig, "productos", asRecordArray(read(sistema, "productos", "Productos", [])));
-  writeSystemTable(
-    sheet,
-    tipo,
-    layoutConfig,
-    "elementosSeguridad",
-    rowsFromSummary(
-      asRecordArray(read(sistema, "elementosSeguridad", "ElementosSeguridad", [])),
-      read(sistema, "ElementosSeguridadResumen", "")
-    )
-  );
-  writeSystemTable(sheet, tipo, layoutConfig, "piezasEspeciales", asRecordArray(read(sistema, "piezasEspeciales", "PiezasEspeciales", [])));
-  writeSystemTable(sheet, tipo, layoutConfig, "colores", asRecordArray(read(sistema, "colores", "Colores", [])));
-  writeSystemTable(sheet, tipo, layoutConfig, "proveedoresExternos", asRecordArray(read(sistema, "proveedoresExternos", "ProveedoresExternos", [])));
+  const context: TableWriteContext = { insertions: [] };
+  const tableWrites: Array<[string, Record<string, unknown>[]]> = [
+    [
+      "piezas",
+      rowsFromSummary(asRecordArray(read(sistema, "piezas", "Piezas", [])), read(sistema, "PiezasResumen", ""))
+    ],
+    ["tarimas", asRecordArray(read(sistema, "tarimas", "Tarimas", []))],
+    ["productos", asRecordArray(read(sistema, "productos", "Productos", []))],
+    [
+      "elementosSeguridad",
+      rowsFromSummary(
+        asRecordArray(read(sistema, "elementosSeguridad", "ElementosSeguridad", [])),
+        read(sistema, "ElementosSeguridadResumen", "")
+      )
+    ],
+    ["piezasEspeciales", asRecordArray(read(sistema, "piezasEspeciales", "PiezasEspeciales", []))],
+    ["colores", asRecordArray(read(sistema, "colores", "Colores", []))],
+    ["proveedoresExternos", asRecordArray(read(sistema, "proveedoresExternos", "ProveedoresExternos", []))]
+  ];
+
+  tableWrites.forEach(([tableKey, rows]) => {
+    writeSystemTablePreview(sheet, tipo, layoutConfig, tableKey, rows, context);
+  });
+  tableWrites.forEach(([tableKey, rows]) => {
+    writeSystemTableData(sheet, tipo, layoutConfig, tableKey, rows, context);
+  });
 }
 
-function writeSystemTable(sheet: ExcelScript.Worksheet, tipo: string, layoutConfig: LayoutConfig, tableKey: string, rows: Record<string, unknown>[]) {
+function writeSystemTablePreview(
+  sheet: ExcelScript.Worksheet,
+  tipo: string,
+  layoutConfig: LayoutConfig,
+  tableKey: string,
+  rows: Record<string, unknown>[],
+  context: TableWriteContext
+) {
   const definition = layoutConfig.tables[tableKey];
-  writeTableToRange(sheet, tableRangeFor(sheet, tipo, definition), rows, definition.aliases);
   const previewRef = definition.previewRanges ? definition.previewRanges[tipo] : "";
   if (previewRef) {
-    writeTableToRange(sheet, sheet.getRange(previewRef), rows, definition.aliases);
+    const previewRange = sheet.getRange(adjustRangeRef(previewRef, context));
+    const targetRange = ensureRangeCapacity(sheet, previewRange, rows.length, definition.aliases.length, context);
+    writeTableToRange(sheet, targetRange, rows, definition.aliases, previewHeadersFor(definition));
   }
 }
 
-function tableRangeFor(sheet: ExcelScript.Worksheet, tipo: string, definition: TableDefinition): ExcelScript.Range {
+function writeSystemTableData(
+  sheet: ExcelScript.Worksheet,
+  tipo: string,
+  layoutConfig: LayoutConfig,
+  tableKey: string,
+  rows: Record<string, unknown>[],
+  context: TableWriteContext
+) {
+  const definition = layoutConfig.tables[tableKey];
   const table = findSheetTable(sheet, definition.baseName, tipo);
-  if (table) {
-    return table.getRange();
-  }
-  return sheet.getRange(definition.range);
+  const baseRange = table ? table.getRange() : sheet.getRange(adjustRangeRef(definition.range, context));
+  const targetRange = ensureRangeCapacity(sheet, baseRange, rows.length, definition.aliases.length, context);
+  if (table) table.resize(targetRange);
+  writeTableToRange(sheet, targetRange, rows, definition.aliases, definition.headers);
+}
+
+function previewHeadersFor(definition: TableDefinition): string[] {
+  return definition.previewHeaders || definition.headers;
 }
 
 function findSheetTable(sheet: ExcelScript.Worksheet, baseName: string, tipo: string): ExcelScript.Table | undefined {
@@ -433,16 +451,74 @@ function findSheetTable(sheet: ExcelScript.Worksheet, baseName: string, tipo: st
   return undefined;
 }
 
-function writeTableToRange(sheet: ExcelScript.Worksheet, tableRange: ExcelScript.Range, rows: Record<string, unknown>[], columns: string[][]) {
+function ensureRangeCapacity(
+  sheet: ExcelScript.Worksheet,
+  tableRange: ExcelScript.Range,
+  rowCount: number,
+  columnCount: number,
+  context: TableWriteContext
+): ExcelScript.Range {
+  const dataRowCount = Math.max(0, tableRange.getRowCount() - 1);
+  const extraRows = Math.max(0, rowCount - dataRowCount);
+  if (extraRows > 0) {
+    const insertAtRow = tableRange.getRowIndex() + tableRange.getRowCount() + 1;
+    sheet.getRange(`${insertAtRow}:${insertAtRow + extraRows - 1}`).insert(ExcelScript.InsertShiftDirection.down);
+    context.insertions.push({ row: insertAtRow, count: extraRows });
+  }
+
+  return sheet.getRangeByIndexes(
+    tableRange.getRowIndex(),
+    tableRange.getColumnIndex(),
+    tableRange.getRowCount() + extraRows,
+    columnCount
+  );
+}
+
+function adjustRangeRef(ref: string, context: TableWriteContext): string {
+  const match = /^([A-Z]+)(\d+):([A-Z]+)(\d+)$/i.exec(ref);
+  if (!match) return ref;
+
+  let startRow = Number(match[2]);
+  let endRow = Number(match[4]);
+  context.insertions.forEach((insertion) => {
+    if (insertion.row <= startRow) {
+      startRow += insertion.count;
+      endRow += insertion.count;
+    } else if (startRow < insertion.row && insertion.row <= endRow + 1) {
+      endRow += insertion.count;
+    }
+  });
+
+  return `${match[1]}${startRow}:${match[3]}${endRow}`;
+}
+
+function writeTableToRange(
+  sheet: ExcelScript.Worksheet,
+  tableRange: ExcelScript.Range,
+  rows: Record<string, unknown>[],
+  columns: string[][],
+  headers: string[]
+) {
   const dataRowCount = Math.max(0, tableRange.getRowCount() - 1);
   if (dataRowCount < 1 || columns.length < 1) return;
+  if (rows.length > dataRowCount) {
+    throw new Error(`El rango ${tableRange.getAddress()} no tiene filas suficientes para escribir ${rows.length} registros.`);
+  }
 
-  const startRowIndex = tableRange.getRowIndex() + 1;
+  try {
+    tableRange.unmerge();
+  } catch {
+    // Los rangos de tablas no deberían estar combinados; esto evita fallos si la plantilla trae merges heredados.
+  }
+
+  const headerRowIndex = tableRange.getRowIndex();
+  const startRowIndex = headerRowIndex + 1;
   const startColumnIndex = tableRange.getColumnIndex();
+  const headerValues = columns.map((_aliases, index) => headers[index] || "");
+  sheet.getRangeByIndexes(headerRowIndex, startColumnIndex, 1, columns.length).setValues([headerValues]);
   sheet.getRangeByIndexes(startRowIndex, startColumnIndex, dataRowCount, columns.length).clear(ExcelScript.ClearApplyTo.contents);
 
-  const capacity = Math.max(0, dataRowCount);
-  rows.slice(0, capacity).forEach((row, rowOffset) => {
+  rows.forEach((row, rowOffset) => {
     const values = columns.map((aliases) => formatValue(pick(row, aliases, "")));
     sheet.getRangeByIndexes(startRowIndex + rowOffset, startColumnIndex, 1, values.length).setValues([values]);
   });
@@ -608,10 +684,6 @@ function getUsedRowCount(sheet: ExcelScript.Worksheet): number {
   const usedRange = sheet.getUsedRange();
   if (!usedRange) return 1;
   return usedRange.getRowIndex() + usedRange.getRowCount();
-}
-
-function hasAnyValue(obj: Record<string, unknown>, keys: string[]): boolean {
-  return keys.some((key) => obj[key] !== undefined && obj[key] !== null && obj[key] !== "");
 }
 
 function coerceBoolean(value: unknown): boolean {

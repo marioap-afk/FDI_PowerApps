@@ -7,6 +7,7 @@
       "baseName": "tblPiezas",
       "range": "I4:M29",
       "headers": ["Pieza", "Comentarios", "Cantidad", "Unidad", "Notas"],
+      "previewHeaders": ["Pieza", "Comentarios", "Cantidad", "Unidad", "Notas"],
       "aliases": [
         ["Pieza", "C\u00f3digo", "Codigo"],
         ["Comentarios", "Comentario", "Descripci\u00f3n", "Descripcion"],
@@ -29,6 +30,7 @@
       "baseName": "tblTarimas",
       "range": "O4:U29",
       "headers": ["Peso", "Alto", "Frente", "Fondo", "Huella", "ExcedenteFrente", "ExcedenteFondo"],
+      "previewHeaders": ["Peso", "Alto", "Frente", "Fondo", "Huella", "Exc. frente", "Exc. fondo"],
       "aliases": [
         ["Peso", "PesoTarima"],
         ["Alto", "AltoTarima"],
@@ -39,6 +41,10 @@
         ["ExcedenteFondo", "Excedente fondo"]
       ],
       "previewRanges": {
+        "SEL": "A29:G36",
+        "DIN": "A29:G36",
+        "PBK": "A29:G36",
+        "DRV": "A29:G36",
         "MZL": "A57:G61"
       }
     },
@@ -46,6 +52,7 @@
       "baseName": "tblProductos",
       "range": "I32:N57",
       "headers": ["TipoProducto", "LargoProducto", "AnchoProducto", "AltoProducto", "PesoProducto", "CantidadPorNivel"],
+      "previewHeaders": ["Tipo", "Largo", "Ancho", "Alto", "Peso", "Cant./nivel"],
       "aliases": [
         ["TipoProducto", "Tipo producto", "Tipo", "Producto"],
         ["LargoProducto", "Largo"],
@@ -64,6 +71,7 @@
       "baseName": "tblElementosSeguridad",
       "range": "P32:R57",
       "headers": ["Pieza", "Cantidad", "Comentario"],
+      "previewHeaders": ["Pieza", "Cantidad", "Comentario"],
       "aliases": [
         ["Pieza", "Elemento"],
         ["Cantidad"],
@@ -84,6 +92,7 @@
       "baseName": "tblPiezasEspeciales",
       "range": "T32:V57",
       "headers": ["Pieza", "Cantidad", "Comentario"],
+      "previewHeaders": ["Pieza", "Cantidad", "Comentario"],
       "aliases": [
         ["Pieza"],
         ["Cantidad"],
@@ -104,6 +113,7 @@
       "baseName": "tblColores",
       "range": "I60:J85",
       "headers": ["Pieza", "Color"],
+      "previewHeaders": ["Pieza", "Color"],
       "aliases": [
         ["Pieza"],
         ["Color", "ColorNombre", "ColorTexto"]
@@ -123,6 +133,7 @@
       "baseName": "tblProveedoresExternos",
       "range": "L60:M85",
       "headers": ["Proveedor", "Alcance"],
+      "previewHeaders": ["Proveedor", "Alcance"],
       "aliases": [
         ["Proveedor"],
         ["Alcance", "Comentarios"]
