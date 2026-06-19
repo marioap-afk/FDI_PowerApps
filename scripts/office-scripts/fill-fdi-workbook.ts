@@ -36,6 +36,14 @@ const TYPE_TEMPLATES: Record<string, string> = {
   MZL: "MZL_S01_Form"
 };
 
+const TARIMAS_PREVIEW_RANGES: Record<string, string> = {
+  SEL: "A29:G36",
+  DIN: "A29:G36",
+  PBK: "A29:G36",
+  DRV: "A29:G36",
+  MZL: "A57:G61"
+};
+
 const HEADER_ROWS: Array<[number, string[]]> = [
   [6, ["Folio"]],
   [7, ["VendedoresLookUp", "Vendedor", "VendedorNombre"]],
@@ -394,11 +402,45 @@ function fillDetailTables(sheet: ExcelScript.Worksheet, tipo: string, sistema: R
   ];
 
   tableWrites.forEach(([tableKey, rows]) => {
-    writeSystemTablePreview(sheet, tipo, layoutConfig, tableKey, rows, context);
+    ensureSystemTableDataCapacity(sheet, layoutConfig, tableKey, rows, context);
+  });
+  tableWrites.forEach(([tableKey, rows]) => {
+    ensureSystemTablePreviewCapacity(sheet, tipo, layoutConfig, tableKey, rows, context);
   });
   tableWrites.forEach(([tableKey, rows]) => {
     writeSystemTableData(sheet, tipo, layoutConfig, tableKey, rows, context);
   });
+  tableWrites.forEach(([tableKey, rows]) => {
+    writeSystemTablePreview(sheet, tipo, layoutConfig, tableKey, rows, context);
+  });
+}
+
+function ensureSystemTablePreviewCapacity(
+  sheet: ExcelScript.Worksheet,
+  tipo: string,
+  layoutConfig: LayoutConfig,
+  tableKey: string,
+  rows: Record<string, unknown>[],
+  context: TableWriteContext
+) {
+  const definition = layoutConfig.tables[tableKey];
+  const previewRef = previewRangeFor(tableKey, tipo, definition);
+  if (previewRef) {
+    const previewRange = sheet.getRange(adjustRangeRef(previewRef, context));
+    ensureRangeCapacity(sheet, previewRange, rows.length, definition.aliases.length, context);
+  }
+}
+
+function ensureSystemTableDataCapacity(
+  sheet: ExcelScript.Worksheet,
+  layoutConfig: LayoutConfig,
+  tableKey: string,
+  rows: Record<string, unknown>[],
+  context: TableWriteContext
+) {
+  const definition = layoutConfig.tables[tableKey];
+  const targetRange = sheet.getRange(adjustRangeRef(definition.range, context));
+  ensureRangeCapacity(sheet, targetRange, rows.length, definition.aliases.length, context);
 }
 
 function writeSystemTablePreview(
@@ -410,10 +452,9 @@ function writeSystemTablePreview(
   context: TableWriteContext
 ) {
   const definition = layoutConfig.tables[tableKey];
-  const previewRef = definition.previewRanges ? definition.previewRanges[tipo] : "";
+  const previewRef = previewRangeFor(tableKey, tipo, definition);
   if (previewRef) {
-    const previewRange = sheet.getRange(adjustRangeRef(previewRef, context));
-    const targetRange = ensureRangeCapacity(sheet, previewRange, rows.length, definition.aliases.length, context);
+    const targetRange = sheet.getRange(adjustRangeRef(previewRef, context));
     writeTableToRange(sheet, targetRange, rows, definition.aliases, previewHeadersFor(definition));
   }
 }
@@ -428,10 +469,16 @@ function writeSystemTableData(
 ) {
   const definition = layoutConfig.tables[tableKey];
   const table = findSheetTable(sheet, definition.baseName, tipo);
-  const baseRange = table ? table.getRange() : sheet.getRange(adjustRangeRef(definition.range, context));
-  const targetRange = ensureRangeCapacity(sheet, baseRange, rows.length, definition.aliases.length, context);
+  const targetRange = sheet.getRange(adjustRangeRef(definition.range, context));
   if (table) table.resize(targetRange);
   writeTableToRange(sheet, targetRange, rows, definition.aliases, definition.headers);
+}
+
+function previewRangeFor(tableKey: string, tipo: string, definition: TableDefinition): string {
+  const configured = definition.previewRanges ? definition.previewRanges[tipo] : "";
+  if (configured) return configured;
+  if (tableKey === "tarimas") return TARIMAS_PREVIEW_RANGES[tipo] || "";
+  return "";
 }
 
 function previewHeadersFor(definition: TableDefinition): string[] {

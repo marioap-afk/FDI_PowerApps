@@ -30,6 +30,14 @@ TYPE_TEMPLATES = {
     "MZL": "MZL_S01_Form",
 }
 
+TARIMAS_PREVIEW_RANGES = {
+    "SEL": "A29:G36",
+    "DIN": "A29:G36",
+    "PBK": "A29:G36",
+    "DRV": "A29:G36",
+    "MZL": "A57:G61",
+}
+
 HEADER_ROWS = [
     (6, ("Folio",)),
     (7, ("VendedoresLookUp", "Vendedor", "VendedorNombre")),
@@ -268,12 +276,12 @@ def write_table_to_ref(ws, ref: str, rows: list[dict[str, Any]], columns: list[t
 
 def write_system_table_preview(ws, tipo: str, table_key: str, rows: list[dict[str, Any]], context: RowInsertContext) -> None:
     definition = TABLE_DEFINITIONS[table_key]
-    preview_ref = definition.get("previewRanges", {}).get(tipo)
+    preview_ref = preview_ref_for(table_key, tipo)
     if not preview_ref:
         return
     columns = table_columns(table_key)
     headers = table_preview_headers(table_key)
-    ref = ensure_range_capacity(ws, context.adjust_ref(preview_ref), len(rows), context)
+    ref = context.adjust_ref(preview_ref)
     write_table_to_ref(ws, ref, rows, columns, headers)
 
 
@@ -282,11 +290,32 @@ def write_system_table_data(ws, tipo: str, table_key: str, rows: list[dict[str, 
     columns = table_columns(table_key)
     headers = table_headers(table_key)
     table = find_table(ws, table_key, tipo)
-    base_ref = table.ref if table is not None else definition["range"]
-    ref = ensure_range_capacity(ws, context.adjust_ref(base_ref), len(rows), context)
+    ref = context.adjust_ref(definition["range"])
     if table is not None:
         table.ref = ref
     write_table_to_ref(ws, ref, rows, columns, headers)
+
+
+def ensure_system_table_preview_capacity(ws, tipo: str, table_key: str, rows: list[dict[str, Any]], context: RowInsertContext) -> None:
+    preview_ref = preview_ref_for(table_key, tipo)
+    if not preview_ref:
+        return
+    ensure_range_capacity(ws, context.adjust_ref(preview_ref), len(rows), context)
+
+
+def ensure_system_table_data_capacity(ws, table_key: str, rows: list[dict[str, Any]], context: RowInsertContext) -> None:
+    definition = TABLE_DEFINITIONS[table_key]
+    ensure_range_capacity(ws, context.adjust_ref(definition["range"]), len(rows), context)
+
+
+def preview_ref_for(table_key: str, tipo: str) -> str:
+    definition = TABLE_DEFINITIONS[table_key]
+    configured = definition.get("previewRanges", {}).get(tipo, "")
+    if configured:
+        return configured
+    if table_key == "tarimas":
+        return TARIMAS_PREVIEW_RANGES.get(tipo, "")
+    return ""
 
 
 def set_rows_hidden(ws, start_row: int, end_row: int, hidden: bool) -> None:
@@ -448,9 +477,13 @@ def fill_detail_tables(ws, tipo: str, system: dict[str, Any]) -> None:
         ),
     ]
     for table_key, rows in table_writes:
-        write_system_table_preview(ws, tipo, table_key, rows, context)
+        ensure_system_table_data_capacity(ws, table_key, rows, context)
+    for table_key, rows in table_writes:
+        ensure_system_table_preview_capacity(ws, tipo, table_key, rows, context)
     for table_key, rows in table_writes:
         write_system_table_data(ws, tipo, table_key, rows, context)
+    for table_key, rows in table_writes:
+        write_system_table_preview(ws, tipo, table_key, rows, context)
 
 
 def fill_supported_form(ws, tipo: str, system: dict[str, Any], system_no: int) -> None:
