@@ -28,24 +28,25 @@
     },
     "tarimas": {
       "baseName": "tblTarimas",
-      "range": "O4:U29",
-      "headers": ["Peso", "Alto", "Frente", "Fondo", "Huella", "ExcedenteFrente", "ExcedenteFondo"],
-      "previewHeaders": ["Peso", "Alto", "Frente", "Fondo", "Huella", "Exc. frente", "Exc. fondo"],
+      "range": "O4:V29",
+      "headers": ["Tipo", "Peso", "Alto", "Frente", "Fondo", "Excedente", "ExcedenteFrente", "ExcedenteFondo"],
+      "previewHeaders": ["Tipo", "Peso", "Alto", "Frente", "Fondo", "Excedente", "Frente exced.", "Fondo exced."],
       "aliases": [
+        ["Tipo", "TipoTarima", "Tipotarima", "Tipo tarima"],
         ["Peso", "PesoTarima", "Pesotarima", "Peso tarima"],
         ["Alto", "AltoTarima", "Altotarima", "Alto tarima"],
         ["Frente", "FrenteTarima", "Frentetarima", "Frente tarima"],
         ["Fondo", "FondoTarima", "Fondotarima", "Fondo tarima"],
-        ["Huella", "HuellaTarima", "Huellatarima", "Huella tarima"],
-        ["ExcedenteFrente", "Excedente frente", "Excedentefrente"],
-        ["ExcedenteFondo", "Excedente fondo", "Excedentefondo"]
+        ["Excedente", "¿Excedente?", "ExcedenteTarima", "Excedente?", "Excedente tarima"],
+        ["ExcedenteFrente", "Excedente frente", "Excedentefrente", "FrenteExcedente"],
+        ["ExcedenteFondo", "Excedente fondo", "Excedentefondo", "FondoExcedente"]
       ],
       "previewRanges": {
-        "SEL": "A29:G36",
-        "DIN": "A29:G36",
-        "PBK": "A29:G36",
-        "DRV": "A29:G36",
-        "MZL": "A57:G61"
+        "SEL": "A29:H36",
+        "DIN": "A29:H36",
+        "PBK": "A29:H36",
+        "DRV": "A29:H36",
+        "MZL": "A57:H61"
       }
     },
     "productos": {

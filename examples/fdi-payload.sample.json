@@ -71,7 +71,9 @@
           "Frente": "1200",
           "Fondo": "1000",
           "ExcedenteFrente": "50",
-          "ExcedenteFondo": "0"
+          "ExcedenteFondo": "0",
+          "Peso": "120",
+          "Excedente": "Sí"
         },
         {
           "Tipo": "Plástico",
@@ -79,7 +81,9 @@
           "Frente": "1100",
           "Fondo": "1100",
           "ExcedenteFrente": "0",
-          "ExcedenteFondo": "25"
+          "ExcedenteFondo": "25",
+          "Peso": "120",
+          "Excedente": "Sí"
         }
       ],
       "elementosSeguridad": [

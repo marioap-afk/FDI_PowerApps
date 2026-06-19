@@ -37,21 +37,22 @@ const TYPE_TEMPLATES: Record<string, string> = {
 };
 
 const TARIMAS_PREVIEW_RANGES: Record<string, string> = {
-  SEL: "A29:G36",
-  DIN: "A29:G36",
-  PBK: "A29:G36",
-  DRV: "A29:G36",
-  MZL: "A57:G61"
+  SEL: "A29:H36",
+  DIN: "A29:H36",
+  PBK: "A29:H36",
+  DRV: "A29:H36",
+  MZL: "A57:H61"
 };
 
 const TARIMAS_ALIASES: string[][] = [
+  ["Tipo", "TipoTarima", "Tipotarima", "Tipo tarima"],
   ["Peso", "PesoTarima", "Pesotarima", "Peso tarima"],
   ["Alto", "AltoTarima", "Altotarima", "Alto tarima"],
   ["Frente", "FrenteTarima", "Frentetarima", "Frente tarima"],
   ["Fondo", "FondoTarima", "Fondotarima", "Fondo tarima"],
-  ["Huella", "HuellaTarima", "Huellatarima", "Huella tarima"],
-  ["ExcedenteFrente", "Excedente frente", "Excedentefrente"],
-  ["ExcedenteFondo", "Excedente fondo", "Excedentefondo"]
+  ["Excedente", "¿Excedente?", "ExcedenteTarima", "Excedente?", "Excedente tarima"],
+  ["ExcedenteFrente", "Excedente frente", "Excedentefrente", "FrenteExcedente"],
+  ["ExcedenteFondo", "Excedente fondo", "Excedentefondo", "FondoExcedente"]
 ];
 
 const TARIMAS_FIELD_KEYS = TARIMAS_ALIASES.reduce((keys, aliases) => keys.concat(aliases), ["Tipo", "Tipotarima", "Tipo tarima"]);

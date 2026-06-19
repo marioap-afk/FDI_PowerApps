@@ -32,21 +32,22 @@ TYPE_TEMPLATES = {
 }
 
 TARIMAS_PREVIEW_RANGES = {
-    "SEL": "A29:G36",
-    "DIN": "A29:G36",
-    "PBK": "A29:G36",
-    "DRV": "A29:G36",
-    "MZL": "A57:G61",
+    "SEL": "A29:H36",
+    "DIN": "A29:H36",
+    "PBK": "A29:H36",
+    "DRV": "A29:H36",
+    "MZL": "A57:H61",
 }
 
 TARIMAS_ALIASES = [
+    ("Tipo", "TipoTarima", "Tipotarima", "Tipo tarima"),
     ("Peso", "PesoTarima", "Pesotarima", "Peso tarima"),
     ("Alto", "AltoTarima", "Altotarima", "Alto tarima"),
     ("Frente", "FrenteTarima", "Frentetarima", "Frente tarima"),
     ("Fondo", "FondoTarima", "Fondotarima", "Fondo tarima"),
-    ("Huella", "HuellaTarima", "Huellatarima", "Huella tarima"),
-    ("ExcedenteFrente", "Excedente frente", "Excedentefrente"),
-    ("ExcedenteFondo", "Excedente fondo", "Excedentefondo"),
+    ("Excedente", "¿Excedente?", "ExcedenteTarima", "Excedente?", "Excedente tarima"),
+    ("ExcedenteFrente", "Excedente frente", "Excedentefrente", "FrenteExcedente"),
+    ("ExcedenteFondo", "Excedente fondo", "Excedentefondo", "FondoExcedente"),
 ]
 
 TARIMAS_FIELD_KEYS = ("Tipo", "Tipotarima", "Tipo tarima", *(key for aliases in TARIMAS_ALIASES for key in aliases))
