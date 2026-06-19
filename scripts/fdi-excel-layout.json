@@ -32,13 +32,13 @@
       "headers": ["Peso", "Alto", "Frente", "Fondo", "Huella", "ExcedenteFrente", "ExcedenteFondo"],
       "previewHeaders": ["Peso", "Alto", "Frente", "Fondo", "Huella", "Exc. frente", "Exc. fondo"],
       "aliases": [
-        ["Peso", "PesoTarima"],
-        ["Alto", "AltoTarima"],
-        ["Frente", "FrenteTarima"],
-        ["Fondo", "FondoTarima"],
-        ["Huella", "HuellaTarima"],
-        ["ExcedenteFrente", "Excedente frente"],
-        ["ExcedenteFondo", "Excedente fondo"]
+        ["Peso", "PesoTarima", "Pesotarima", "Peso tarima"],
+        ["Alto", "AltoTarima", "Altotarima", "Alto tarima"],
+        ["Frente", "FrenteTarima", "Frentetarima", "Frente tarima"],
+        ["Fondo", "FondoTarima", "Fondotarima", "Fondo tarima"],
+        ["Huella", "HuellaTarima", "Huellatarima", "Huella tarima"],
+        ["ExcedenteFrente", "Excedente frente", "Excedentefrente"],
+        ["ExcedenteFondo", "Excedente fondo", "Excedentefondo"]
       ],
       "previewRanges": {
         "SEL": "A29:G36",

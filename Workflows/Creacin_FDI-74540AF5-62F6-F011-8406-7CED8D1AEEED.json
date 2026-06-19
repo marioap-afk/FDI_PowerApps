@@ -1062,7 +1062,7 @@
                   "type": "Query",
                   "inputs": {
                     "from": "@body('Get_hija_tarimas')?['value']",
-                    "where": "@equals(item()?['SistemaCotizaci_x00f3_nID#Id'], outputs('SistemaPuente_ID'))"
+                    "where": "@equals(string(coalesce(item()?['SistemaCotizaci_x00f3_nID#Id'], item()?['SistemaCotizaci_x00f3_nIDId'], item()?['SistemaCotizacionID#Id'], item()?['SistemaCotizacionIDId'], item()?['SistemaID#Id'], item()?['SistemaIDId'], item()?['SistemasID#Id'], item()?['SistemasIDId'])), string(outputs('SistemaPuente_ID')))"
                   },
                   "runAfter": {
                     "Filter_Piezas_Sistema": [
@@ -1159,20 +1159,20 @@
                       "SistemaId": "@outputs('SistemaPuente_Numero')",
                       "RowId": "@item()?['RowID']",
                       "Orden": "@item()?['Orden']",
-                      "Tipo": "@item()?['Tipotarima']",
-                      "Peso": "@item()?['Pesotarima']",
-                      "PesoTarima": "@item()?['Pesotarima']",
-                      "Alto": "@item()?['Altotarima']",
-                      "AltoTarima": "@item()?['Altotarima']",
-                      "Frente": "@item()?['Frentetarima']",
-                      "FrenteTarima": "@item()?['Frentetarima']",
-                      "Fondo": "@item()?['Fondotarima']",
-                      "FondoTarima": "@item()?['Fondotarima']",
-                      "Huella": "@item()?['Huellatarima']",
-                      "HuellaTarima": "@item()?['Huellatarima']",
+                      "Tipo": "@coalesce(item()?['Tipotarima'], item()?['Tipo tarima'], item()?['TipoTarima'], item()?['Tipo'])",
+                      "Peso": "@coalesce(item()?['Pesotarima'], item()?['Peso tarima'], item()?['PesoTarima'], item()?['Peso'])",
+                      "PesoTarima": "@coalesce(item()?['Pesotarima'], item()?['Peso tarima'], item()?['PesoTarima'], item()?['Peso'])",
+                      "Alto": "@coalesce(item()?['Altotarima'], item()?['Alto tarima'], item()?['AltoTarima'], item()?['Alto'])",
+                      "AltoTarima": "@coalesce(item()?['Altotarima'], item()?['Alto tarima'], item()?['AltoTarima'], item()?['Alto'])",
+                      "Frente": "@coalesce(item()?['Frentetarima'], item()?['Frente tarima'], item()?['FrenteTarima'], item()?['Frente'])",
+                      "FrenteTarima": "@coalesce(item()?['Frentetarima'], item()?['Frente tarima'], item()?['FrenteTarima'], item()?['Frente'])",
+                      "Fondo": "@coalesce(item()?['Fondotarima'], item()?['Fondo tarima'], item()?['FondoTarima'], item()?['Fondo'])",
+                      "FondoTarima": "@coalesce(item()?['Fondotarima'], item()?['Fondo tarima'], item()?['FondoTarima'], item()?['Fondo'])",
+                      "Huella": "@coalesce(item()?['Huellatarima'], item()?['Huella tarima'], item()?['HuellaTarima'], item()?['Huella'])",
+                      "HuellaTarima": "@coalesce(item()?['Huellatarima'], item()?['Huella tarima'], item()?['HuellaTarima'], item()?['Huella'])",
                       "Excedente": "@item()?['Excedente']",
-                      "ExcedenteFrente": "@item()?['Excedentefrente']",
-                      "ExcedenteFondo": "@item()?['Excedentefondo']"
+                      "ExcedenteFrente": "@coalesce(item()?['Excedentefrente'], item()?['Excedente frente'], item()?['ExcedenteFrente'])",
+                      "ExcedenteFondo": "@coalesce(item()?['Excedentefondo'], item()?['Excedente fondo'], item()?['ExcedenteFondo'])"
                     }
                   },
                   "runAfter": {

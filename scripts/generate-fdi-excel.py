@@ -38,6 +38,18 @@ TARIMAS_PREVIEW_RANGES = {
     "MZL": "A57:G61",
 }
 
+TARIMAS_ALIASES = [
+    ("Peso", "PesoTarima", "Pesotarima", "Peso tarima"),
+    ("Alto", "AltoTarima", "Altotarima", "Alto tarima"),
+    ("Frente", "FrenteTarima", "Frentetarima", "Frente tarima"),
+    ("Fondo", "FondoTarima", "Fondotarima", "Fondo tarima"),
+    ("Huella", "HuellaTarima", "Huellatarima", "Huella tarima"),
+    ("ExcedenteFrente", "Excedente frente", "Excedentefrente"),
+    ("ExcedenteFondo", "Excedente fondo", "Excedentefondo"),
+]
+
+TARIMAS_FIELD_KEYS = ("Tipo", "Tipotarima", "Tipo tarima", *(key for aliases in TARIMAS_ALIASES for key in aliases))
+
 HEADER_ROWS = [
     (6, ("Folio",)),
     (7, ("VendedoresLookUp", "Vendedor", "VendedorNombre")),
@@ -107,8 +119,51 @@ def pick(data: dict[str, Any], *keys: str, default: Any = "") -> Any:
 
 
 def as_list(value: Any) -> list[dict[str, Any]]:
+    return records_from_unknown(value)
+
+
+def records_from_unknown(value: Any) -> list[dict[str, Any]]:
     if isinstance(value, list):
-        return [item if isinstance(item, dict) else {} for item in value]
+        return [item for item in value if isinstance(item, dict)]
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return []
+        try:
+            return records_from_unknown(json.loads(text))
+        except json.JSONDecodeError:
+            return []
+    if isinstance(value, dict):
+        for key in ("value", "Value", "body", "Body", "items", "Items", "$values"):
+            rows = records_from_unknown(value.get(key))
+            if rows:
+                return rows
+    return []
+
+
+def parse_record(value: Any) -> dict[str, Any]:
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return {}
+        try:
+            parsed = json.loads(text)
+        except json.JSONDecodeError:
+            return {}
+        return parsed if isinstance(parsed, dict) else {}
+    return value if isinstance(value, dict) else {}
+
+
+def detail_rows(system: dict[str, Any], table_key: str, keys: tuple[str, ...]) -> list[dict[str, Any]]:
+    candidates = [system.get(key) for key in keys]
+    embedded = parse_record(pick(system, "PayloadSistemaJson", "PayloadSistemaJSON", "payloadSistemaJson", "Payload sistema JSON"))
+    candidates.extend(embedded.get(key) for key in keys)
+    for candidate in candidates:
+        rows = records_from_unknown(candidate)
+        if rows:
+            return rows
+    if table_key == "tarimas" and any(system.get(key) not in (None, "") for key in TARIMAS_FIELD_KEYS):
+        return [system]
     return []
 
 
@@ -177,8 +232,15 @@ def copy_tables(source_ws, target_ws, suffix: str) -> None:
         target_ws.add_table(copied)
 
 
+def unique_strings(values: tuple[str, ...] | list[str]) -> tuple[str, ...]:
+    return tuple(dict.fromkeys(values))
+
+
 def table_columns(table_key: str) -> list[tuple[str, ...]]:
-    return [tuple(aliases) for aliases in TABLE_DEFINITIONS[table_key]["aliases"]]
+    columns = [tuple(aliases) for aliases in TABLE_DEFINITIONS[table_key]["aliases"]]
+    if table_key != "tarimas":
+        return columns
+    return [unique_strings(columns[index] + TARIMAS_ALIASES[index]) for index in range(len(columns))]
 
 
 def table_headers(table_key: str) -> list[str]:
@@ -458,22 +520,25 @@ def fill_detail_tables(ws, tipo: str, system: dict[str, Any]) -> None:
     table_writes = [
         (
             "piezas",
-            rows_from_summary(as_list(pick(system, "piezas", "Piezas", default=[])), pick(system, "PiezasResumen")),
+            rows_from_summary(
+                detail_rows(system, "piezas", ("piezas", "Piezas", "Hija Listado Piezas", "hijaListadoPiezas")),
+                pick(system, "PiezasResumen"),
+            ),
         ),
-        ("tarimas", as_list(pick(system, "tarimas", "Tarimas", default=[]))),
-        ("productos", as_list(pick(system, "productos", "Productos", default=[]))),
+        ("tarimas", detail_rows(system, "tarimas", ("tarimas", "Tarimas", "Hija Tarimas", "hijaTarimas"))),
+        ("productos", detail_rows(system, "productos", ("productos", "Productos", "Hija Productos", "hijaProductos"))),
         (
             "elementosSeguridad",
             rows_from_summary(
-                as_list(pick(system, "elementosSeguridad", "ElementosSeguridad", default=[])),
+                detail_rows(system, "elementosSeguridad", ("elementosSeguridad", "ElementosSeguridad", "Hija Elementos Seguridad", "hijaElementosSeguridad")),
                 pick(system, "ElementosSeguridadResumen"),
             ),
         ),
-        ("piezasEspeciales", as_list(pick(system, "piezasEspeciales", "PiezasEspeciales", default=[]))),
-        ("colores", as_list(pick(system, "colores", "Colores", default=[]))),
+        ("piezasEspeciales", detail_rows(system, "piezasEspeciales", ("piezasEspeciales", "PiezasEspeciales", "Hija Piezas Especiales", "hijaPiezasEspeciales"))),
+        ("colores", detail_rows(system, "colores", ("colores", "Colores", "Hija Colores", "hijaColores"))),
         (
             "proveedoresExternos",
-            as_list(pick(system, "proveedoresExternos", "ProveedoresExternos", default=[])),
+            detail_rows(system, "proveedoresExternos", ("proveedoresExternos", "ProveedoresExternos", "Hija Proveedores Externos", "hijaProveedoresExternos")),
         ),
     ]
     for table_key, rows in table_writes:

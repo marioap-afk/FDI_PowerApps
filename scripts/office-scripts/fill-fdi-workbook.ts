@@ -44,6 +44,18 @@ const TARIMAS_PREVIEW_RANGES: Record<string, string> = {
   MZL: "A57:G61"
 };
 
+const TARIMAS_ALIASES: string[][] = [
+  ["Peso", "PesoTarima", "Pesotarima", "Peso tarima"],
+  ["Alto", "AltoTarima", "Altotarima", "Alto tarima"],
+  ["Frente", "FrenteTarima", "Frentetarima", "Frente tarima"],
+  ["Fondo", "FondoTarima", "Fondotarima", "Fondo tarima"],
+  ["Huella", "HuellaTarima", "Huellatarima", "Huella tarima"],
+  ["ExcedenteFrente", "Excedente frente", "Excedentefrente"],
+  ["ExcedenteFondo", "Excedente fondo", "Excedentefondo"]
+];
+
+const TARIMAS_FIELD_KEYS = TARIMAS_ALIASES.reduce((keys, aliases) => keys.concat(aliases), ["Tipo", "Tipotarima", "Tipo tarima"]);
+
 const HEADER_ROWS: Array<[number, string[]]> = [
   [6, ["Folio"]],
   [7, ["VendedoresLookUp", "Vendedor", "VendedorNombre"]],
@@ -385,20 +397,23 @@ function fillDetailTables(sheet: ExcelScript.Worksheet, tipo: string, sistema: R
   const tableWrites: Array<[string, Record<string, unknown>[]]> = [
     [
       "piezas",
-      rowsFromSummary(asRecordArray(read(sistema, "piezas", "Piezas", [])), read(sistema, "PiezasResumen", ""))
+      rowsFromSummary(
+        detailRows(sistema, "piezas", ["piezas", "Piezas", "Hija Listado Piezas", "hijaListadoPiezas"]),
+        read(sistema, "PiezasResumen", "")
+      )
     ],
-    ["tarimas", asRecordArray(read(sistema, "tarimas", "Tarimas", []))],
-    ["productos", asRecordArray(read(sistema, "productos", "Productos", []))],
+    ["tarimas", detailRows(sistema, "tarimas", ["tarimas", "Tarimas", "Hija Tarimas", "hijaTarimas"])],
+    ["productos", detailRows(sistema, "productos", ["productos", "Productos", "Hija Productos", "hijaProductos"])],
     [
       "elementosSeguridad",
       rowsFromSummary(
-        asRecordArray(read(sistema, "elementosSeguridad", "ElementosSeguridad", [])),
+        detailRows(sistema, "elementosSeguridad", ["elementosSeguridad", "ElementosSeguridad", "Hija Elementos Seguridad", "hijaElementosSeguridad"]),
         read(sistema, "ElementosSeguridadResumen", "")
       )
     ],
-    ["piezasEspeciales", asRecordArray(read(sistema, "piezasEspeciales", "PiezasEspeciales", []))],
-    ["colores", asRecordArray(read(sistema, "colores", "Colores", []))],
-    ["proveedoresExternos", asRecordArray(read(sistema, "proveedoresExternos", "ProveedoresExternos", []))]
+    ["piezasEspeciales", detailRows(sistema, "piezasEspeciales", ["piezasEspeciales", "PiezasEspeciales", "Hija Piezas Especiales", "hijaPiezasEspeciales"])],
+    ["colores", detailRows(sistema, "colores", ["colores", "Colores", "Hija Colores", "hijaColores"])],
+    ["proveedoresExternos", detailRows(sistema, "proveedoresExternos", ["proveedoresExternos", "ProveedoresExternos", "Hija Proveedores Externos", "hijaProveedoresExternos"])]
   ];
 
   tableWrites.forEach(([tableKey, rows]) => {
@@ -427,7 +442,7 @@ function ensureSystemTablePreviewCapacity(
   const previewRef = previewRangeFor(tableKey, tipo, definition);
   if (previewRef) {
     const previewRange = sheet.getRange(adjustRangeRef(previewRef, context));
-    ensureRangeCapacity(sheet, previewRange, rows.length, definition.aliases.length, context);
+    ensureRangeCapacity(sheet, previewRange, rows.length, aliasesFor(tableKey, definition).length, context);
   }
 }
 
@@ -440,7 +455,7 @@ function ensureSystemTableDataCapacity(
 ) {
   const definition = layoutConfig.tables[tableKey];
   const targetRange = sheet.getRange(adjustRangeRef(definition.range, context));
-  ensureRangeCapacity(sheet, targetRange, rows.length, definition.aliases.length, context);
+  ensureRangeCapacity(sheet, targetRange, rows.length, aliasesFor(tableKey, definition).length, context);
 }
 
 function writeSystemTablePreview(
@@ -455,7 +470,7 @@ function writeSystemTablePreview(
   const previewRef = previewRangeFor(tableKey, tipo, definition);
   if (previewRef) {
     const targetRange = sheet.getRange(adjustRangeRef(previewRef, context));
-    writeTableToRange(sheet, targetRange, rows, definition.aliases, previewHeadersFor(definition));
+    writeTableToRange(sheet, targetRange, rows, aliasesFor(tableKey, definition), previewHeadersFor(definition));
   }
 }
 
@@ -471,7 +486,7 @@ function writeSystemTableData(
   const table = findSheetTable(sheet, definition.baseName, tipo);
   const targetRange = sheet.getRange(adjustRangeRef(definition.range, context));
   if (table) table.resize(targetRange);
-  writeTableToRange(sheet, targetRange, rows, definition.aliases, definition.headers);
+  writeTableToRange(sheet, targetRange, rows, aliasesFor(tableKey, definition), definition.headers);
 }
 
 function previewRangeFor(tableKey: string, tipo: string, definition: TableDefinition): string {
@@ -483,6 +498,11 @@ function previewRangeFor(tableKey: string, tipo: string, definition: TableDefini
 
 function previewHeadersFor(definition: TableDefinition): string[] {
   return definition.previewHeaders || definition.headers;
+}
+
+function aliasesFor(tableKey: string, definition: TableDefinition): string[][] {
+  if (tableKey !== "tarimas") return definition.aliases;
+  return definition.aliases.map((aliases, index) => uniqueStrings(aliases.concat(TARIMAS_ALIASES[index] || [])));
 }
 
 function findSheetTable(sheet: ExcelScript.Worksheet, baseName: string, tipo: string): ExcelScript.Table | undefined {
@@ -676,6 +696,60 @@ function rowsFromSummary(rows: Record<string, unknown>[], summary: unknown): Rec
   });
 }
 
+function detailRows(sistema: Record<string, unknown>, tableKey: string, keys: string[]): Record<string, unknown>[] {
+  const candidates = keys.map((key) => sistema[key]);
+  const embedded = parseRecord(read(sistema, "PayloadSistemaJson", "PayloadSistemaJSON", "payloadSistemaJson", "Payload sistema JSON", {}));
+  if (Object.keys(embedded).length > 0) {
+    keys.forEach((key) => candidates.push(embedded[key]));
+  }
+
+  for (const candidate of candidates) {
+    const rows = recordsFromUnknown(candidate);
+    if (rows.length > 0) return rows;
+  }
+
+  if (tableKey === "tarimas" && hasAnyValue(sistema, TARIMAS_FIELD_KEYS)) {
+    return [sistema];
+  }
+
+  return [];
+}
+
+function recordsFromUnknown(value: unknown): Record<string, unknown>[] {
+  if (Array.isArray(value)) return value.map(asRecord).filter((record) => Object.keys(record).length > 0);
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+    try {
+      return recordsFromUnknown(JSON.parse(trimmed));
+    } catch {
+      return [];
+    }
+  }
+
+  const record = asRecord(value);
+  if (Object.keys(record).length < 1) return [];
+  for (const key of ["value", "Value", "body", "Body", "items", "Items", "$values"]) {
+    const rows = recordsFromUnknown(record[key]);
+    if (rows.length > 0) return rows;
+  }
+  return [];
+}
+
+function parseRecord(value: unknown): Record<string, unknown> {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return {};
+    try {
+      return asRecord(JSON.parse(trimmed));
+    } catch {
+      return {};
+    }
+  }
+  return asRecord(value);
+}
+
 function htmlToText(value: unknown): string {
   const html = String(value || "");
   if (!html) return "";
@@ -715,6 +789,15 @@ function asRecordArray(value: unknown): Record<string, unknown>[] {
   return value.map(asRecord);
 }
 
+function uniqueStrings(values: string[]): string[] {
+  const seen: Record<string, boolean> = {};
+  return values.filter((value) => {
+    if (seen[value]) return false;
+    seen[value] = true;
+    return true;
+  });
+}
+
 function safeSheetName(name: string): string {
   return name.replace(/[\[\]:*?/\\]/g, "_").substring(0, 31);
 }
@@ -731,6 +814,10 @@ function getUsedRowCount(sheet: ExcelScript.Worksheet): number {
   const usedRange = sheet.getUsedRange();
   if (!usedRange) return 1;
   return usedRange.getRowIndex() + usedRange.getRowCount();
+}
+
+function hasAnyValue(obj: Record<string, unknown>, keys: string[]): boolean {
+  return keys.some((key) => obj[key] !== undefined && obj[key] !== null && obj[key] !== "");
 }
 
 function coerceBoolean(value: unknown): boolean {
