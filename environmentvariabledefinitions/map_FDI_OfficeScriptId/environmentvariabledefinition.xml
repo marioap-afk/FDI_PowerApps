@@ -1,0 +1,13 @@
+<environmentvariabledefinition schemaname="map_FDI_OfficeScriptId">
+  <description default="El ID del Office Script en Creación_FDI. ">
+    <label description="El ID del Office Script en Creación_FDI. " languagecode="3082" />
+  </description>
+  <displayname default="FDI_OfficeScriptId">
+    <label description="FDI_OfficeScriptId" languagecode="3082" />
+  </displayname>
+  <introducedversion>1.0.0.37</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>

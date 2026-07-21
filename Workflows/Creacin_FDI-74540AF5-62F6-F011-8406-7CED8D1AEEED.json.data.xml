@@ -2,7 +2,7 @@
 <Workflow WorkflowId="{74540af5-62f6-f011-8406-7ced8d1aeeed}" Name="Creación_FDI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <JsonFileName>/Workflows/Creacin_FDI-74540AF5-62F6-F011-8406-7CED8D1AEEED.json</JsonFileName>
   <Type>1</Type>
-  <Subprocess>0</Subprocess>
+  <Subprocess>1</Subprocess>
   <Category>5</Category>
   <Mode>0</Mode>
   <Scope>4</Scope>

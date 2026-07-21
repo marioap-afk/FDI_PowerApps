@@ -1,12 +1,11 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<ImportExportXml version="9.2.26051.157" SolutionPackageVersion="9.2" languagecode="3082" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26051.157" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.26051.00157">
+<ImportExportXml version="9.2.26052.159" SolutionPackageVersion="9.2" languagecode="3082" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26052.159" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.26053.00150">
   <SolutionManifest>
     <UniqueName>FDI</UniqueName>
     <LocalizedNames>
       <LocalizedName description="FDI" languagecode="3082" />
     </LocalizedNames>
     <Descriptions />
-    <Version>1.0.0.1</Version>
+    <Version>1.0.0.46</Version>
     <Managed>0</Managed>
     <Publisher>
       <UniqueName>Mario</UniqueName>
@@ -23,14 +22,16 @@
       <Addresses />
     </Publisher>
     <RootComponents>
-      <RootComponent type="29" id="{411eee39-4bf5-f011-8406-7ced8d1aeeed}" behavior="0" />
-      <RootComponent type="29" id="{71cb1c30-dbf4-f011-8406-7ced8d1aeeed}" behavior="0" />
       <RootComponent type="29" id="{74540af5-62f6-f011-8406-7ced8d1aeeed}" behavior="0" />
       <RootComponent type="29" id="{9c172a3b-3fb1-f011-bbd2-6045bd022950}" behavior="0" />
+      <RootComponent type="29" id="{e91fc28a-2c6b-f111-ab0d-7ced8d1aeeed}" behavior="0" />
       <RootComponent type="300" schemaName="mapc_fdi_412ec" behavior="0" />
-      <RootComponent type="66" schemaName="CodexControls.RichTextAttachments" behavior="0" />
-      <RootComponent type="66" schemaName="hto_OFRns.OFRTinyMCEEditor" behavior="0" />
     </RootComponents>
-    <MissingDependencies />
+    <MissingDependencies>
+      <MissingDependency>
+        <Required type="66" schemaName="fdi_FDI.HtmlEditor" displayName="fdi_FDI.HtmlEditor" solution="Active" />
+        <Dependent type="300" schemaName="mapc_fdi_412ec" displayName="FDI" />
+      </MissingDependency>
+    </MissingDependencies>
   </SolutionManifest>
 </ImportExportXml>

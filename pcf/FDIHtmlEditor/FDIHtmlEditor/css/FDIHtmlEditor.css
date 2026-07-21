@@ -1,0 +1,476 @@
+/* ─── Root container ─────────────────────────────────────────────────────── */
+.fdi-editor {
+  --fe-border:   #d0d7de;
+  --fe-surface:  #ffffff;
+  --fe-muted:    #f6f8fa;
+  --fe-text:     #24292f;
+  --fe-primary:  #0f6cbd;
+  --fe-soft:     #e7f1fb;
+  --fe-active:   #dbeafe;
+  --fe-danger:   #b42318;
+  --fe-radius:   6px;
+
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  min-height: 300px;
+  height: 100%;
+  border: 1px solid var(--fe-border);
+  border-radius: 8px;
+  background: var(--fe-surface);
+  color: var(--fe-text);
+  font: 14px/1.5 "Segoe UI", Arial, sans-serif;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,.07);
+}
+
+.fdi-editor *,
+.fdi-editor *::before,
+.fdi-editor *::after {
+  box-sizing: border-box;
+}
+
+/* ─── Toolbar ────────────────────────────────────────────────────────────── */
+.fdi-editor__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px;
+  padding: 5px 8px;
+  background: var(--fe-muted);
+  border-bottom: 1px solid var(--fe-border);
+  user-select: none;
+}
+
+.fdi-editor__group {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  padding-right: 6px;
+  margin-right: 3px;
+  border-right: 1px solid var(--fe-border);
+}
+
+.fdi-editor__group:last-child {
+  border-right: none;
+  padding-right: 0;
+  margin-right: 0;
+}
+
+/* ─── Base button ─────────────────────────────────────────────────────────── */
+.fdi-editor__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: var(--fe-radius);
+  background: transparent;
+  color: var(--fe-text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: background .12s, border-color .12s, color .12s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.fdi-editor__btn:hover {
+  background: #eaeef2;
+  border-color: var(--fe-border);
+}
+
+.fdi-editor__btn:focus-visible {
+  outline: 2px solid var(--fe-primary);
+  outline-offset: 1px;
+}
+
+.fdi-editor__btn:active {
+  background: var(--fe-soft);
+  border-color: var(--fe-primary);
+}
+
+/* Active/pressed state (bold, italic, etc.) */
+.fdi-editor__btn--active {
+  background: var(--fe-active);
+  border-color: #bfdbfe;
+  color: var(--fe-primary);
+}
+
+.fdi-editor__btn--active:hover {
+  background: #bfdbfe;
+}
+
+.fdi-editor__btn--wide {
+  min-width: 44px;
+  gap: 3px;
+}
+
+.fdi-editor__btn--split {
+  gap: 1px;
+  padding-right: 4px;
+}
+
+/* Styled text buttons for B / I / U / S */
+.fdi-editor__btn--bold       { font-family: Georgia, "Times New Roman", serif; font-weight: 900; font-size: 15px; }
+.fdi-editor__btn--italic     { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 15px; }
+.fdi-editor__btn--underline  { text-decoration: underline; }
+.fdi-editor__btn--strike     { text-decoration: line-through; }
+
+/* ─── Selects (format block + font size) ─────────────────────────────────── */
+.fdi-editor__format-sel,
+.fdi-editor__font-size-sel {
+  height: 30px;
+  padding: 0 6px;
+  border: 1px solid var(--fe-border);
+  border-radius: var(--fe-radius);
+  background: var(--fe-surface);
+  color: var(--fe-text);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  outline: none;
+  appearance: auto;
+}
+
+.fdi-editor__format-sel    { min-width: 80px; }
+.fdi-editor__font-size-sel { min-width: 82px; }
+
+.fdi-editor__format-sel:focus,
+.fdi-editor__font-size-sel:focus {
+  border-color: var(--fe-primary);
+  box-shadow: 0 0 0 2px var(--fe-soft);
+}
+
+/* ─── Color picker ────────────────────────────────────────────────────────── */
+.fdi-editor__color-wrap {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+}
+
+.fdi-editor__btn--color {
+  flex-direction: column;
+  gap: 0;
+  min-width: 30px;
+  height: 30px;
+  padding: 3px 6px 2px;
+}
+
+.fdi-editor__color-letter {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.fdi-editor__color-swatch {
+  display: block;
+  width: 18px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.fdi-editor__color-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* ─── Table dropdown ─────────────────────────────────────────────────────── */
+.fdi-editor__dropdown-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.fdi-editor__dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 100;
+  min-width: 230px;
+  padding: 4px 0;
+  border: 1px solid var(--fe-border);
+  border-radius: 8px;
+  background: var(--fe-surface);
+  box-shadow: 0 6px 20px rgba(0,0,0,.12);
+}
+
+.fdi-editor__dropdown--hidden {
+  display: none;
+}
+
+.fdi-editor__menu-section {
+  padding: 6px 12px 3px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: #6e7781;
+  user-select: none;
+}
+
+.fdi-editor__menu-section:not(:first-child) {
+  margin-top: 4px;
+  border-top: 1px solid var(--fe-border);
+  padding-top: 8px;
+}
+
+.fdi-editor__menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  color: var(--fe-text);
+  font: inherit;
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+  transition: background .1s;
+}
+
+.fdi-editor__menu-item:hover:not(:disabled) {
+  background: var(--fe-muted);
+}
+
+.fdi-editor__menu-item:disabled {
+  color: #c1c7cf;
+  cursor: default;
+}
+
+.fdi-editor__menu-item svg {
+  flex-shrink: 0;
+  color: #57606a;
+}
+
+/* ─── Editor body ────────────────────────────────────────────────────────── */
+.fdi-editor__body {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 200px;
+}
+
+.fdi-editor__editable {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 200px;
+  padding: 18px 22px;
+  overflow: auto;
+  outline: none;
+  background: #ffffff;
+  color: var(--fe-text);
+  font: 14px/1.6 "Segoe UI", Arial, sans-serif;
+}
+
+.fdi-editor__editable:empty::before {
+  content: attr(placeholder);
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.fdi-editor__editable a {
+  color: var(--fe-primary);
+  text-decoration: underline;
+}
+
+.fdi-editor__editable h1 { font-size: 1.8em; margin: .5em 0; font-weight: 700; }
+.fdi-editor__editable h2 { font-size: 1.4em; margin: .5em 0; font-weight: 700; }
+.fdi-editor__editable h3 { font-size: 1.15em; margin: .5em 0; font-weight: 600; }
+.fdi-editor__editable p  { margin: .4em 0; }
+
+.fdi-editor__editable hr {
+  border: none;
+  border-top: 2px solid var(--fe-border);
+  margin: 12px 0;
+}
+
+.fdi-editor__editable blockquote {
+  margin: 8px 0 8px 16px;
+  padding-left: 12px;
+  border-left: 4px solid var(--fe-border);
+  color: #57606a;
+}
+
+.fdi-editor__editable ul,
+.fdi-editor__editable ol {
+  margin: .4em 0;
+  padding-left: 1.8em;
+}
+
+/* Tables */
+.fdi-editor__editable table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+}
+
+.fdi-editor__editable td,
+.fdi-editor__editable th {
+  min-width: 80px;
+  padding: 8px 10px;
+  border: 1px solid #c9d1d9;
+  vertical-align: top;
+  text-align: left;
+}
+
+.fdi-editor__editable th {
+  background: #f6f8fa;
+  font-weight: 600;
+}
+
+/* Images */
+.fdi-editor__editable img {
+  max-width: 100%;
+  height: auto;
+  cursor: nwse-resize;
+  border-radius: 3px;
+}
+
+.fdi-editor__img--selected {
+  outline: 2px solid var(--fe-primary);
+  outline-offset: 2px;
+}
+
+/* ─── Source mode textarea ───────────────────────────────────────────────── */
+.fdi-editor__source {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 200px;
+  padding: 16px;
+  border: none;
+  outline: none;
+  resize: none;
+  font: 13px/1.6 "Cascadia Code", "Consolas", "Courier New", monospace;
+  color: #24292f;
+  background: #f8f9fb;
+  tab-size: 2;
+}
+
+/* ─── Resize handle ──────────────────────────────────────────────────────── */
+.fdi-editor__resize-handle {
+  position: absolute;
+  z-index: 10;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  background: var(--fe-primary);
+  box-shadow: 0 1px 4px rgba(0,0,0,.25);
+  cursor: nwse-resize;
+  pointer-events: all;
+}
+
+/* ─── Footer ─────────────────────────────────────────────────────────────── */
+.fdi-editor__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 10px;
+  border-top: 1px solid var(--fe-border);
+  background: var(--fe-muted);
+  color: #6e7781;
+  font-size: 11px;
+}
+
+.fdi-editor__status--warn {
+  color: var(--fe-danger);
+  font-weight: 600;
+}
+
+.fdi-editor__version {
+  opacity: .45;
+  font-size: 10px;
+  letter-spacing: .02em;
+  flex-shrink: 0;
+}
+
+/* ─── Inline link dialog (replaces window.prompt in sandboxed iframes) ────── */
+.fdi-editor__dialog-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,.35);
+  border-radius: 8px;
+}
+
+.fdi-editor__dialog {
+  background: var(--fe-surface);
+  border: 1px solid var(--fe-border);
+  border-radius: 8px;
+  padding: 20px;
+  width: 320px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.2);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fdi-editor__dialog-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fe-text);
+}
+
+.fdi-editor__dialog-input {
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--fe-border);
+  border-radius: var(--fe-radius);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+  width: 100%;
+}
+
+.fdi-editor__dialog-input:focus {
+  border-color: var(--fe-primary);
+  box-shadow: 0 0 0 2px var(--fe-soft);
+}
+
+.fdi-editor__dialog-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.fdi-editor__dialog-btn {
+  height: 32px;
+  padding: 0 16px;
+  border-radius: var(--fe-radius);
+  border: 1px solid var(--fe-border);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  background: var(--fe-surface);
+  color: var(--fe-text);
+}
+
+.fdi-editor__dialog-btn--ok {
+  background: var(--fe-primary);
+  border-color: var(--fe-primary);
+  color: #fff;
+}
+
+.fdi-editor__dialog-btn--ok:hover {
+  background: #0856a5;
+}
+
+.fdi-editor__dialog-btn--cancel:hover {
+  background: var(--fe-muted);
+}

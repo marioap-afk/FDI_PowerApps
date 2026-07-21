@@ -1,0 +1,61 @@
+# FDI HTML Editor PCF
+
+Editor HTML para el cuerpo de correo de FDI en Power Apps Canvas.
+
+## Propiedades
+
+- `DefaultHtml`: HTML inicial que se carga en el editor.
+- `HtmlText`: HTML sanitizado que debe usar `scrCorreo` para enviar el correo.
+
+## Integración en `scrCorreo`
+
+1. Importar este PCF como code component de la solución.
+2. En Power Apps Studio, insertar el componente `FDI.HtmlEditor` en `scrCorreo`.
+3. Nombrar la instancia `RichTextEditorCorreo` para conservar la fórmula existente:
+
+   ```powerfx
+   locCuerpoHtml: RichTextEditorCorreo.HtmlText
+   ```
+
+4. Mover al nuevo PCF el `Default` del rich text actual como `DefaultHtml`.
+5. Quitar el rich text nativo anterior después de confirmar que el botón `Enviar` lee `HtmlText`.
+
+No cambia el contrato del flujo ni la lógica de envío.
+
+Nota: no se recomienda reemplazar un control Canvas por PCF editando directamente el `.msapp`; Power Apps debe registrar primero el code component en la solución. Mantener el nombre `RichTextEditorCorreo` evita tocar la fórmula del botón de envío.
+
+## Publisher y nombre del control
+
+El PCF se publica como `fdi_FDI.HtmlEditor`. La solución principal FDI usa el publisher `map`, pero este control debe conservar el publisher `fdi` porque cambiarlo generaría otro identificador de componente y rompería las referencias ya instaladas en Canvas App.
+
+La solución fuente del PCF usa `FDIHtmlEditor` como `UniqueName` para evitar colisiones con scaffolds que conservan el nombre genérico `Solution`.
+
+## Build local
+
+```powershell
+cd pcf/FDIHtmlEditor
+npm install
+npm run build
+```
+
+Si se usa Power Platform CLI, agregar el control a la solución con:
+
+```powershell
+pac solution add-reference --path .\pcf\FDIHtmlEditor
+```
+
+El proyecto PCF está en `FDIHtmlEditor.pcfproj`.
+
+## Capacidades
+
+- Negritas, cursiva y subrayado.
+- Alineación izquierda, centro y derecha.
+- Listas ordenadas y no ordenadas.
+- Links.
+- Inserción de tablas.
+- Pegado de imágenes con `Ctrl+V`.
+- Inserción de imágenes desde archivo.
+- Redimensionado de imágenes por arrastre.
+- Limpieza de formato.
+- Contador de palabras y caracteres.
+- Sanitización básica sin servicios externos.

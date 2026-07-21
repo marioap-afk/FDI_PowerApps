@@ -1,0 +1,103 @@
+{
+  "cotizacion": {
+    "ID": 101,
+    "Created": "2026-06-09T18:30:00Z",
+    "Carpeta": "001-26 Navil Steel GC",
+    "Folio": "001-26",
+    "Title": "Navil Steel GC",
+    "VendedoresLookUp": {
+      "Value": "Alejandra Mendoza"
+    },
+    "EmpresaLookUp": {
+      "Value": "Navil Steel GC"
+    },
+    "Direcci_x00f3_ndelaempresa": "Av. de la Industria 1200, Monterrey, Nuevo León",
+    "ContactoLookUp": {
+      "Value": "Carlos Rivera"
+    },
+    "Correoempresarial": "carlos.rivera@example.com",
+    "N_x00fa_merodetel_x00e9_fono": "+52 81 5555 0101",
+    "Monedadecotizaci_x00f3_n": {
+      "Value": "MXN"
+    },
+    "Flete": true,
+    "Pa_x00ed_sdedestino": {
+      "Value": "México"
+    },
+    "Estadodedestino": {
+      "Value": "Nuevo León"
+    },
+    "Ciudaddedestino": {
+      "Value": "Monterrey"
+    },
+    "Fianzas": false,
+    "P_x00f3_lizaderesponsabilidadciv": true,
+    "Montodep_x00f3_liza": 250000,
+    "Licitaci_x00f3_n": false,
+    "Fechadeentrega": "2026-07-20",
+    "Prioridad": {
+      "Value": "Alta"
+    },
+    "Estado": {
+      "Value": "Sin asignar"
+    },
+    "Author": {
+      "DisplayName": "Alejandra Mendoza"
+    },
+    "Notificado": false,
+    "Nombredecontacto": "Carlos Rivera",
+    "Solicitudogeneraci_x00f3_n": {
+      "Value": "Solicitud"
+    },
+    "{ContentType}": {
+      "Name": "Item"
+    },
+    "{Path}": "Cotizaciones 2026/"
+  },
+  "sistemasPuente": [
+    {
+      "ID": 501,
+      "Title": "Selectivo",
+      "Nombre": "Selectivo 1",
+      "SistemaId": 1,
+      "Folio": "001-26"
+    },
+    {
+      "ID": 502,
+      "Title": "Selectivo",
+      "Nombre": "Selectivo 2",
+      "SistemaId": 2,
+      "Folio": "001-26"
+    },
+    {
+      "ID": 503,
+      "Title": "Otro",
+      "Nombre": "Sistema especial",
+      "SistemaId": 3,
+      "Folio": "001-26"
+    }
+  ],
+  "sistemaSelectivo": [
+    {
+      "ID": 701,
+      "Folio": "001-26",
+      "Title": "Selectivo 1",
+      "PayloadSistemaJson": "{\"SistemaId\":1,\"TipoKey\":\"SEL\",\"NombreSistema\":\"Selectivo 1\",\"TipoDiseño\":\"Diseño\",\"ConfiguracionNiveles\":\"3 niveles + piso\",\"PasilloMax\":\"3800\",\"PasilloMin\":\"3200\",\"AnchoDisp\":\"25000\",\"LargoDisp\":\"52000\",\"AltCritMonta\":\"6800\",\"AltCritNiv\":\"7200\",\"DefPorCliente\":\"No\",\"NumPedidoCot\":\"\",\"Galvanizado\":false,\"TipoGalv\":\"\",\"PpkgGalv\":\"\",\"Instalacion\":true,\"MemCalc\":true,\"EstProv\":false,\"ProvExternos\":false,\"ConsEsp\":\"Considerar carga sísmica y zona de maniobra.\",\"Piezas\":[{\"SistemaId\":1,\"Pieza\":\"Marco 42 in\",\"Comentarios\":\"Azul\"},{\"SistemaId\":1,\"Pieza\":\"Viga 96 in\",\"Comentarios\":\"Naranja\"}],\"Tarimas\":[{\"SistemaId\":1,\"Tipo\":\"CHEP\",\"Alto\":\"1500\",\"Frente\":\"1200\",\"Fondo\":\"1000\",\"ExcedenteFrente\":\"50\",\"ExcedenteFondo\":\"30\"},{\"SistemaId\":1,\"Tipo\":\"Europea\",\"Alto\":\"1350\",\"Frente\":\"1200\",\"Fondo\":\"800\",\"ExcedenteFrente\":\"0\",\"ExcedenteFondo\":\"0\"}],\"ElementosSeguridad\":[{\"SistemaId\":1,\"Pieza\":\"Protector de marco\",\"Comentario\":\"Frente de pasillo\"}],\"Colores\":[{\"SistemaId\":1,\"Pieza\":\"Marcos\",\"Color\":\"Azul Montilla\"},{\"SistemaId\":1,\"Pieza\":\"Vigas\",\"Color\":\"Naranja\"}]}"
+    },
+    {
+      "ID": 702,
+      "Folio": "001-26",
+      "Title": "Selectivo 2",
+      "PayloadSistemaJson": "{\"SistemaId\":2,\"TipoKey\":\"SEL\",\"NombreSistema\":\"Selectivo 2\",\"TipoDiseño\":\"Listado de piezas\",\"ConfiguracionNiveles\":\"2 niveles\",\"PasilloMax\":\"3600\",\"PasilloMin\":\"3000\",\"AnchoDisp\":\"18000\",\"LargoDisp\":\"30000\",\"AltCritMonta\":\"6000\",\"AltCritNiv\":\"6400\",\"DefPorCliente\":\"Sí\",\"NumPedidoCot\":\"PED-445\",\"Galvanizado\":true,\"TipoGalv\":\"Post-galvanizado\",\"PpkgGalv\":\"12.5\",\"Instalacion\":false,\"MemCalc\":false,\"EstProv\":false,\"ProvExternos\":true,\"ConsEsp\":\"Sistema espejo del área norte.\",\"Piezas\":[{\"SistemaId\":2,\"Pieza\":\"Marco 36 in\",\"Comentarios\":\"Galvanizado\"},{\"SistemaId\":2,\"Pieza\":\"Viga 108 in\",\"Comentarios\":\"Carga pesada\"}],\"Tarimas\":[{\"SistemaId\":2,\"Tipo\":\"Especial\",\"Alto\":\"1700\",\"Frente\":\"1300\",\"Fondo\":\"1100\",\"ExcedenteFrente\":\"80\",\"ExcedenteFondo\":\"40\"}],\"ElementosSeguridad\":[],\"Colores\":[{\"SistemaId\":2,\"Pieza\":\"Todo\",\"Color\":\"Galvanizado\"}]}"
+    }
+  ],
+  "sistemaOtro": [
+    {
+      "ID": 801,
+      "Folio": "001-26",
+      "Title": "Sistema especial",
+      "SistemaID": 503,
+      "HTML": "<p>Sistema especial con requerimientos por revisar en ingeniería.</p><table><tr><th>Dato</th><th>Valor</th></tr><tr><td>Altura</td><td>Variable</td></tr></table>"
+    }
+  ]
+}

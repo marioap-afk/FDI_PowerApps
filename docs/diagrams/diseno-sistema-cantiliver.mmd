@@ -1,0 +1,117 @@
+---
+config:
+  layout: elk
+---
+flowchart TB
+ subgraph subGraph0["Captura por diseño"]
+    CAR["Sección: Carga / producto"]
+    CONF["Sección: Configuración del rack (cantiléver)"]
+    AREA["Sección: Área disponible / pasillos"]
+    N["Sección: Criterios para configuración de niveles"]
+    SEG["Sección: Elementos de seguridad"]
+    PE["Sección: Piezas especiales"]
+
+    CAR1["Tipo de producto (texto abierto)"]
+    CAR2["Longitud de la carga"]
+    CAR3["Sección / diámetro / ancho"]
+    CAR4["Peso por pieza / por nivel"]
+    CAR5["Cantidad por nivel"]
+
+    CONF1{"¿Tipo de góndola?"}
+    CONF1A["Góndola sencilla"]
+    CONF1B["Góndola doble"]
+    CONF1C["Ambas"]
+    CONF1D["Por diseño"]
+
+    P1["Pasillo máximo de montacargas"]
+    P2["Pasillo mínimo de montacargas"]
+    P3["Ancho de área disponible"]
+    P4["Largo disponible"]
+
+    N1{"¿Considerar altura máxima de montacargas?"}
+    N2{"¿Considerar altura de nave?"}
+    N3{"¿Adjuntar Imagen/Layout?"}
+    N4{"¿Existe definición por parte del cliente?"}
+    N1A["Altura máxima de montacargas"]
+    N2A["Altura máxima de nave"]
+    N2B["Altura mínima de nave"]
+    N3B["Adjuntar archivos"]
+    N4A["Comentarios de configuración del cliente"]
+
+    SEG1{"¿Considerar elementos de seguridad?"}
+    SEG2["Tabla: Listado de piezas de seguridad"]
+    PE1{"¿Considerar piezas especiales?"}
+    PE2["Tabla: Piezas especiales"]
+ end
+ subgraph subGraph1["Referencia anterior"]
+    FOL1["Folio de cotización anterior"]
+    FOL2["Folio de pedido anterior"]
+    FOL3["Comentarios / alcance de la referencia"]
+ end
+ subgraph subGraph2["Datos comunes del sistema"]
+    D["Acabado"]
+    E["Tabla: Colores por pieza"]
+    F{"¿Requiere instalación?"}
+    G{"¿Requiere memoria de cálculo?"}
+    U{"¿Unirse a estructura del cliente?"}
+    H{"¿Se consideran proveedores externos?"}
+    I["Comentarios generales del sistema"]
+    D1["Pintado"]
+    D2["Galvanizado en frío"]
+    D3["Galvanizado en caliente"]
+    D4["Pregalvanizado"]
+    P["Precio por kilogramo"]
+    F1["Costo de instalación"]
+    F2["Comentarios de instalación"]
+    G1["Costo de memoria de cálculo"]
+    U1["Comentarios / requisitos"]
+    H1["Tabla: Proveedores externos"]
+ end
+
+ A["Sistema cantiléver"] --> B{"Método de captura"} & D & E & F & G & U & H & I
+
+ %% Método de captura
+ B -- Diseño --> subGraph0
+ B -- Listado de piezas --> LP["Tabla: Listado de piezas"]
+ B -- Planos/diseño de cliente --> CLI["Adjuntar planos/diseño de cliente"]
+ B -- Cotización o pedido anterior --> subGraph1
+
+ %% Con planos del cliente igual se verifica la carga (corroborar perfiles fabricados)
+ CLI -- Verificar perfiles --> CAR
+
+ %% Carga / producto
+ CAR --> CAR1 & CAR2 & CAR3 & CAR4 & CAR5
+
+ %% Configuración del rack (cantiléver)
+ %% Nota: número de columnas, longitud/capacidad de brazo, altura de columna,
+ %% separación, base, voladizo e inclinación los deriva ingeniería del producto;
+ %% no se capturan aquí.
+ CONF --> CONF1
+ CONF1 --> CONF1A & CONF1B & CONF1C & CONF1D
+
+ %% Área disponible / pasillos
+ AREA --> P1 & P2 & P3 & P4
+
+ %% Criterios para configuración de niveles (determinan los niveles de brazos)
+ N --> N1 & N2 & N3 & N4
+ N1 -- Sí --> N1A
+ N2 -- Sí --> N2A & N2B
+ N3 -- Sí --> N3B
+ N4 -- Sí --> N4A
+
+ %% Elementos de seguridad
+ SEG --> SEG1
+ SEG1 -- Sí --> SEG2
+
+ %% Piezas especiales
+ PE --> PE1
+ PE1 -- Sí --> PE2
+
+ %% Datos comunes del sistema
+ D --> D1 & D2 & D3 & D4
+ D2 --> P
+ D3 --> P
+ F -- Sí --> F1 & F2
+ G -- Sí --> G1
+ U -- Sí --> U1
+ H -- Sí --> H1

@@ -1,0 +1,122 @@
+---
+config:
+  layout: elk
+---
+flowchart TB
+ subgraph subGraph0["Captura por diseño"]
+    CAR["Sección: Producto"]
+    ENT["Sección: Configuración del entrepiso"]
+    AREA["Sección: Área disponible / pasillos"]
+    N["Sección: Criterios para configuración de niveles"]
+    SEG["Sección: Elementos de seguridad"]
+    PE["Sección: Piezas especiales"]
+
+    CARTBL["Tabla: Productos"]
+    CAR1["Tipo de producto (texto abierto)"]
+    CAR2["Largo del producto"]
+    CAR3["Ancho del producto"]
+    CAR4["Alto del producto"]
+    CAR5["Peso por pieza"]
+    CAR6["Cantidad por nivel"]
+
+    ENT1["Altura recomendada del entrepiso (def. 2.4 m)"]
+    ENT2["Cantidad de entrepisos"]
+    ENT3{"¿Requiere elevador?"}
+    ENT3A["Capacidad / especificación del elevador"]
+    ENT4{"Tipo de piso"}
+    ENT4A["Rejilla Irving"]
+    ENT4B["MDF"]
+    ENT5{"¿Se usará carrito para pickear?"}
+    ENT5A["Medidas del carrito"]
+    ENT5B["Número de ruedas"]
+    ENT5C["Tipo de rueda"]
+    ENT5D["Medida de rueda"]
+    ENT5E["Peso del carrito"]
+    ENT6{"¿Requiere escaleras?"}
+
+    P1["Ancho de área disponible"]
+    P2["Largo disponible"]
+    P3["Ancho de pasillo de pickeo"]
+
+    N2{"¿Considerar altura de nave?"}
+    N3{"¿Adjuntar Imagen/Layout?"}
+    N4{"¿Existe definición por parte del cliente?"}
+    N2A["Altura máxima de nave"]
+    N2B["Altura mínima de nave"]
+    N3B["Adjuntar archivos"]
+    N4A["Comentarios de configuración del cliente"]
+
+    SEG1{"¿Considerar elementos de seguridad?"}
+    SEG2["Tabla: Listado de piezas de seguridad"]
+    PE1{"¿Considerar piezas especiales?"}
+    PE2["Tabla: Piezas especiales"]
+ end
+ subgraph subGraph1["Referencia anterior"]
+    FOL1["Folio de cotización anterior"]
+    FOL2["Folio de pedido anterior"]
+    FOL3["Comentarios / alcance de la referencia"]
+ end
+ subgraph subGraph2["Datos comunes del sistema"]
+    D["Acabado"]
+    E["Tabla: Colores por pieza"]
+    F{"¿Requiere instalación?"}
+    G{"¿Requiere memoria de cálculo?"}
+    U{"¿Unirse a estructura del cliente?"}
+    H{"¿Se consideran proveedores externos?"}
+    I["Comentarios generales del sistema"]
+    D1["Pintado"]
+    D2["Galvanizado en frío"]
+    D3["Galvanizado en caliente"]
+    D4["Pregalvanizado"]
+    P["Precio por kilogramo"]
+    F1["Costo de instalación"]
+    F2["Comentarios de instalación"]
+    G1["Costo de memoria de cálculo"]
+    U1["Comentarios / requisitos"]
+    H1["Tabla: Proveedores externos"]
+ end
+
+ A["Sistema mezzanine"] --> B{"Método de captura"} & D & E & F & G & U & H & I
+
+ %% Método de captura
+ B -- Diseño --> subGraph0
+ B -- Listado de piezas --> LP["Tabla: Listado de piezas"]
+ B -- Planos/diseño de cliente --> CLI["Adjuntar planos/diseño de cliente"]
+ B -- Cotización o pedido anterior --> subGraph1
+ CLI -- Verificar perfiles --> CAR
+
+ %% Producto (tabla: un renglón por producto; pickeo manual, no tarima)
+ CAR --> CARTBL
+ CARTBL --> CAR1 & CAR2 & CAR3 & CAR4 & CAR5 & CAR6
+
+ %% Configuración del entrepiso
+ ENT --> ENT1 & ENT2 & ENT3 & ENT4 & ENT5 & ENT6
+ ENT3 -- Sí --> ENT3A
+ ENT4 --> ENT4A & ENT4B
+ ENT5 -- Sí --> ENT5A & ENT5B & ENT5C & ENT5D & ENT5E
+
+ %% Área disponible / pasillos (sin montacargas, pasillo de pickeo)
+ AREA --> P1 & P2 & P3
+
+ %% Criterios para configuración de niveles (limita la altura de nave y el producto)
+ N --> N2 & N3 & N4
+ N2 -- Sí --> N2A & N2B
+ N3 -- Sí --> N3B
+ N4 -- Sí --> N4A
+
+ %% Elementos de seguridad
+ SEG --> SEG1
+ SEG1 -- Sí --> SEG2
+
+ %% Piezas especiales
+ PE --> PE1
+ PE1 -- Sí --> PE2
+
+ %% Datos comunes del sistema
+ D --> D1 & D2 & D3 & D4
+ D2 --> P
+ D3 --> P
+ F -- Sí --> F1 & F2
+ G -- Sí --> G1
+ U -- Sí --> U1
+ H -- Sí --> H1

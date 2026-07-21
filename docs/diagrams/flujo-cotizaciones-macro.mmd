@@ -1,0 +1,33 @@
+---
+config:
+  layout: elk
+---
+flowchart TB
+ BORR["Borrador<br/>(scrFDI · solo local del creador)"]
+ SINAS["Sin asignar<br/>(dispara flujo Creación_FDI)"]
+ ASIG["Asignada<br/>(handoff coordinador → ingeniero · marca de KPI)"]
+ PROC["En proceso<br/>(trabajo del ingeniero — ver capa MICRO)"]
+ LISTA["Lista para enviar"]
+ ENVC["Enviada a cliente"]
+ COMP["Comprada<br/>(genera pedido)"]
+ PERD["Declinada / Perdida"]
+ CANC["Cancelada<br/>(cualquier estado activo, excepto<br/>Enviada a cliente / Comprada)"]
+
+ %% Capa macro: ciclo de vida
+ BORR -- "Enviar solicitud" --> SINAS
+ SINAS -- "Coordinador asigna (el ingeniero no acepta/rechaza)" --> ASIG
+ ASIG -- "Inicia trabajo del ingeniero" --> PROC
+ PROC -- "El vendedor aprueba la revisión" --> LISTA
+ LISTA -- "Enviar a cliente" --> ENVC
+ ENVC -- "Cliente compra" --> COMP
+ ENVC -- "Cliente no compra / vence" --> PERD
+
+ %% Reapertura por solicitud de actualización (precio / diseño / error)
+ ENVC -- "Solicitud de actualización (Reabrir)" --> PROC
+ COMP -- "Solicitud de actualización (Reabrir)" --> PROC
+
+ %% Cancelación (cualquier estado activo salvo Enviada a cliente / Comprada)
+ SINAS -. "Cancelar" .-> CANC
+ ASIG -. "Cancelar" .-> CANC
+ PROC -. "Cancelar" .-> CANC
+ LISTA -. "Cancelar" .-> CANC

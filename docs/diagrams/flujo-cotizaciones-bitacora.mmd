@@ -1,0 +1,42 @@
+---
+config:
+  layout: elk
+---
+flowchart LR
+ subgraph EV["Eventos que generan registro (campo Evento)"]
+    subgraph G1["Ciclo de vida"]
+        e_sa["Sin asignar"]
+        e_ec["Enviada a cliente"]
+    end
+    subgraph G2["Solicitudes de información"]
+        e_sc["Solicitud de información creada"]
+        e_is["Información subida"]
+        e_au["Solicitud de actualización"]
+        e_sr["Solicitud de información rechazada"]
+        e_sx["Solicitud de información cancelada"]
+        e_rb["Solicitud reabierta"]
+    end
+    subgraph G3["Revisión de documentos"]
+        e_er["Enviado a revisión"]
+        e_ev["Evidencia anexada a revisión"]
+        e_da["Documento aprobado"]
+        e_cr["Corrección requerida"]
+    end
+ end
+
+ BITA[("BITÁCORA cotizaciones<br/>1 renglón por evento")]
+
+ subgraph CAMPOS["Cada renglón registra"]
+    c1["Evento"]
+    c2["Estado anterior → Estado nuevo"]
+    c3["FolioLookUp (Id + Folio de la cotización)"]
+    c4["Usuario (claims SP) + UsuarioSnapShot (nombre)"]
+    c5["Creado = Now()"]
+    c6["Comentario"]
+    c7["Evidencia (Link to item del documento)"]
+ end
+
+ G1 --> BITA
+ G2 --> BITA
+ G3 --> BITA
+ BITA --> c1 & c2 & c3 & c4 & c5 & c6 & c7

@@ -1,0 +1,135 @@
+{
+  "cotizacion": {
+    "Creación": "2026-06-09T18:30:00-06:00",
+    "ID": 1001,
+    "Carpeta": "https://montillacom.sharepoint.com/sites/Pruebas/Carpeta cotizaciones/2026/001-26 Navil Steel GC",
+    "Folio": "001-26",
+    "VendedoresLookUp": "Vendedor Demo",
+    "EmpresaLookUp": "Navil Steel GC",
+    "Dirección de la empresa": "Dirección de prueba editable",
+    "ContactoLookUp": "Contacto Demo",
+    "Correo empresarial": "contacto.demo@example.com",
+    "Número de teléfono": "555-0100",
+    "Moneda de cotización": "MXN",
+    "Flete": true,
+    "País de destino": "México",
+    "Estado de destino": "Nuevo León",
+    "Ciudad de destino": "Monterrey",
+    "Fianzas": false,
+    "Póliza de responsabilidad civil": true,
+    "Monto de póliza": 500000,
+    "Licitación": false,
+    "Fecha de entrega": "2026-08-15",
+    "Prioridad": "Normal",
+    "Estado": "Sin asignar",
+    "Created By": "alejandra-mendoza@example.com",
+    "Notificado": false,
+    "Title": "Navil Steel GC",
+    "Nombre de contacto": "Contacto Demo",
+    "Solicitud o generación": "Solicitud",
+    "Item Type": "Cotización",
+    "Path": "Carpeta cotizaciones/2026/001-26 Navil Steel GC"
+  },
+  "sistemas": [
+    {
+      "SistemaId": 1,
+      "TipoKey": "SEL",
+      "TipoNombre": "Selectivo",
+      "NombreSistema": "Selectivo 1",
+      "TipoDiseño": "Diseño",
+      "PasilloMin": "3200",
+      "PasilloMax": "3600",
+      "AnchoDisp": "18000",
+      "LargoDisp": "42000",
+      "ConfNiv": "4 niveles",
+      "AltCritMonta": "6800",
+      "AltCritNiv": "7200",
+      "DefPorCliente": "No",
+      "NumPedidoCot": "",
+      "GalvList": true,
+      "TipoGalv": "Hot-Dip",
+      "PpkgGalv": "18.50",
+      "Ins": true,
+      "MemCalc": true,
+      "EstProv": false,
+      "ProvExternos": false,
+      "ConsEsp": "Considerar carga sísmica y zona de maniobra.",
+      "piezas": [
+        {
+          "Pieza": "Marco 42 in",
+          "Comentarios": "Altura 7.2 m"
+        },
+        {
+          "Pieza": "Larguero 96 in",
+          "Comentarios": "Carga 2500 kg por nivel"
+        }
+      ],
+      "tarimas": [
+        {
+          "Tipo": "Madera",
+          "Alto": "150",
+          "Frente": "1200",
+          "Fondo": "1000",
+          "ExcedenteFrente": "50",
+          "ExcedenteFondo": "0",
+          "Peso": "120",
+          "Excedente": "Sí"
+        },
+        {
+          "Tipo": "Plástico",
+          "Alto": "160",
+          "Frente": "1100",
+          "Fondo": "1100",
+          "ExcedenteFrente": "0",
+          "ExcedenteFondo": "25",
+          "Peso": "120",
+          "Excedente": "Sí"
+        }
+      ],
+      "elementosSeguridad": [
+        {
+          "Pieza": "Protector de puntal",
+          "Comentario": "En extremos de pasillo"
+        }
+      ],
+      "colores": [
+        {
+          "Pieza": "Marcos",
+          "Color": "Azul"
+        },
+        {
+          "Pieza": "Largueros",
+          "Color": "Naranja"
+        }
+      ]
+    },
+    {
+      "SistemaId": 2,
+      "TipoKey": "SEL",
+      "TipoNombre": "Selectivo",
+      "NombreSistema": "Selectivo 2",
+      "TipoDiseño": "Listado de piezas",
+      "NumPedidoCot": "",
+      "piezas": [
+        {
+          "Pieza": "Separador",
+          "Comentarios": "Según layout del cliente"
+        },
+        {
+          "Pieza": "Malla posterior",
+          "Comentarios": "Cotizar por tramo"
+        }
+      ],
+      "tarimas": [],
+      "elementosSeguridad": [],
+      "colores": []
+    },
+    {
+      "SistemaId": 3,
+      "TipoKey": "OT",
+      "TipoNombre": "Otro",
+      "NombreSistema": "Sistema especial 1",
+      "HTMLCol": "<p>Sistema especial con requerimientos por revisar en ingeniería.</p>"
+    }
+  ]
+}

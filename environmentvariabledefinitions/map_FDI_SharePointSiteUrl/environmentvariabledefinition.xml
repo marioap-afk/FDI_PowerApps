@@ -1,0 +1,15 @@
+<environmentvariabledefinition schemaname="map_FDI_SharePointSiteUrl">
+  <apiid>/providers/microsoft.powerapps/apis/shared_sharepointonline</apiid>
+  <description default="El sitio de todas las listas ">
+    <label description="El sitio de todas las listas " languagecode="3082" />
+  </description>
+  <displayname default="FDI_SharePointSiteUrl">
+    <label description="FDI_SharePointSiteUrl" languagecode="3082" />
+  </displayname>
+  <introducedversion>1.0.0.37</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <parameterkey>dataset</parameterkey>
+  <secretstore>0</secretstore>
+  <type>100000004</type>
+</environmentvariabledefinition>
